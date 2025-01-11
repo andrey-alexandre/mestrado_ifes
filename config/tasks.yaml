@@ -1,0 +1,45 @@
+melanoma_diagnosis:
+  description: >
+    Analyze a skin lesion {image} using the 7-point checklist methodology for melanoma diagnosis. 
+    This diagnostic framework evaluates specific dermatoscopic criteria categorized as major and minor. 
+    The task involves:
+    - Identifying major criteria: atypical pigment network, blue-white veil, and atypical vascular pattern.
+    - Identifying minor criteria: irregular streaks, irregular pigmentation, irregular dots and globules, and regression structures.
+    - Scoring each identified feature according to the checklist (3 points for major criteria, 1 point for minor criteria).
+    - Summarizing the total score and providing a diagnostic interpretation based on established thresholds.
+
+    The goal is to deliver a structured and evidence-based diagnosis of the lesion, helping clinicians assess malignancy risk accurately.
+  expected_output: >
+    A detailed report including:
+    - Identification of the 7 dermatoscopic criteria present in the lesion.
+    - A numerical score for each criterion.
+    - The total score for the lesion.
+    - A diagnostic interpretation (e.g., "Low risk of melanoma," "Moderate risk of melanoma," or "High risk of melanoma") 
+      based on the score thresholds:
+        - <3 points: Low risk
+        - 3-4 points: Moderate risk
+        - ≥5 points: High risk
+
+medical_diagnosis_summary:
+  description: >
+    Summarize the results provided by the diagnostic, prognostic, and imaging agents 
+    into a cohesive and actionable final report. The summary should include:
+    - Diagnostic Overview: A synthesis of the findings from the diagnostic agent, including 
+      identified criteria from the 7-point checklist and their respective scores.
+    - Prognostic Evaluation: Insights from the prognostic agent regarding the likelihood 
+      of melanoma and risk categorization based on the total score.
+    - Imaging Observations: Key patterns and markers identified by the imaging analysis agent.
+    - Overall Assessment: A high-level summary of the combined insights, including 
+      key takeaways and next-step recommendations.
+      
+    The report should be formatted in a clear and structured manner, suitable for 
+    medical professionals or stakeholders reviewing the case. Each section should 
+    clearly delineate the source of the insights and present them in an easily 
+    understandable format.
+  expected_output: >
+    A well-structured summary report containing:
+    - A Diagnostic Overview with identified features and a cumulative score.
+    - A Prognostic Evaluation highlighting risk categorization and potential outcomes.
+    - Imaging Observations detailing key markers and abnormalities.
+    - A concise Overall Assessment combining all findings with clear recommendations 
+      for potential next steps or follow-ups.
