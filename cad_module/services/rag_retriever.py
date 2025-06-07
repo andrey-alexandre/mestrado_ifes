@@ -10,9 +10,9 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 def unzip(zip_path: str, extract_path: str) -> None:
     # Extraindo os PDFs
-    os.makedirs(extracted_path, exist_ok=True)
-    with zipfile.ZipFile(extract_path, 'r') as zip_ref:
-        zip_ref.extractall(extracted_path)
+    os.makedirs(extract_path, exist_ok=True)
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_path)
 
 
 def extract_text_from_pdfs(pdf_folder: str) -> str:
