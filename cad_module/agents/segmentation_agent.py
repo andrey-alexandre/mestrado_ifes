@@ -1,3 +1,10 @@
+from io import BytesIO
+import base64
+from PIL import Image
+import random
+import torchvision.transforms as T
+import torch.nn.functional as F
+
 class SegmentationAgent:
   def __init__(self, model, threshold=.5, image_size=224, mode='train', augmentation_prob=0.4):
     self.model = model

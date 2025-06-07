@@ -1,3 +1,5 @@
+from langchain.schema import HumanMessage
+
 class SummaryAgent:
     def __init__(self, llm):
         self.llm = llm

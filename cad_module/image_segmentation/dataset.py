@@ -3,7 +3,7 @@ import argparse
 import random
 import shutil
 from shutil import copyfile
-from misc import printProgressBar
+from .misc import printProgressBar
 
 
 def rm_mkdir(dir_path):
