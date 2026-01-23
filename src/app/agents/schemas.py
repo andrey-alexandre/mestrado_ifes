@@ -7,6 +7,7 @@ class ABCDDiagnosticAnswer(BaseModel):
     cor: str = Field(description="Valor de 1 a 6 e motivo.")
     estruturas: str = Field(description="Valor de 1 a 5 e motivo.")
     explicacao: str = Field(description="Explicação das pontuações dadas.")
+    resultado_final: str = Field(description="Cálculo detalhado do resultado do algoritmo.")
 
 class MenziesPositiveAnswer(BaseModel):
     veu_azul_branco: str = Field(description="Valor 0 ou 1. Motivo.")
@@ -46,8 +47,8 @@ class GraphState(BaseModel):
     lesion_size: float = 0.0
     image_data: Optional[str] = None
     seg_image_data: Optional[str] = None
-    diagnosis_abcd: Union[str, ABCDDiagnosticAnswer, None] = None
-    diagnosis_menzies: Union[str, MenziesDiagnosticAnswer, None] = None
-    diagnosis_spcl: Union[str, SPCLDiagnosticAnswer, None] = None
+    diagnosis_abcd1: Union[str, ABCDDiagnosticAnswer] = None
+    diagnosis_abcd2: Union[str, ABCDDiagnosticAnswer] = None
+    diagnosis_abcd3: Union[str, ABCDDiagnosticAnswer] = None
     validation: Union[str, SummaryAnswer, None] = None
     final_report: Optional[str] = None

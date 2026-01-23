@@ -16,6 +16,7 @@ dependencies = [
     "langgraph",
     "faiss-cpu",
     "langchain_openai",
+    "langchain-text-splitters",
     "sentence-transformers",
     "pydantic",
     "pydantic-settings",

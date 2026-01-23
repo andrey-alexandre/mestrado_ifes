@@ -15,9 +15,9 @@ def extract_text_from_pdfs(pdf_folder: str) -> str:
         if pdf_file.endswith(".pdf"):
             pdf_path = os.path.join(pdf_folder, pdf_file)
             try:
-                doc = pymupdf.open(pdf_path)
-                for page in doc:
-                    text_data += page.get_text("text") + "\n\n"
+                with pymupdf.open(pdf_path) as doc:
+                    for page in doc:
+                        text_data += page.get_text("text") + "\n\n"
             except Exception as e:
-                logger.error(f"Error reading {pdf_path}: {e}")
+                logger.exception(f"Exception reading {pdf_path}: {e}")
     return text_data

@@ -1,8 +1,8 @@
 from torchvision import transforms as T
 from PIL import Image
-import random
 
-def preprocess_image(img: Image.Image, image_size=224):
+
+def preprocess_image(img: Image.Image, image_size=256):
     """
     Preprocesses the image for the segmentation model.
     Note: The original notebook used random transforms which seems odd for inference,
@@ -20,7 +20,7 @@ def preprocess_image(img: Image.Image, image_size=224):
 
     transform_pipeline = T.Compose([
         T.Resize((int(ResizeRange*aspect_ratio), ResizeRange)),
-        T.Resize((int(256*aspect_ratio)-int(256*aspect_ratio)%16, 256)),
+        T.Resize((int(image_size*aspect_ratio)-int(image_size*aspect_ratio)%16, image_size)),
         T.ToTensor()
     ])
 
