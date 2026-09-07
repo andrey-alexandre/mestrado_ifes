@@ -1,0 +1,31 @@
+# Dependências do pipeline de diagnóstico de lesões cutâneas
+# Gerado a partir do notebook LangChain.ipynb
+
+# PDF e RAG
+pymupdf
+faiss-cpu
+
+# LangChain / LangGraph
+langchain
+langchain-community
+langchain-core
+langchain-openai
+langchain-google-genai
+langchain-ollama
+langgraph
+
+# Embeddings
+sentence-transformers
+
+# Deep Learning (segmentação U-Net)
+torch
+torchvision
+Pillow
+
+# Dados
+pandas
+numpy
+scikit-learn
+
+# Configuração
+pyyaml
