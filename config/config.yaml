@@ -1,0 +1,131 @@
+# ============================================================
+# Configurações globais do pipeline de diagnóstico de melanoma
+# ============================================================
+
+paths:
+  # Diretório contendo as imagens ISIC no formato {isic_id}.jpg
+  image_dir: "Image/sample-image/image"
+  # CSV com metadados: isic_id, target, clin_size_long_diam_mm, etc.
+  metadata_csv: "Image/sample-metadata.csv"
+  # Raiz do dataset PH2 (usado quando pipeline.dataset = "ph2")
+  ph2_dataset_dir: "/content/Image/PH2"
+  # Arquivo de metadados PH2 (pipe-delimited) com diagnósticos histológicos
+  ph2_metadata_txt: "/content/Image/PH2_dataset.txt"
+  # Checkpoint pré-treinado do modelo de segmentação (U-Net)
+  model_path: "U_Net-100-0.0005-70-0.6667.pkl"
+  # Arquivo ZIP contendo os PDFs para a base RAG
+  rag_zip: "RAG.zip"
+  # Diretório onde os PDFs serão extraídos
+  extracted_pdfs: "extracted_pdfs"
+  # Arquivo de texto consolidado gerado a partir dos PDFs
+  medical_texts: "medical_texts.txt"
+  # Diretório de saída para os resultados JSON
+  output_dir: "results"
+
+# Modelo de segmentação U-Net
+segmentation:
+  # Modo de segmentação:
+  #   "model"       — gera segmentação em runtime via U-Net (requer model_path)
+  #   "precomputed" — usa máscara pré-existente do dataset (padrão PH2)
+  mode: "model"
+  # Arquitetura: U_Net | R2U_Net | AttU_Net | R2AttU_Net
+  model_name: "U_Net"
+  img_ch: 3
+  output_ch: 1
+  # Dispositivo de inferência: cpu | cuda | mps
+  device: "cpu"
+  # Limiar sigmoid para binarização da máscara
+  threshold: 0.4
+  # Intervalo de pixels para resize aleatório (augmentation)
+  resize_range: [300, 320]
+  augmentation_prob: 0.4
+
+# Modelo de linguagem (LLM)
+llm:
+  # Nome do modelo: "gpt-4o-mini" para OpenAI ou "llava:13b" para Ollama local
+  model_name: "gpt-5.4-nano"
+  temperature: 0
+
+# Base de conhecimento RAG (Retrieval-Augmented Generation)
+rag:
+  # Modelo de embeddings SentenceTransformer para indexação dos PDFs
+  embedding_model: "all-MiniLM-L6-v2"
+  # Tamanho de cada chunk em caracteres
+  chunk_size: 500
+  # Sobreposição entre chunks consecutivos
+  chunk_overlap: 50
+
+# Controle do pipeline de inferência
+pipeline:
+  # Dataset a usar: "isic" (CSV-based) | "ph2" (directory-based)
+  dataset: "isic"
+  random_seed: 42
+  # Número máximo de imagens a processar; 0 = processar todas
+  max_images: 10
+  # Se true, amostra igual de classe 0 e classe 1 (n = min das duas classes)
+  # Com max_images > 0, seleciona max_images//2 por classe
+  balanced: false
+
+# Formato dos arquivos de saída
+output:
+  # Prefixo do nome do arquivo JSON de resultados
+  filename_prefix: "llm_result"
+  date_format: "%Y%m%d"
+
+# ============================================================
+# Treinamento do modelo baseline (ResNet-50)
+# ============================================================
+training:
+  # Diretório para salvar pesos e métricas do treinamento
+  output_dir: "runs/resnet50_baseline"
+
+  # ── Divisão dos dados ─────────────────────────────────────
+  test_size: 0.30       # proporção reservada para teste
+  random_seed: 42       # semente global (split, pesos, dropout)
+
+  # ── Arquitetura ───────────────────────────────────────────
+  backbone: "resnet50"
+  pretrained: true      # pesos ImageNet (transfer learning)
+  freeze_backbone: false # true = linear probe; false = fine-tuning completo
+
+  # ── Treinamento ───────────────────────────────────────────
+  epochs: 30
+  batch_size: 16
+  num_workers: 4
+
+  # ── Otimizador ────────────────────────────────────────────
+  optimizer: "sgd"       # sgd | adam | adamw
+  learning_rate: 0.001
+  momentum: 0.9          # apenas SGD
+  weight_decay: 0.0001
+
+  # ── Scheduler de learning rate ────────────────────────────
+  scheduler: "cosine"    # cosine | step | none
+  step_size: 10          # StepLR: decai o LR a cada N épocas
+  step_gamma: 0.1        # StepLR: fator de decaimento
+
+  # ── Função de perda ───────────────────────────────────────
+  # null → calcula pos_weight = n_neg/n_pos automaticamente
+  pos_weight: null
+
+  # ── Pré-processamento ─────────────────────────────────────
+  input_size: 224
+  normalize_mean: [0.485, 0.456, 0.406]   # estatísticas ImageNet
+  normalize_std:  [0.229, 0.224, 0.225]
+
+  # ── Data Augmentation (somente treino) ───────────────────
+  aug_horizontal_flip: true
+  aug_vertical_flip: true
+  aug_rotation_degrees: 30   # 0 = desativado
+  aug_color_jitter: true
+  aug_color_brightness: 0.2
+  aug_color_contrast: 0.2
+  aug_color_saturation: 0.2
+  aug_color_hue: 0.05
+  aug_random_erasing: true
+  aug_erasing_prob: 0.2
+
+  # ── Early stopping ────────────────────────────────────────
+  early_stopping: true
+  patience: 10
+  monitor_metric: "val_auc"  # val_loss | val_auc | val_f1
