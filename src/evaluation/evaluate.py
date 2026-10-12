@@ -132,12 +132,20 @@ def compute_metrics(result_dict: Dict) -> Optional[Dict]:
     accuracy = (tp + tn) / n if n > 0 else 0.0
     sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0  # recall para melanoma
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    f1 = (
+        2 * precision * sensitivity / (precision + sensitivity)
+        if (precision + sensitivity) > 0
+        else 0.0
+    )
 
     metrics = {
         "n_samples": n,
         "accuracy": round(accuracy, 4),
         "sensitivity": round(sensitivity, 4),
         "specificity": round(specificity, 4),
+        "precision": round(precision, 4),
+        "f1": round(f1, 4),
         "true_positives": tp,
         "true_negatives": tn,
         "false_positives": fp,

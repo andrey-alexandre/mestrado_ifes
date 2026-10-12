@@ -108,6 +108,17 @@ def parse_args():
         action="store_true",
         help="Exibe detalhes completos de cada diagnóstico na avaliação.",
     )
+    parser.add_argument(
+        "--experiment-condition",
+        choices=["image_only", "image_plus_fe", "fe_only"],
+        default=None,
+        help="Condicao experimental: image_only, image_plus_fe ou fe_only.",
+    )
+    parser.add_argument(
+        "--enable-critical-reviewer",
+        action="store_true",
+        help="Reativa explicitamente o revisor critico RAG legado.",
+    )
     return parser.parse_args()
 
 
@@ -129,9 +140,18 @@ def main():
         cfg["llm"]["model_name"] = args.model_name
     if args.balanced:
         cfg["pipeline"]["balanced"] = True
+    if args.experiment_condition is not None:
+        cfg.setdefault("feature_extraction", {})["experiment_condition"] = args.experiment_condition
+    if args.enable_critical_reviewer:
+        cfg.setdefault("feature_extraction", {})["enable_critical_reviewer"] = True
 
     seg_mode = cfg["segmentation"]["mode"]
     dataset_type = cfg["pipeline"].get("dataset", "isic")
+    fe_cfg = cfg.get("feature_extraction", {})
+    experiment_condition = fe_cfg.get("experiment_condition", "image_only")
+    if not bool(fe_cfg.get("enabled", True)):
+        experiment_condition = "image_only"
+    enable_critical_reviewer = bool(fe_cfg.get("enable_critical_reviewer", False))
 
     logger.info("=== ETAPA 1: Pré-processamento ===")
     if args.skip_preprocess:
@@ -143,13 +163,17 @@ def main():
             output_txt_path=cfg["paths"]["medical_texts"],
         )
 
-    logger.info("=== ETAPA 2: Construção do RAG ===")
-    retriever = build_rag(
-        medical_texts_path=cfg["paths"]["medical_texts"],
-        embedding_model=cfg["rag"]["embedding_model"],
-        chunk_size=cfg["rag"]["chunk_size"],
-        chunk_overlap=cfg["rag"]["chunk_overlap"],
-    )
+    logger.info("=== ETAPA 2: Revisor critico / RAG ===")
+    retriever = None
+    if enable_critical_reviewer:
+        retriever = build_rag(
+            medical_texts_path=cfg["paths"]["medical_texts"],
+            embedding_model=cfg["rag"]["embedding_model"],
+            chunk_size=cfg["rag"]["chunk_size"],
+            chunk_overlap=cfg["rag"]["chunk_overlap"],
+        )
+    else:
+        logger.info("Revisor critico RAG desativado.")
 
     logger.info("=== ETAPA 3: Carregamento do dataset (%s) ===", dataset_type)
     if dataset_type == "ph2":
@@ -193,6 +217,9 @@ def main():
         seg_threshold=cfg["segmentation"]["threshold"],
         segmentation_mode=seg_mode,
         seg_model=seg_model,
+        experiment_condition=experiment_condition,
+        feature_extraction_config=fe_cfg,
+        enable_critical_reviewer=enable_critical_reviewer,
     )
 
     logger.info("=== ETAPA 6: Execução do pipeline de inferência ===")
@@ -203,6 +230,8 @@ def main():
         model_name=cfg["llm"]["model_name"],
         filename_prefix=cfg["output"]["filename_prefix"],
         date_format=cfg["output"]["date_format"],
+        experiment_condition=experiment_condition,
+        fe_output_dir=cfg["paths"].get("feature_extraction_output_dir"),
     )
 
     if not args.skip_eval:

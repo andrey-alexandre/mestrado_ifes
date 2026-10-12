@@ -3,6 +3,8 @@ from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 
+from src.features.schemas import FeatureExtractionResult
+
 
 class ABCDDiagnosticAnswer(BaseModel):
     """Resultado estruturado do algoritmo ABCD para análise dermatoscópica."""
@@ -91,3 +93,5 @@ class GraphState(BaseModel):
     diagnosis_spcl: Optional[Union[str, SPCLDiagnosticAnswer]] = None
     validation: Optional[Union[str, SummaryAnswer]] = None
     final_report: Optional[str] = None
+    experiment_condition: str = "image_only"
+    feature_extraction: Optional[Union[dict, FeatureExtractionResult]] = None

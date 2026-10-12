@@ -26,6 +26,10 @@ Pillow
 pandas
 numpy
 scikit-learn
+scipy
 
 # Configuração
 pyyaml
+
+# Testes
+pytest

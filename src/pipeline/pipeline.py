@@ -20,6 +20,8 @@ def run_pipeline(
     model_name: str,
     filename_prefix: str = "llm_result",
     date_format: str = "%Y%m%d",
+    experiment_condition: str = "image_only",
+    fe_output_dir: Optional[str] = None,
 ) -> str:
     """Executa o pipeline de inferência sobre uma lista de imagens.
 
@@ -43,6 +45,11 @@ def run_pipeline(
     date_str = datetime.date.today().strftime(date_format)
     output_filename = f"{filename_prefix}_{model_name}_{date_str}.json"
     output_path = str(Path(output_dir) / output_filename)
+    fe_output_path = None
+    fe_result_dict = {}
+    if fe_output_dir is not None:
+        os.makedirs(fe_output_dir, exist_ok=True)
+        fe_output_path = str(Path(fe_output_dir) / f"feature_extraction_{model_name}_{date_str}.json")
 
     result_dict = {}
 
@@ -51,7 +58,11 @@ def run_pipeline(
         logger.info("%dª imagem iniciou: %s", j + 1, path)
 
         # Montar estado inicial; seg_path só é incluído no modo "precomputed"
-        initial_state = {"image_path": path, "lesion_size": lesion_size}
+        initial_state = {
+            "image_path": path,
+            "lesion_size": lesion_size,
+            "experiment_condition": experiment_condition,
+        }
         if seg_path is not None:
             initial_state["seg_path"] = seg_path
 
@@ -66,10 +77,17 @@ def run_pipeline(
 
         # Serializar objetos Pydantic para dict (necessário para json.dump)
         # Quando model_name == "llava:13b", os campos já são strings
-        for field in ["diagnosis_abcd", "diagnosis_menzies", "diagnosis_spcl", "validation"]:
+        for field in ["diagnosis_abcd", "diagnosis_menzies", "diagnosis_spcl", "validation", "feature_extraction"]:
             val = result_dict[path].get(field)
             if val is not None and hasattr(val, "model_dump"):
                 result_dict[path][field] = val.model_dump()
+        result_dict[path]["experiment_condition"] = experiment_condition
+
+        feature_extraction = result_dict[path].get("feature_extraction")
+        if fe_output_path and feature_extraction is not None:
+            fe_result_dict[path] = feature_extraction
+            with open(fe_output_path, "w", encoding="utf-8") as arquivo:
+                json.dump(fe_result_dict, arquivo, indent=4, ensure_ascii=False)
 
         # Salvar progressivamente após cada imagem para evitar perda em caso de erro
         with open(output_path, "w", encoding="utf-8") as arquivo:
@@ -81,4 +99,6 @@ def run_pipeline(
         )
 
     logger.info("Pipeline concluído. Resultados salvos em: %s", output_path)
+    if fe_output_path:
+        logger.info("Feature Extraction salvo em: %s", fe_output_path)
     return output_path

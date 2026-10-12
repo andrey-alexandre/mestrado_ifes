@@ -25,6 +25,7 @@ from src.models.model import (
     segment_image as _segment_image,
     apply_precomputed_mask,
 )
+from src.features.extractor import build_feature_package
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,61 @@ def _serialize_diagnosis(diagnosis) -> str:
     if hasattr(diagnosis, "model_dump"):
         return json.dumps(diagnosis.model_dump(), ensure_ascii=False, indent=2)
     return str(diagnosis)
+
+
+def _text_message(text: str) -> HumanMessage:
+    return HumanMessage(content=text)
+
+
+def _serialize_feature_extraction(feature_extraction, view: str) -> str:
+    if feature_extraction is None:
+        return ""
+    data = feature_extraction.model_dump() if hasattr(feature_extraction, "model_dump") else feature_extraction
+    if view == "abcd":
+        payload = {"condition": data.get("experiment_condition"), "abcd": data.get("abcd"), "shared": data.get("shared"), "metadata": data.get("metadata")}
+    elif view == "menzies":
+        payload = {"condition": data.get("experiment_condition"), "menzies": data.get("menzies"), "shared": data.get("shared"), "metadata": data.get("metadata")}
+    elif view == "seven_point":
+        payload = {"condition": data.get("experiment_condition"), "seven_point": data.get("seven_point"), "shared": data.get("shared"), "metadata": data.get("metadata")}
+    else:
+        payload = data
+    return json.dumps(payload, ensure_ascii=False, indent=2)
+
+
+def _messages_for_condition(state: GraphState, text_prompt: str, feature_view: str):
+    condition = state.experiment_condition or "image_only"
+    if condition == "image_only":
+        return [_image_message(state.seg_image_data, text_prompt)]
+    fe_prompt = f"""
+
+<-- Feature Extraction determinística congelada -->
+Use o pacote JSON abaixo como evidência computacional conforme o status de cada campo.
+Campos com status UNAVAILABLE e value null indicam critério cientificamente não resolvido; não converta null em ausência clínica.
+Campos RAW_EVIDENCE são evidências intermediárias preservadas e não autorizam binários clínicos quando a limitação disser isso.
+Não invente limiares, calibrações PH2 ou pontuações completas marcadas como não resolvidas.
+
+{_serialize_feature_extraction(state.feature_extraction, feature_view)}
+"""
+    if condition == "fe_only":
+        return [_text_message(text_prompt + fe_prompt + "\nA imagem não é fornecida nesta condição experimental.")]
+    return [_image_message(state.seg_image_data, text_prompt + fe_prompt)]
+
+
+class FeatureExtractionAgent:
+    """Extrai o pacote determinístico congelado antes dos agentes LLM."""
+
+    def __init__(self, experiment_condition: str, config: dict = None):
+        self.experiment_condition = experiment_condition
+        self.config = config or {}
+
+    def extract(self, state: GraphState) -> dict:
+        result = build_feature_package(
+            image_path=state.image_path,
+            mask_path=state.seg_path,
+            experiment_condition=self.experiment_condition,
+            config=self.config,
+        )
+        return {"feature_extraction": result, "experiment_condition": self.experiment_condition}
 
 
 # ──────────────────────────────────────────────
@@ -263,7 +319,7 @@ class ABCDDiagnosticAgent:
           Faça a soma ponderada dos resultados de cada critério, com pesos de 1.3, .1, .5 e .5, respectivamente. Mostre o cálculo da soma ponderada passo a passo. Caso o valor seja inferior a 4.75, é uma lesão benigna. Caso seja superior a 4.75, mas inferior a 5.45 é uma lesão suspeita. Caso seja maior que 5.45 é uma lesão maligna.
         """
 
-        messages = [_image_message(state.seg_image_data, text_prompt)]
+        messages = _messages_for_condition(state, text_prompt, "abcd")
         output = _invoke(self.llm, self.output_format, messages, self.model_name)
         return {"diagnosis_abcd": output}
 
@@ -333,7 +389,7 @@ class MenziesDiagnosticAgent:
         A lesão será classificada como melanoma caso possua 1 característica positiva e as 2 características negativas estiverem ausentes. Se houver apenas 1 característica negativa presente, indica suspeita de melanoma. Não havendo caracterísitica positiva e tendo as 2 características negativas presentes, caracteriza lesão benigna.
       """
 
-        messages = [_image_message(state.seg_image_data, text_prompt)]
+        messages = _messages_for_condition(state, text_prompt, "menzies")
         output = _invoke(self.llm, self.output_format, messages, self.model_name)
         return {"diagnosis_menzies": output}
 
@@ -399,7 +455,7 @@ class SPCLDiagnosticAgent:
         Pontuações inferiores a 3 indicam menor probabilidade de malignidade, mas não descartam a necessidade de avaliação clínica.
       """
 
-        messages = [_image_message(state.seg_image_data, text_prompt)]
+        messages = _messages_for_condition(state, text_prompt, "seven_point")
         output = _invoke(self.llm, self.output_format, messages, self.model_name)
         return {"diagnosis_spcl": output}
 
@@ -463,7 +519,7 @@ class SummaryAgent:
       - Caso haja divergências significativas entre os pareceres, utilize a imagem disponibilizada para avaliar e decidir qual está mais condizente com a lesão
       """
 
-        messages = [_image_message(state.seg_image_data, text_prompt)]
+        messages = _messages_for_condition(state, text_prompt, "summary")
         output = _invoke(self.llm, self.output_format, messages, self.model_name)
         return {"validation": output}
 
@@ -518,6 +574,9 @@ def build_graph(
     seg_threshold: float = 0.4,
     segmentation_mode: str = "model",
     seg_model: torch.nn.Module = None,
+    experiment_condition: str = "image_only",
+    feature_extraction_config: dict = None,
+    enable_critical_reviewer: bool = False,
 ):
     """Constrói e compila o grafo de agentes LangGraph.
 
@@ -569,21 +628,36 @@ def build_graph(
         "summary",
         SummaryAgent(model_name, SummaryAnswer, temperature).summarize,
     )
-    graph.add_node(
-        "critical_review",
-        CriticalReviewAgent(retriever, model_name).validate_diagnosis,
-    )
+    use_feature_extraction = experiment_condition in {"image_plus_fe", "fe_only"}
+    if use_feature_extraction:
+        graph.add_node(
+            "feature_extraction",
+            FeatureExtractionAgent(experiment_condition, feature_extraction_config).extract,
+        )
+    if enable_critical_reviewer:
+        if retriever is None:
+            raise ValueError("retriever is required when enable_critical_reviewer=True")
+        graph.add_node(
+            "critical_review",
+            CriticalReviewAgent(retriever, model_name).validate_diagnosis,
+        )
 
     # Definir conexões do fluxo
     graph.add_edge(START, "segmentation")
-    graph.add_edge("segmentation", "diagnostic_abcd")
-    graph.add_edge("segmentation", "diagnostic_menzies")
-    graph.add_edge("segmentation", "diagnostic_spcl")
+    diagnostic_start = "feature_extraction" if use_feature_extraction else "segmentation"
+    if use_feature_extraction:
+        graph.add_edge("segmentation", "feature_extraction")
+    graph.add_edge(diagnostic_start, "diagnostic_abcd")
+    graph.add_edge(diagnostic_start, "diagnostic_menzies")
+    graph.add_edge(diagnostic_start, "diagnostic_spcl")
     # Os três agentes de diagnóstico convergem para o agente de síntese
     graph.add_edge(
         ["diagnostic_abcd", "diagnostic_menzies", "diagnostic_spcl"], "summary"
     )
-    graph.add_edge("summary", "critical_review")
-    graph.add_edge("critical_review", END)
+    if enable_critical_reviewer:
+        graph.add_edge("summary", "critical_review")
+        graph.add_edge("critical_review", END)
+    else:
+        graph.add_edge("summary", END)
 
     return graph.compile()

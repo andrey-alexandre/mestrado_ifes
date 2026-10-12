@@ -11,7 +11,10 @@ import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms as T
 
-from Image_Segmentation.code.network import U_Net, R2U_Net, AttU_Net, R2AttU_Net
+try:
+    from Image_Segmentation.code.network import U_Net, R2U_Net, AttU_Net, R2AttU_Net
+except ModuleNotFoundError:
+    U_Net = R2U_Net = AttU_Net = R2AttU_Net = None
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +48,9 @@ def load_segmentation_model(
     model_cls = MODEL_CLASSES.get(model_name)
     if model_cls is None:
         raise ValueError(
-            f"Unknown model name: '{model_name}'. "
-            f"Choose from: {list(MODEL_CLASSES.keys())}"
+            f"Unknown or unavailable model name: '{model_name}'. "
+            "Ensure Image_Segmentation.code.network is available for segmentation_mode='model'. "
+            f"Configured choices: {list(MODEL_CLASSES.keys())}"
         )
 
     model = model_cls(img_ch=img_ch, output_ch=output_ch)

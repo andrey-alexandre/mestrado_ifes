@@ -21,6 +21,8 @@ paths:
   medical_texts: "medical_texts.txt"
   # Diretório de saída para os resultados JSON
   output_dir: "results"
+  feature_extraction_output_dir: "results/feature_extraction"
+  feature_debug_dir: "results/feature_debug"
 
 # Modelo de segmentação U-Net
 segmentation:
@@ -65,6 +67,13 @@ pipeline:
   # Se true, amostra igual de classe 0 e classe 1 (n = min das duas classes)
   # Com max_images > 0, seleciona max_images//2 por classe
   balanced: false
+
+feature_extraction:
+  enabled: true
+  experiment_condition: "image_only"  # image_only | image_plus_fe | fe_only
+  stoecker_connectivity: 8
+  stoecker_min_area: 800
+  enable_critical_reviewer: false
 
 # Formato dos arquivos de saída
 output:
