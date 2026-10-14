@@ -129,3 +129,147 @@ training:
   early_stopping: true
   patience: 10
   monitor_metric: "val_auc"  # val_loss | val_auc | val_f1
+
+# ============================================================
+# Experimento de segmentação pós-qualificação (ISIC 2018 -> PH²)
+# Executado por scripts/run_segmentation_experiment.py.
+# A seção `segmentation` acima (inferência legada) NÃO é usada aqui.
+# Campos `null` são validados somente quando a etapa que os usa roda.
+# ============================================================
+segmentation_experiment:
+  # ── Datasets ────────────────────────────────────────────────
+  datasets:
+    isic2018:
+      image_dir: null          # ISIC2018_Task1-2_Training_Input   (ISIC_XXXXXXX.jpg)
+      mask_dir: null           # ISIC2018_Task1_Training_GroundTruth (ISIC_XXXXXXX_segmentation.png)
+      mask_suffix: "_segmentation"
+      image_extensions: [".jpg", ".jpeg", ".png"]
+      mask_extensions: [".png"]
+      allow_unpaired: false    # true: descarta imagens/máscaras sem par (padrão: erro)
+      lesion_groups_csv: null  # opcional: CSV image_id,lesion_id (evita vazamento entre splits)
+      overlap_ids_file: null   # opcional: ids a excluir do treino (sobreposição entre datasets)
+      val_fraction: 0.15       # validação interna do treino no ISIC
+    ph2:
+      dataset_dir: null        # null -> paths.ph2_dataset_dir
+      mask_dir: null           # null -> máscaras na estrutura nativa {NAME}/{NAME}_lesion/
+      metadata_txt: null       # null -> paths.ph2_metadata_txt (rótulos/diagnósticos)
+      # Rótulo de melanoma: clinical_diagnosis (==2; 40 casos) | histological_diagnosis
+      # (regra legada de src/data/dataset.py: coluna histológica incompleta -> 28 casos)
+      label_source: "clinical_diagnosis"
+
+  # ── Segmentação (treino no ISIC 2018) ───────────────────────
+  segmentation:
+    strategy: "unet"           # Factory: src/segmentation/strategies
+    strategy_params: {model_name: "U_Net", img_ch: 3, output_ch: 1}
+    weights_init: "random"     # random | checkpoint
+    init_checkpoint: null      # obrigatório com weights_init: checkpoint
+    image_size: 256            # múltiplo de 16 (U-Net)
+    normalize: null            # null: apenas /255 (como o modelo legado); ou {mean: [...], std: [...]}
+    batch_size: 8
+    learning_rate: 0.0005
+    weight_decay: 0.0
+    momentum: 0.9              # apenas SGD
+    max_epochs: 100
+    optimizer: "adam"          # adam | adamw | sgd
+    scheduler: {name: "none", step_size: 10, gamma: 0.1, min_lr: 0.000001}  # none | cosine | step | plateau
+    loss: "bce_dice"           # bce | dice | bce_dice
+    early_stopping: {enabled: true, patience: 15, min_delta: 0.0, monitor: "val_dice"}
+    threshold: 0.5             # fixado a priori; nunca ajustado com dados do PH²
+    seed: 42
+    device: "cpu"              # cpu | cuda | mps | auto
+    mixed_precision: false     # apenas CUDA
+    num_workers: 0
+    augmentation: {hflip: true, vflip: true, rotation_degrees: 30, color_jitter: 0.1}
+
+  # ── Transfer learning (fine-tuning no PH²) ──────────────────
+  transfer_learning:
+    enabled: true
+    frozen_encoder_blocks: ["Conv1", "Conv2", "Conv3"]
+    trainable_decoder_blocks: null     # null -> todo o decoder treinável
+    freeze_bn_stats: true              # BN dos blocos congelados fica em eval
+    unfreeze_policy: "fixed"           # fixed | gradual
+    unfreeze_order: ["Conv3", "Conv2", "Conv1"]   # usado em gradual (mais profundo primeiro)
+    unfreeze_every_n_epochs: 10
+    learning_rate: 0.0001
+    max_epochs: 40
+    inner_val_fraction: 0.15           # validação interna aos 4 folds de treino
+    early_stopping: {enabled: true, patience: 10, min_delta: 0.0, monitor: "val_dice"}
+    final_epochs: "median_cv_best_epoch"   # ou inteiro; usado no modelo final (200 imagens)
+
+  # ── Avaliação ───────────────────────────────────────────────
+  evaluation:
+    n_folds: 5
+    stratify_by: "binary_melanoma"     # binary_melanoma | clinical_diagnosis
+    primary_metric: "dice"             # dice | iou | hd95 (definida a priori)
+    secondary_metrics: ["iou", "hd95"]
+    selection_rule: "higher_mean"      # higher_mean | mean_with_ci
+    bootstrap: {n_resamples: 10000, confidence: 0.95, seed: 42}
+    n_examples: 4                      # melhores/piores exemplos por estratégia
+
+  # ── Avaliação multiagente (C0 = GT, C1 = máscara prevista) ──
+  multiagent:
+    run_vlm: false                     # false: só segmentação/features, sem chamadas a VLMs
+    empty_mask_policy: "flag_and_skip" # flag_and_skip | full_image
+    # Extrator de features dependentes da máscara (branch feature/feat_extraction)
+    feature_extractor: "src.features.extractor:build_feature_package"
+    vlm_results_prefix: "vlm_result"
+
+  # ── Saídas (não versionadas; ver .gitignore) ────────────────
+  output:
+    root_dir: "experiments/segmentation"
+    checkpoints_dir: null              # null -> {root_dir}/checkpoints
+    predictions_dir: null              # null -> {root_dir}/predictions
+    results_dir: null                  # null -> {root_dir}/results
+    reports_dir: null                  # null -> {root_dir}/reports
+    folds_manifest: null               # null -> {results_dir}/folds_manifest.json
+
+# ============================================================
+# Investigação PH² × HAM10000 (piloto exploratório, 80 imagens)
+# Executada por scripts/run_dataset_validation.py; não altera os
+# experimentos principais nem as seções acima. Campos `null`
+# herdam de `paths`/`llm` (PH²) ou só falham quando usados.
+# ============================================================
+dataset_validation:
+  seed: 42                              # semente fixa de TODA seleção aleatória
+  sample:
+    n_per_class: 20                     # 20 melanomas + 20 nevos por dataset (80 imagens)
+
+  datasets:
+    ph2:
+      dataset_dir: "PH2"                # null -> paths.ph2_dataset_dir (caminho do Colab)
+      metadata_txt: "PH2_dataset.txt"   # null -> paths.ph2_metadata_txt
+      melanoma_clinical_codes: [2]      # Clinical Diagnosis == 2 (40 casos)
+      nevus_clinical_codes: [0, 1]      # 0 = nevo comum, 1 = nevo atípico/displásico
+    ham10000:
+      # Imagens HAM10000 (ids ISIC_0024306..ISIC_0034320) lidas da cópia local do ISIC 2019 Training Input
+      image_dir: "C:/Projetos/Mestrado/Data/ISIC_2019_Training_Input"
+      metadata_csv: "C:/Users/andre/Downloads/Mestrado_V3/HAM10000_metadata"
+      mask_dir: null
+      mask_zip: "C:/Users/andre/Downloads/Mestrado_V3/archive.zip"   # extrai só as máscaras amostradas
+      mask_zip_prefix: "HAM10000_segmentations_lesion_tschandl/"
+      mask_suffix: "_segmentation"
+      melanoma_dx: ["mel"]
+      nevus_dx: ["nv"]
+      one_image_per_lesion: true        # evita a mesma lesão (lesion_id) duas vezes na amostra
+    isic2019:                           # somente auditoria documental (sem inferência)
+      image_dir: "C:/Projetos/Mestrado/Data/ISIC_2019_Training_Input"
+      isic2018_task1_zip: "C:/Projetos/Mestrado/Data/ISIC2018_Task1-2_Training_Input.zip"
+      ground_truth_csv: null            # ISIC_2019_Training_GroundTruth.csv — não encontrado em disco
+      metadata_csv: null                # ISIC_2019_Training_Metadata.csv — não encontrado em disco
+
+  inference:
+    models: ["gpt-5.4-nano", "gemini-3.1-flash-lite"]   # mesmos modelos dos resultados legados do PH²
+    temperature: null                   # null -> llm.temperature
+    segmentation_mode: "precomputed"    # máscara de referência nos DOIS datasets
+    # Premissas da estimativa de custo (não são medições); informe os preços vigentes
+    assumptions:
+      price_per_1m_input_usd: null
+      price_per_1m_output_usd: null
+
+  evaluation:
+    confidence: 0.95
+    bootstrap: {n_resamples: 10000, seed: 42}
+    primary_policy: "indeterminate_as_positive"   # regra de src/evaluation/evaluate.py
+
+  output:
+    root_dir: "experiments/dataset_validation"    # ignorado pelo git (ver .gitignore)

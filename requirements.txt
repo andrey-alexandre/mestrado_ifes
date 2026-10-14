@@ -27,5 +27,9 @@ pandas
 numpy
 scikit-learn
 
+# Experimento de segmentação (métricas, bootstrap, gráficos)
+scipy
+matplotlib
+
 # Configuração
 pyyaml
