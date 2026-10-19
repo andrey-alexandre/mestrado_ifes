@@ -1,0 +1,37 @@
+{
+  "model_name": "gpt-5.4-nano",
+  "temperature": 0,
+  "segmentation_mode": "precomputed",
+  "n_images_requested": 80,
+  "n_images_completed": 80,
+  "failures": {},
+  "results_sha256": "221557ad39a0685c6014e7321f50621d66eea43fa0806380eb9e5a876dac0be0",
+  "provenance": {
+    "versions": {
+      "python": "3.11.15",
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "PIL": "12.3.0",
+      "pandas": "3.0.6",
+      "sklearn": "1.9.1",
+      "yaml": "6.0.3",
+      "matplotlib": "unavailable",
+      "torch": "2.14.1",
+      "langchain": "1.4.6",
+      "langchain_core": "1.6.10",
+      "langgraph": "unknown",
+      "langchain_openai": "1.7.2",
+      "langchain_google_genai": "4.4.2"
+    },
+    "git_commit": "bb11e6677184cf22b3bcc581163d3d8f3103c47d",
+    "git_branch": "exp/dataset_validation",
+    "git_dirty_paths_in_src_scripts_config": [
+      "M config/config.yaml"
+    ],
+    "seed": 42,
+    "created_at": "2026-10-19T00:49:37.357144+00:00"
+  },
+  "agents_sha256": "80e67e4133cb383110bf909b1d0736f15e819b62dd3d5704d91182f0181fe97d",
+  "schemas_sha256": "d321de3b7b985bffa1c33e4f8583a91e9ec187884696916c6490e1bbd662fa6b"
+}

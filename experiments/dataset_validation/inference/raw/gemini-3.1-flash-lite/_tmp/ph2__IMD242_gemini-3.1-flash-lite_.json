@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/PH2/IMD242/IMD242_Dermoscopic_Image/IMD242.bmp": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD242/IMD242_Dermoscopic_Image/IMD242.bmp",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD242/IMD242_lesion/IMD242_lesion.bmp",
+        "diagnosis_abcd": {
+            "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto no formato quanto na distribuição da pigmentação.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+            "cor": "3: Foram identificadas três cores distintas: marrom claro, marrom escuro e tons de bege/branco.",
+            "estruturas": "3: Foram observadas três estruturas principais: rede pigmentada, glóbulos e áreas sem estrutura.",
+            "explicacao": "A pontuação foi calculada da seguinte forma: Assimetria (2 * 1.3 = 2.6), Bordas (8 * 0.1 = 0.8), Cor (3 * 0.5 = 1.5), Estruturas (3 * 0.5 = 1.5). A soma ponderada total é 2.6 + 0.8 + 1.5 + 1.5 = 6.4. Como o valor é superior a 5.45, a lesão é classificada como maligna segundo o algoritmo ABCD."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Ausente.",
+                "multiplos_pontos_marrons": "0. Não observados.",
+                "pseudopodes": "0. Ausentes.",
+                "streaming_radial": "0. Ausente.",
+                "despigmentacao_tipo_cicatriz": "0. Ausente.",
+                "pontos_pretos_perifericos": "0. Ausentes.",
+                "multiplas_cores": "0. A lesão apresenta predominantemente tons de marrom, não atingindo o critério de múltiplas cores."
+            },
+            "negativas": {
+                "simetria": "1. A lesão apresenta uma distribuição de pigmentação relativamente simétrica.",
+                "cor_unica": "1. A lesão apresenta uma coloração marrom homogênea em toda a sua extensão."
+            },
+            "explicacao": "A lesão apresenta características de benignidade segundo o Método Menzies, exibindo simetria na distribuição da pigmentação e uma cor única predominante. Não foram identificadas características positivas de malignidade como véu azul-branco, pseudópodes ou múltiplas cores."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma distribuição de pigmento relativamente homogênea, sem áreas de desorganização estrutural severa.",
+            "veu_azul_branco_irregular": "Não. Não foram observadas áreas de véu azul-esbranquiçado, que são características de espessamento epidérmico ou regressão tumoral.",
+            "vasos_atipicos": "Não. Não há evidência de estruturas vasculares anômalas, como vasos polimórficos ou lineares irregulares.",
+            "padrao_de_reticulo_irregular": "Não. O padrão reticular, quando presente, mostra-se regular e não exibe interrupções abruptas ou espessamentos assimétricos.",
+            "padrao_de_globulos_irregulares": "Não. Embora existam estruturas globulares, elas não apresentam irregularidades acentuadas em tamanho, forma ou distribuição.",
+            "hiperpigmentacao_localizada": "Não. Não há focos de hiperpigmentação intensa ou localizada que sugiram um padrão de desordem pigmentar.",
+            "regressao": "Não. Não foram identificadas áreas de regressão, como cicatrizes brancas ou áreas azul-acinzentadas difusas.",
+            "explicacao": "A lesão apresenta características dermatoscópicas predominantemente benignas, com um padrão de pigmentação uniforme e ausência de critérios maiores ou menores de malignidade segundo a Checklist de Sete Pontos. A pontuação total é 0."
+        },
+        "validation": {
+            "diagnostico": "Lesão Benigna",
+            "justificativa": "Embora o algoritmo ABCD tenha sugerido malignidade devido a uma pontuação elevada, a análise visual da imagem e os critérios de Menzies e SPCL indicam fortemente a benignidade. O ABCD parece ter superestimado a assimetria e a contagem de cores. Em contraste, o método Menzies e o SPCL, que são mais específicos para a diferenciação de melanomas, não encontraram critérios de malignidade (ausência de véu azul-branco, pseudópodes, vasos atípicos ou desorganização estrutural). A lesão apresenta um padrão reticular e globular regular, condizente com um nevo melanocítico benigno.",
+            "recomendacoes": "Acompanhamento clínico de rotina. Não há indicação imediata de biópsia excisional, a menos que haja alteração clínica observada em exames de seguimento (dermatoscopia digital seriada)."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 1
+    }
+}

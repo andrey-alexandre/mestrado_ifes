@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0030619.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0030619.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation/inputs/ham10000_masks/ISIC_0030619_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "1: A lesão apresenta assimetria acentuada em um eixo (eixo horizontal), enquanto o eixo vertical é relativamente mais simétrico.",
+            "bordas": "4: As bordas são nítidas e bem delimitadas em aproximadamente metade dos quadrantes analisados.",
+            "cor": "2: Estão presentes as cores vermelho/rosa e marrom claro.",
+            "estruturas": "2: Observam-se áreas sem estrutura e uma rede pigmentada irregular.",
+            "explicacao": "A pontuação foi calculada da seguinte forma: Assimetria (1 * 1.3 = 1.3), Bordas (4 * 0.1 = 0.4), Cor (2 * 0.5 = 1.0), Estruturas (2 * 0.5 = 1.0). A soma ponderada total é 1.3 + 0.4 + 1.0 + 1.0 = 3.7. Como o valor de 3.7 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Ausente.",
+                "multiplos_pontos_marrons": "0. Ausente.",
+                "pseudopodes": "0. Ausente.",
+                "streaming_radial": "0. Ausente.",
+                "despigmentacao_tipo_cicatriz": "0. Ausente.",
+                "pontos_pretos_perifericos": "0. Ausente.",
+                "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e marrom claro, não atingindo o critério de cinco ou seis cores."
+            },
+            "negativas": {
+                "simetria": "1. A lesão apresenta uma distribuição de cores e estrutura relativamente simétrica.",
+                "cor_unica": "0. A lesão apresenta variações de tonalidade, incluindo áreas rosadas e áreas com pigmentação marrom mais densa."
+            },
+            "explicacao": "A lesão não apresenta nenhuma das características positivas do Método Menzies. Embora não apresente cor única, a presença de simetria estrutural e a ausência de critérios positivos sugerem um padrão que não se enquadra nos critérios de malignidade do método."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração avermelhada/eritematosa predominante, sem padrões de pigmentação melanocítica atípica evidente.",
+            "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco ou estruturas de regressão azuladas.",
+            "vasos_atipicos": "Não. Embora a lesão seja eritematosa, não se observam vasos atípicos com morfologia polimórfica ou irregular característica.",
+            "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo irregular.",
+            "padrao_de_globulos_irregulares": "Não. Não se observam glóbulos ou estruturas globulares irregulares.",
+            "hiperpigmentacao_localizada": "Não. Não há áreas de hiperpigmentação focal ou pontos escuros localizados.",
+            "regressao": "Não. Não há áreas de despigmentação ou cicatriciais sugestivas de regressão.",
+            "explicacao": "A lesão apresenta-se predominantemente eritematosa, com uma estrutura vascular difusa, sem a presença de critérios dermatoscópicos de malignidade (como rede, glóbulos, véu ou vasos atípicos) conforme a Checklist de Sete Pontos. A pontuação total é 0."
+        },
+        "validation": {
+            "diagnostico": "Lesão Benigna",
+            "justificativa": "Os três algoritmos (ABCD, Menzies e SPCL) apresentam alta concordância ao classificar a lesão como benigna. O ABCD obteve uma pontuação de 3.7, abaixo do limiar de malignidade. O método de Menzies não identificou nenhum critério positivo de malignidade, e a Checklist de Sete Pontos (SPCL) resultou em uma pontuação de 0, confirmando a ausência de estruturas atípicas como rede pigmentar irregular, véu azul-branco ou vasos polimórficos. A análise visual da imagem corrobora esses achados, revelando uma lesão predominantemente eritematosa com pigmentação difusa e sem características de alto risco.",
+            "recomendacoes": "Considerando a ausência de critérios dermatoscópicos de malignidade, a lesão apresenta características sugestivas de benignidade. Recomenda-se acompanhamento clínico de rotina ou, caso haja dúvida persistente ou alteração clínica, a realização de biópsia excisional para confirmação histopatológica."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

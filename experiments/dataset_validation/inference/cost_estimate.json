@@ -1,0 +1,32 @@
+{
+  "per_model": {
+    "gpt-5.4-nano": {
+      "images": 80,
+      "llm_calls": 320,
+      "input_tokens_est": 688000,
+      "output_tokens_est": 120000,
+      "cost_usd_est": null,
+      "credential_env_var": "OPENAI_API_KEY",
+      "credential_present": true
+    },
+    "gemini-3.1-flash-lite": {
+      "images": 80,
+      "llm_calls": 320,
+      "input_tokens_est": 688000,
+      "output_tokens_est": 120000,
+      "cost_usd_est": null,
+      "credential_env_var": "GOOGLE_API_KEY",
+      "credential_present": true
+    }
+  },
+  "total_llm_calls": 640,
+  "assumptions": {
+    "input_tokens_per_diagnostic_call": 1700,
+    "input_tokens_summary_call": 3500,
+    "output_tokens_per_diagnostic_call": 350,
+    "output_tokens_summary_call": 450,
+    "price_per_1m_input_usd": null,
+    "price_per_1m_output_usd": null
+  },
+  "note": "Estimativa por premissas (tokens por chamada); NÃO é medição. Preço unitário a preencher em inference.assumptions.price_per_1m_*_usd."
+}

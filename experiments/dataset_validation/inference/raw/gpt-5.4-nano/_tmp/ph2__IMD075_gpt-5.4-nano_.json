@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/PH2/IMD075/IMD075_Dermoscopic_Image/IMD075.bmp": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD075/IMD075_Dermoscopic_Image/IMD075.bmp",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD075/IMD075_lesion/IMD075_lesion.bmp",
+        "diagnosis_abcd": {
+            "assimetria": "0 — Não há assimetria acentuada claramente definida na imagem (contorno global e distribuição internas parecem relativamente proporcionais).",
+            "bordas": "2/8 — Bordas parecem mais nítidas e regulares na maior parte do contorno, porém com pequenas irregularidades/localmente menos definidas em alguns setores; não há perda completa de nitidez em todos os quadrantes.",
+            "cor": "4 — Observam-se múltiplas cores de pigmentação: marrom claro, marrom escuro e preto (pontos/áreas).",
+            "estruturas": "3 — Identificam-se estruturas dermoscópicas discretas: pontos (poros/pontos pigmentados) e áreas de rede/ponteado pigmentado; não se observam claramente glóbulos ou linhas ramificadas bem estabelecidas.",
+            "explicacao": "Pontuação e soma ponderada (pesos: A=1.3, B=0.1, C=0.5, D=0.5):\n- A (Assimetria) = 0 → 0 × 1.3 = 0.00\n- B (Bordas) = 2 → 2 × 0.1 = 0.20\n- C (Cor) = 4 → 4 × 0.5 = 2.00\n- D (Estruturas) = 3 → 3 × 0.5 = 1.50\nSoma ponderada total = 0.00 + 0.20 + 2.00 + 1.50 = 3.70.\nInterpretação do escore pelo critério informado: 3.70 < 4.75 ⇒ classificado como benigno pelo algoritmo (apenas conforme a regra fornecida)."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Não foi identificada área clara de véu azul-branco de forma nítida na imagem segmentada.",
+                "multiplos_pontos_marrons": "1. Observam-se múltiplos pontos/glóbulos marrom-escuros distribuídos no interior da lesão.",
+                "pseudopodes": "0. Não há evidência clara de projeções digitiformes/pseudópodes bem delimitadas.",
+                "streaming_radial": "0. Não se veem claramente estruturas em “streaming” radial a partir do centro.",
+                "despigmentacao_tipo_cicatriz": "0. Não há uma área de despigmentação compatível com padrão em “cicatriz” identificável.",
+                "pontos_pretos_perifericos": "0. Não se observa, de modo claro e periférico, padrão consistente de pontos/glóbulos pretos na borda.",
+                "multiplas_cores": "0. Predomina uma paleta marrom/escurecida sem evidência convincente de 5–6 cores distintas (ex.: branco/bege, azul, cinza, vermelho/rosa)."
+            },
+            "negativas": {
+                "simetria": "0. O padrão de pigmentação parece assimétrico na distribuição global (variação na concentração/forma das áreas pigmentadas).",
+                "cor_unica": "0. A lesão não apresenta apenas uma única cor; há variação de tons dentro do padrão marrom-escuro."
+            },
+            "explicacao": "Na imagem segmentada, há predominância de pigmentação marrom com presença de múltiplos pontos/glóbulos marrons. Não foram identificados de forma objetiva critérios adicionais positivos do Método Menzies (véu azul-branco, streaming radial, pseudópodes, despigmentação tipo cicatriz, pontos pretos periféricos, ou múltiplas cores em número suficiente). As características negativas (cor única e simetria) não estão plenamente satisfeitas porque há variação de tons além de uma única cor e o padrão global não é claramente simétrico."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Sim (2 pontos) — observa-se distribuição de pigmento heterogênea no interior da lesão, com áreas de intensidade de cor variando de forma não uniforme.",
+            "veu_azul_branco_irregular": "Não (0 pontos) — não há áreas azul-acinzentadas/ esbranquiçadas em padrão claramente identificável como véu azul-branco irregular.",
+            "vasos_atipicos": "Não (0 pontos) — não são visualizados vasos (estruturas lineares/ramificadas) de aspecto claramente atípico na imagem fornecida.",
+            "padrao_de_reticulo_irregular": "Sim (1 ponto) — há um padrão de rede/retículo perceptível, com irregularidade na disposição dos elementos (malha não regular).",
+            "padrao_de_globulos_irregulares": "Não (0 pontos) — não se destacam glóbulos múltiplos e bem definidos com irregularidade acentuada; há pequenas estruturas puntiformes, mas sem configuração clara de glóbulos irregulares.",
+            "hiperpigmentacao_localizada": "Sim (1 ponto) — nota-se concentração localizada de pigmento mais escuro em pontos/áreas específicas no centro e/ou porções internas.",
+            "regressao": "Não (0 pontos) — não se observam áreas esbranquiçadas/azul-acinzentadas sugestivas de regressão de forma nítida.",
+            "explicacao": "Aplicação conservadora dos critérios com base apenas no padrão visual. Pigmentação heterogênea (padrão atípico), presença de retículo irregular e focos escuros localizados somam 4 pontos. Não foram identificados sinais visuais claros de véu azul-branco, vasos atípicos, glóbulos irregulares acentuados ou regressão."
+        },
+        "validation": {
+            "diagnostico": "Lesão cutânea indeterminada (necessita avaliação/decisão por dermatologista; biópsia pode ser considerada)",
+            "justificativa": "Os três pareceres não são plenamente concordantes: \n- **ABCD** tende a **baixo risco/benigno** no esquema fornecido (escore 3,70 < 4,75), apesar de reconhecer **múltiplas cores** (C=4) e **estruturas/padrões internos** (D=3). Também descreve **bordas com alguma irregularidade local** (B=2), mas sem assimetria acentuada (A=0).\n- **Menzies** favorece um perfil **menos específico para malignidade** ao não identificar critérios positivos relevantes (ex.: **véu azul-branco, pseudópodes, streaming radial, pontos pretos periféricos** e **múltiplas cores** em quantidade suficiente). Ao mesmo tempo, marca **cor não “única”** e sugere que o padrão global **não é claramente simétrico**.\n- **SPCL** é o que mais “puxa” para atipia: soma **4 pontos** por **padrão de pigmentação atípico (2)**, **retículo irregular (1)** e **hiperpigmentação localizada (1)**, sem encontrar sinais descritos como específicos de alto risco (véu azul-branco irregular, vasos atípicos, glóbulos irregulares marcantes, regressão).\n\n**Integração:** há **concordância parcial** quanto a aspectos internos pigmentares relevantes (ABCD/Menzies/SPCL reconhecem variação pigmentária e estruturas puntiformes/reticulares), mas **divergência** sobre o peso desses achados para malignidade: ABCD/Menzies foram mais “conservadores” (sem critérios fortes adicionais), enquanto SPCL reconheceu **atipia estrutural/padrão** (retículo irregular + pigmentação heterogênea + foco de hiperpigmentação). Considerando que **padrões de atipia em SPCL** costumam ser mais diretamente relacionados a risco do que a ausência de sinais específicos de alguns outros critérios, o resultado consolidado fica em **categoria indeterminada** em vez de “benigno” apenas, recomendando conduta diagnóstica definitiva (p.ex., histopatologia) dependendo do contexto clínico.",
+            "recomendacoes": "- **Avaliação presencial por dermatologista** (dermatoscopia comparativa e revisão de tamanho, evolução e sintomas).\n- Dada a **atipia no SPCL** (4 pontos) e a **presença de múltiplas cores/heterogeneidade** descritas, considerar **biópsia/excisão** para diagnóstico histopatológico, principalmente se houver **crescimento, mudança recente**, sintomas, ou achados clínicos adicionais.\n- Se o exame clínico/dermatoscópico completo não sustentar indicação imediata e houver baixa suspeição global, pode-se considerar **fotomonitorização seriada** com dermatoscopia padronizada, mas **não como substituto** de avaliação quando há sinais atípicos relevantes.\n- Documentar **medidas** e **localização**, e comparar com fotos anteriores (se existirem)."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

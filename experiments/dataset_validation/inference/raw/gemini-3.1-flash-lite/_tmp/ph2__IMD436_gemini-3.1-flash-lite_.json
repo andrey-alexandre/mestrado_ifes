@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/PH2/IMD436/IMD436_Dermoscopic_Image/IMD436.bmp": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD436/IMD436_Dermoscopic_Image/IMD436.bmp",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD436/IMD436_lesion/IMD436_lesion.bmp",
+        "diagnosis_abcd": {
+            "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos (horizontal e vertical), com contornos irregulares e distribuição de pigmento não uniforme.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes, apresentando um padrão de rede pigmentada que termina abruptamente na periferia.",
+            "cor": "2: Foram identificadas duas cores principais: marrom claro e marrom escuro (tons de castanho).",
+            "estruturas": "2: Observa-se claramente a presença de rede pigmentada em toda a extensão da lesão e áreas sem estrutura (hipopigmentadas) no centro e periferia.",
+            "explicacao": "Cálculo da soma ponderada: Assimetria (2 * 1.3 = 2.6) + Bordas (8 * 0.1 = 0.8) + Cor (2 * 0.5 = 1.0) + Estruturas (2 * 0.5 = 1.0). Soma total = 2.6 + 0.8 + 1.0 + 1.0 = 5.4. Como o valor 5.4 está entre 4.75 e 5.45, a lesão é classificada como suspeita segundo os critérios estabelecidos."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Ausente.",
+                "multiplos_pontos_marrons": "0. Ausente.",
+                "pseudopodes": "0. Ausente.",
+                "streaming_radial": "0. Ausente.",
+                "despigmentacao_tipo_cicatriz": "0. Ausente.",
+                "pontos_pretos_perifericos": "0. Ausente.",
+                "multiplas_cores": "0. A lesão apresenta predominantemente tons de marrom, não atingindo o critério de cinco ou seis cores distintas."
+            },
+            "negativas": {
+                "simetria": "1. A lesão apresenta uma distribuição de pigmentação relativamente simétrica e organizada.",
+                "cor_unica": "0. Embora predominantemente marrom, a lesão apresenta variações de tonalidade (claro e escuro), não sendo uma cor única absoluta."
+            },
+            "explicacao": "A lesão apresenta um padrão reticular predominante, característico de lesões melanocíticas benignas. Não foram observadas as características positivas do Método Menzies (como véu azul-branco, pseudópodes ou pontos pretos periféricos). Embora não apresente uma cor única absoluta, a lesão exibe simetria no padrão de pigmentação, o que, segundo o método, aponta para uma classificação de lesão benigna."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma distribuição de pigmento relativamente homogênea e organizada, sem áreas de desorganização estrutural severa.",
+            "veu_azul_branco_irregular": "Não. Não foram observadas áreas de véu azul-esbranquiçado, que são características de estruturas mais profundas e desorganizadas.",
+            "vasos_atipicos": "Não. Não há evidência de estruturas vasculares anômalas, como vasos polimórficos ou lineares irregulares.",
+            "padrao_de_reticulo_irregular": "Não. O padrão reticular observado é predominantemente regular e simétrico, típico de lesões melanocíticas benignas.",
+            "padrao_de_globulos_irregulares": "Não. Não há presença de glóbulos ou pontos distribuídos de forma irregular ou assimétrica na lesão.",
+            "hiperpigmentacao_localizada": "Não. A pigmentação é difusa e não apresenta focos de hiperpigmentação intensa ou localizada que sugiram atipia.",
+            "regressao": "Não. Não foram identificadas áreas de regressão, como cicatrizes brancas ou áreas azul-acinzentadas difusas.",
+            "explicacao": "A lesão apresenta características dermatoscópicas predominantemente benignas, com um padrão reticular organizado e ausência de critérios maiores ou menores de malignidade conforme a Checklist de Sete Pontos. A pontuação total é 0."
+        },
+        "validation": {
+            "diagnostico": "Lesão Benigna",
+            "justificativa": "A análise integrada dos três algoritmos revela uma divergência pontual, onde o ABCD, devido à sua sensibilidade, classificou a lesão como suspeita (score 5.4), enquanto o Menzies e o SPCL, que focam em critérios de especificidade para malignidade, classificaram a lesão como benigna (score 0 no SPCL). A inspeção visual da imagem confirma um padrão reticular predominante, organizado e simétrico, sem a presença de estruturas de alto risco como véu azul-branco, pseudópodes, vasos atípicos ou áreas de regressão. A variação de tons de marrom observada é consistente com uma lesão melanocítica benigna, como um nevo melanocítico, e não com a desorganização estrutural típica de um melanoma.",
+            "recomendacoes": "Considerando a ausência de critérios de malignidade nos métodos de maior especificidade (Menzies e SPCL), a lesão apresenta características clínicas de benignidade. Recomenda-se acompanhamento dermatológico de rotina (mapeamento corporal total) para monitoramento de estabilidade, sem necessidade de biópsia imediata, a menos que haja alteração clínica observada pelo paciente ou médico em consultas subsequentes."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

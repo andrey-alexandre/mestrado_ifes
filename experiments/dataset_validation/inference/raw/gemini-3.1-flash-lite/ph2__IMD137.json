@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/PH2/IMD137/IMD137_Dermoscopic_Image/IMD137.bmp": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD137/IMD137_Dermoscopic_Image/IMD137.bmp",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD137/IMD137_lesion/IMD137_lesion.bmp",
+    "diagnosis_abcd": {
+      "assimetria": "1: A lesão apresenta assimetria em um eixo, com contornos irregulares que não se espelham perfeitamente.",
+      "bordas": "6: A lesão apresenta bordas nítidas e bem delimitadas em 6 dos 8 quadrantes analisados.",
+      "cor": "2: Foram identificadas duas cores principais: marrom claro e marrom escuro.",
+      "estruturas": "2: Foram observadas duas estruturas principais: rede pigmentada e áreas sem estrutura.",
+      "explicacao": "Cálculo da soma ponderada: (1 * 1.3) + (6 * 0.1) + (2 * 0.5) + (2 * 0.5) = 1.3 + 0.6 + 1.0 + 1.0 = 3.9. Como o resultado final de 3.9 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "0. Ausente.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de marrom e bege, não atingindo o critério de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "1. A lesão apresenta uma distribuição de pigmentação relativamente simétrica e organizada.",
+        "cor_unica": "0. A lesão apresenta variações de tonalidade entre marrom claro e marrom mais escuro, não sendo uma cor única homogênea."
+      },
+      "explicacao": "A lesão não apresenta nenhuma das características positivas do Método Menzies. Em relação às características negativas, apresenta simetria, mas não possui uma cor única, apresentando variações de tons de marrom. De acordo com o método, a ausência de características positivas e a presença de simetria sugerem uma lesão com características benignas."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta um padrão de pigmentação relativamente homogêneo e organizado, típico de lesões melanocíticas benignas.",
+      "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco ou estruturas de regressão associadas.",
+      "vasos_atipicos": "Não. Não são observados vasos atípicos ou polimórficos na estrutura da lesão.",
+      "padrao_de_reticulo_irregular": "Não. O padrão de retículo observado é regular e simétrico, sem interrupções abruptas ou espessamentos anômalos.",
+      "padrao_de_globulos_irregulares": "Não. Não há presença de glóbulos ou pontos distribuídos de forma irregular ou assimétrica.",
+      "hiperpigmentacao_localizada": "Não. A distribuição da cor é uniforme, sem áreas de hiperpigmentação focal intensa.",
+      "regressao": "Não. Não há áreas de despigmentação, cicatrizes ou tons azul-acinzentados que sugiram regressão.",
+      "explicacao": "A lesão apresenta características dermatoscópicas consistentes com um padrão benigno, exibindo um retículo pigmentar regular e uma distribuição de cor homogênea. Não foram identificados critérios maiores ou menores da Checklist de Sete Pontos que indiquem atipia ou suspeita de malignidade. A pontuação total é 0."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna",
+      "justificativa": "Os três algoritmos (ABCD, Menzies e SPCL) apresentam alta concordância ao classificar a lesão como benigna. O ABCD resultou em uma pontuação de 3.9, abaixo do limiar de malignidade. O método de Menzies não identificou critérios positivos de suspeição, e o SPCL obteve pontuação zero, confirmando a ausência de padrões atípicos, vasos anômalos ou estruturas de regressão. A análise visual da imagem corrobora esses achados, exibindo um padrão de retículo pigmentar organizado e uma distribuição de cores homogênea, sem características de malignidade.",
+      "recomendacoes": "Nenhuma ação imediata é necessária. Recomenda-se o acompanhamento dermatológico de rotina para monitoramento de possíveis alterações futuras, conforme as diretrizes de prevenção de câncer de pele."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

@@ -1,0 +1,599 @@
+{
+  "by_dataset": {
+    "ph2": {
+      "indeterminate_as_positive": {
+        "n": 40,
+        "n_positive": 20,
+        "n_negative": 20,
+        "tp": 19,
+        "tn": 2,
+        "fp": 18,
+        "fn": 1,
+        "confusion_matrix": [
+          [
+            2,
+            18
+          ],
+          [
+            1,
+            19
+          ]
+        ],
+        "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+        "ci_method": {
+          "sensitivity": "Wilson",
+          "specificity": "Wilson",
+          "precision": "Wilson",
+          "accuracy": "Wilson",
+          "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+          "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+        },
+        "confidence": 0.95,
+        "sensitivity": {
+          "estimate": 0.95,
+          "ci_low": 0.763868806553258,
+          "ci_high": 0.9911185511992047,
+          "numerator": 19,
+          "denominator": 20
+        },
+        "specificity": {
+          "estimate": 0.1,
+          "ci_low": 0.027866481213768224,
+          "ci_high": 0.3010336452284872,
+          "numerator": 2,
+          "denominator": 20
+        },
+        "precision": {
+          "estimate": 0.5135135135135135,
+          "ci_low": 0.35894896665618803,
+          "ci_high": 0.6655359569698336,
+          "numerator": 19,
+          "denominator": 37
+        },
+        "accuracy": {
+          "estimate": 0.525,
+          "ci_low": 0.3749736210669248,
+          "ci_high": 0.670645298873211,
+          "numerator": 21,
+          "denominator": 40
+        },
+        "f1": {
+          "estimate": 0.6666666666666666,
+          "ci_low": 0.6071428571428571,
+          "ci_high": 0.7142857142857143,
+          "n_resamples_valid": 10000
+        },
+        "balanced_accuracy": {
+          "estimate": 0.525,
+          "ci_low": 0.45,
+          "ci_high": 0.6,
+          "n_resamples_valid": 10000
+        },
+        "roc_auc": {
+          "estimate": null,
+          "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+        },
+        "n_total": 40,
+        "n_evaluable": 40,
+        "n_not_evaluable": 0,
+        "non_evaluable_as_error": {
+          "sensitivity": {
+            "estimate": 0.95,
+            "ci_low": 0.763868806553258,
+            "ci_high": 0.9911185511992047,
+            "numerator": 19,
+            "denominator": 20
+          },
+          "specificity": {
+            "estimate": 0.1,
+            "ci_low": 0.027866481213768224,
+            "ci_high": 0.3010336452284872,
+            "numerator": 2,
+            "denominator": 20
+          },
+          "precision": {
+            "estimate": 0.5135135135135135,
+            "ci_low": 0.35894896665618803,
+            "ci_high": 0.6655359569698336,
+            "numerator": 19,
+            "denominator": 37
+          },
+          "f1": {
+            "estimate": 0.6666666666666666,
+            "ci_low": 0.6071428571428571,
+            "ci_high": 0.7142857142857143,
+            "n_resamples_valid": 10000
+          },
+          "balanced_accuracy": {
+            "estimate": 0.525,
+            "ci_low": 0.45,
+            "ci_high": 0.6,
+            "n_resamples_valid": 10000
+          },
+          "accuracy": {
+            "estimate": 0.525,
+            "ci_low": 0.3749736210669248,
+            "ci_high": 0.670645298873211,
+            "numerator": 21,
+            "denominator": 40
+          }
+        },
+        "category_counts": {
+          "INDETERMINADA": 32,
+          "SUSPEITA": 5,
+          "BENIGNA": 3
+        },
+        "tier_counts": {
+          "legacy_exact": 34,
+          "extended_keywords": 6
+        },
+        "category_by_true_class": {
+          "melanoma": {
+            "INDETERMINADA": 17,
+            "SUSPEITA": 2,
+            "BENIGNA": 1
+          },
+          "nevus": {
+            "INDETERMINADA": 15,
+            "SUSPEITA": 3,
+            "BENIGNA": 2
+          }
+        }
+      },
+      "indeterminate_as_negative": {
+        "n": 40,
+        "n_positive": 20,
+        "n_negative": 20,
+        "tp": 2,
+        "tn": 17,
+        "fp": 3,
+        "fn": 18,
+        "confusion_matrix": [
+          [
+            17,
+            3
+          ],
+          [
+            18,
+            2
+          ]
+        ],
+        "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+        "ci_method": {
+          "sensitivity": "Wilson",
+          "specificity": "Wilson",
+          "precision": "Wilson",
+          "accuracy": "Wilson",
+          "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+          "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+        },
+        "confidence": 0.95,
+        "sensitivity": {
+          "estimate": 0.1,
+          "ci_low": 0.027866481213768224,
+          "ci_high": 0.3010336452284872,
+          "numerator": 2,
+          "denominator": 20
+        },
+        "specificity": {
+          "estimate": 0.85,
+          "ci_low": 0.6395811352592431,
+          "ci_high": 0.9476312541037835,
+          "numerator": 17,
+          "denominator": 20
+        },
+        "precision": {
+          "estimate": 0.4,
+          "ci_low": 0.117620774232648,
+          "ci_high": 0.7692757187239869,
+          "numerator": 2,
+          "denominator": 5
+        },
+        "accuracy": {
+          "estimate": 0.475,
+          "ci_low": 0.3293547011267891,
+          "ci_high": 0.6250263789330752,
+          "numerator": 19,
+          "denominator": 40
+        },
+        "f1": {
+          "estimate": 0.16,
+          "ci_low": 0.0,
+          "ci_high": 0.37037037037037035,
+          "n_resamples_valid": 10000
+        },
+        "balanced_accuracy": {
+          "estimate": 0.475,
+          "ci_low": 0.375,
+          "ci_high": 0.575,
+          "n_resamples_valid": 10000
+        },
+        "roc_auc": {
+          "estimate": null,
+          "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+        },
+        "n_total": 40,
+        "n_evaluable": 40,
+        "n_not_evaluable": 0,
+        "non_evaluable_as_error": {
+          "sensitivity": {
+            "estimate": 0.1,
+            "ci_low": 0.027866481213768224,
+            "ci_high": 0.3010336452284872,
+            "numerator": 2,
+            "denominator": 20
+          },
+          "specificity": {
+            "estimate": 0.85,
+            "ci_low": 0.6395811352592431,
+            "ci_high": 0.9476312541037835,
+            "numerator": 17,
+            "denominator": 20
+          },
+          "precision": {
+            "estimate": 0.4,
+            "ci_low": 0.117620774232648,
+            "ci_high": 0.7692757187239869,
+            "numerator": 2,
+            "denominator": 5
+          },
+          "f1": {
+            "estimate": 0.16,
+            "ci_low": 0.0,
+            "ci_high": 0.37037037037037035,
+            "n_resamples_valid": 10000
+          },
+          "balanced_accuracy": {
+            "estimate": 0.475,
+            "ci_low": 0.375,
+            "ci_high": 0.575,
+            "n_resamples_valid": 10000
+          },
+          "accuracy": {
+            "estimate": 0.475,
+            "ci_low": 0.3293547011267891,
+            "ci_high": 0.6250263789330752,
+            "numerator": 19,
+            "denominator": 40
+          }
+        },
+        "category_counts": {
+          "INDETERMINADA": 32,
+          "SUSPEITA": 5,
+          "BENIGNA": 3
+        },
+        "tier_counts": {
+          "legacy_exact": 34,
+          "extended_keywords": 6
+        },
+        "category_by_true_class": {
+          "melanoma": {
+            "INDETERMINADA": 17,
+            "SUSPEITA": 2,
+            "BENIGNA": 1
+          },
+          "nevus": {
+            "INDETERMINADA": 15,
+            "SUSPEITA": 3,
+            "BENIGNA": 2
+          }
+        }
+      }
+    },
+    "ham10000": {
+      "indeterminate_as_positive": {
+        "n": 38,
+        "n_positive": 20,
+        "n_negative": 18,
+        "tp": 18,
+        "tn": 1,
+        "fp": 17,
+        "fn": 2,
+        "confusion_matrix": [
+          [
+            1,
+            17
+          ],
+          [
+            2,
+            18
+          ]
+        ],
+        "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+        "ci_method": {
+          "sensitivity": "Wilson",
+          "specificity": "Wilson",
+          "precision": "Wilson",
+          "accuracy": "Wilson",
+          "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+          "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+        },
+        "confidence": 0.95,
+        "sensitivity": {
+          "estimate": 0.9,
+          "ci_low": 0.6989663547715129,
+          "ci_high": 0.9721335187862318,
+          "numerator": 18,
+          "denominator": 20
+        },
+        "specificity": {
+          "estimate": 0.05555555555555555,
+          "ci_low": 0.009875190978303083,
+          "ci_high": 0.25757300781872583,
+          "numerator": 1,
+          "denominator": 18
+        },
+        "precision": {
+          "estimate": 0.5142857142857142,
+          "ci_low": 0.3556880459586857,
+          "ci_high": 0.6700576399749025,
+          "numerator": 18,
+          "denominator": 35
+        },
+        "accuracy": {
+          "estimate": 0.5,
+          "ci_low": 0.3484992836439511,
+          "ci_high": 0.6515007163560489,
+          "numerator": 19,
+          "denominator": 38
+        },
+        "f1": {
+          "estimate": 0.6545454545454545,
+          "ci_low": 0.5769230769230769,
+          "ci_high": 0.7142857142857143,
+          "n_resamples_valid": 10000
+        },
+        "balanced_accuracy": {
+          "estimate": 0.4777777777777778,
+          "ci_low": 0.4,
+          "ci_high": 0.5583333333333333,
+          "n_resamples_valid": 10000
+        },
+        "roc_auc": {
+          "estimate": null,
+          "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+        },
+        "n_total": 40,
+        "n_evaluable": 38,
+        "n_not_evaluable": 2,
+        "non_evaluable_as_error": {
+          "sensitivity": {
+            "estimate": 0.9,
+            "ci_low": 0.6989663547715129,
+            "ci_high": 0.9721335187862318,
+            "numerator": 18,
+            "denominator": 20
+          },
+          "specificity": {
+            "estimate": 0.05,
+            "ci_low": 0.00888144880079543,
+            "ci_high": 0.23613119344674194,
+            "numerator": 1,
+            "denominator": 20
+          },
+          "precision": {
+            "estimate": 0.4864864864864865,
+            "ci_low": 0.3344640430301665,
+            "ci_high": 0.641051033343812,
+            "numerator": 18,
+            "denominator": 37
+          },
+          "f1": {
+            "estimate": 0.631578947368421,
+            "ci_low": 0.5555555555555556,
+            "ci_high": 0.6896551724137931,
+            "n_resamples_valid": 10000
+          },
+          "balanced_accuracy": {
+            "estimate": 0.47500000000000003,
+            "ci_low": 0.4,
+            "ci_high": 0.55,
+            "n_resamples_valid": 10000
+          },
+          "accuracy": {
+            "estimate": 0.475,
+            "ci_low": 0.3293547011267891,
+            "ci_high": 0.6250263789330752,
+            "numerator": 19,
+            "denominator": 40
+          }
+        },
+        "category_counts": {
+          "INDETERMINADA": 34,
+          "BENIGNA": 3,
+          "SUSPEITA": 1,
+          "NAO_AVALIAVEL": 2
+        },
+        "tier_counts": {
+          "legacy_exact": 22,
+          "extended_keywords": 16,
+          "extended_keywords:ambiguous": 2
+        },
+        "category_by_true_class": {
+          "melanoma": {
+            "INDETERMINADA": 17,
+            "BENIGNA": 2,
+            "SUSPEITA": 1
+          },
+          "nevus": {
+            "BENIGNA": 1,
+            "INDETERMINADA": 17,
+            "NAO_AVALIAVEL": 2
+          }
+        }
+      },
+      "indeterminate_as_negative": {
+        "n": 38,
+        "n_positive": 20,
+        "n_negative": 18,
+        "tp": 1,
+        "tn": 18,
+        "fp": 0,
+        "fn": 19,
+        "confusion_matrix": [
+          [
+            18,
+            0
+          ],
+          [
+            19,
+            1
+          ]
+        ],
+        "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+        "ci_method": {
+          "sensitivity": "Wilson",
+          "specificity": "Wilson",
+          "precision": "Wilson",
+          "accuracy": "Wilson",
+          "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+          "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+        },
+        "confidence": 0.95,
+        "sensitivity": {
+          "estimate": 0.05,
+          "ci_low": 0.00888144880079543,
+          "ci_high": 0.23613119344674194,
+          "numerator": 1,
+          "denominator": 20
+        },
+        "specificity": {
+          "estimate": 1.0,
+          "ci_low": 0.8241207763533426,
+          "ci_high": 1.0,
+          "numerator": 18,
+          "denominator": 18
+        },
+        "precision": {
+          "estimate": 1.0,
+          "ci_low": 0.2065493143772375,
+          "ci_high": 1.0,
+          "numerator": 1,
+          "denominator": 1
+        },
+        "accuracy": {
+          "estimate": 0.5,
+          "ci_low": 0.3484992836439511,
+          "ci_high": 0.6515007163560489,
+          "numerator": 19,
+          "denominator": 38
+        },
+        "f1": {
+          "estimate": 0.09523809523809523,
+          "ci_low": 0.0,
+          "ci_high": 0.2608695652173913,
+          "n_resamples_valid": 10000
+        },
+        "balanced_accuracy": {
+          "estimate": 0.525,
+          "ci_low": 0.5,
+          "ci_high": 0.575,
+          "n_resamples_valid": 10000
+        },
+        "roc_auc": {
+          "estimate": null,
+          "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+        },
+        "n_total": 40,
+        "n_evaluable": 38,
+        "n_not_evaluable": 2,
+        "non_evaluable_as_error": {
+          "sensitivity": {
+            "estimate": 0.05,
+            "ci_low": 0.00888144880079543,
+            "ci_high": 0.23613119344674194,
+            "numerator": 1,
+            "denominator": 20
+          },
+          "specificity": {
+            "estimate": 0.9,
+            "ci_low": 0.6989663547715129,
+            "ci_high": 0.9721335187862318,
+            "numerator": 18,
+            "denominator": 20
+          },
+          "precision": {
+            "estimate": 0.3333333333333333,
+            "ci_low": 0.06149194472039626,
+            "ci_high": 0.7923403991979521,
+            "numerator": 1,
+            "denominator": 3
+          },
+          "f1": {
+            "estimate": 0.08695652173913043,
+            "ci_low": 0.0,
+            "ci_high": 0.2608695652173913,
+            "n_resamples_valid": 10000
+          },
+          "balanced_accuracy": {
+            "estimate": 0.47500000000000003,
+            "ci_low": 0.4,
+            "ci_high": 0.55,
+            "n_resamples_valid": 10000
+          },
+          "accuracy": {
+            "estimate": 0.475,
+            "ci_low": 0.3293547011267891,
+            "ci_high": 0.6250263789330752,
+            "numerator": 19,
+            "denominator": 40
+          }
+        },
+        "category_counts": {
+          "INDETERMINADA": 34,
+          "BENIGNA": 3,
+          "SUSPEITA": 1,
+          "NAO_AVALIAVEL": 2
+        },
+        "tier_counts": {
+          "legacy_exact": 22,
+          "extended_keywords": 16,
+          "extended_keywords:ambiguous": 2
+        },
+        "category_by_true_class": {
+          "melanoma": {
+            "INDETERMINADA": 17,
+            "BENIGNA": 2,
+            "SUSPEITA": 1
+          },
+          "nevus": {
+            "BENIGNA": 1,
+            "INDETERMINADA": 17,
+            "NAO_AVALIAVEL": 2
+          }
+        }
+      }
+    }
+  },
+  "policies": [
+    "indeterminate_as_positive",
+    "indeterminate_as_negative"
+  ],
+  "primary_policy": "indeterminate_as_positive",
+  "ph2_vs_ham10000_primary_policy": {
+    "sensitivity": {
+      "p1": 0.95,
+      "n1": 20,
+      "p2": 0.9,
+      "n2": 20,
+      "difference": 0.04999999999999993,
+      "ci_low": -0.1496198028913769,
+      "ci_high": 0.2551956670268035,
+      "ci_method": "Newcombe (escore híbrido)",
+      "fisher_exact_p_two_sided": 1.0,
+      "exploratory": true
+    },
+    "specificity": {
+      "p1": 0.1,
+      "n1": 20,
+      "p2": 0.05555555555555555,
+      "n2": 18,
+      "difference": 0.04444444444444445,
+      "ci_low": -0.17006498553798297,
+      "ci_high": 0.2506026900272102,
+      "ci_method": "Newcombe (escore híbrido)",
+      "fisher_exact_p_two_sided": 1.0,
+      "exploratory": true
+    }
+  }
+}

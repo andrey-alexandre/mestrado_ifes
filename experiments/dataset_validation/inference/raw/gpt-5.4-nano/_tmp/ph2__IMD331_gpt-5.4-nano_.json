@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/PH2/IMD331/IMD331_Dermoscopic_Image/IMD331.bmp": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD331/IMD331_Dermoscopic_Image/IMD331.bmp",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD331/IMD331_lesion/IMD331_lesion.bmp",
+        "diagnosis_abcd": {
+            "assimetria": "1/2 — Há assimetria moderada em relação a pelo menos um eixo (contorno e distribuição pigmentada não são perfeitamente equivalentes), mas a assimetria em ambos os eixos não parece acentuada.",
+            "bordas": "7/8 — Bordas relativamente bem delimitadas e nítidas na maior parte dos quadrantes; em poucos setores a transição parece menos marcada, mas não é difusa em todos.",
+            "cor": "4/6 — Observam-se múltiplos tons intralesionais além do padrão neutro: marrom claro, marrom escuro e presença de áreas mais claras/bege; há também áreas com aspecto mais escurecido/avermelhado discreto (contagem por cores visíveis).",
+            "estruturas": "4/5 — Estruturas dermatoscópicas visíveis incluem rede/traçado pigmentado tipo rede fina e áreas com “padrão sem estrutura” entremeado; também há linhas/ramificações pigmentadas discretas e alguns pontos/glóbulos pouco evidentes.",
+            "explicacao": "Cálculo da soma ponderada (pesos A=1.3, B=0.1, C=0.5, D=0.5):\n- A: 1 × 1.3 = 1.30\n- B: 7 × 0.1 = 0.70\n- C: 4 × 0.5 = 2.00\n- D: 4 × 0.5 = 2.00\nSoma ponderada total = 1.30 + 0.70 + 2.00 + 2.00 = 6.00.\nInterpretação apenas pelo critério numérico do enunciado: >5.45 → “maligna”. (Sem diagnóstico clínico; apenas regra de pontuação aplicada à imagem.)"
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Não foi possível identificar claramente uma área/véu azul-branco na imagem segmentada.",
+                "multiplos_pontos_marrons": "0. Não se observam claramente múltiplos pontos/glóbulos marrons bem definidos.",
+                "pseudopodes": "0. Não há evidência clara de pseudópodes/“projeções” digitiformes na periferia.",
+                "streaming_radial": "0. Não foi identificado streaming radial bem definido saindo do centro.",
+                "despigmentacao_tipo_cicatriz": "0. Não há áreas sugestivas de despigmentação tipo cicatriz.",
+                "pontos_pretos_perifericos": "0. Não se observam claramente pontos/glóbulos pretos periféricos distintos.",
+                "multiplas_cores": "0. Não há evidência robusta de 5–6 cores diferentes bem separadas; predomina variação em tons de marrom/castanho e áreas claras difusas sem distinção nítida de múltiplas cores clínicas dermatoscópicas. "
+            },
+            "negativas": {
+                "simetria": "1. O padrão de pigmentação parece relativamente regular/sem assimetria marcante na imagem segmentada (simetria global aproximada).",
+                "cor_unica": "1. A lesão parece majoritariamente em uma faixa de cor (tons de marrom/castanho), sem múltiplas cores claramente distintas predominantes. "
+            },
+            "explicacao": "Na imagem segmentada, predominam áreas em tons de marrom com estruturas lineares/reticulares discretas, mas sem identificação inequívoca de sinais dermatoscópicos positivos do Método Menzies (como véu azul-branco, múltiplos pontos marrons, pseudópodes, streaming radial, despigmentação tipo cicatriz, ou pontos pretos periféricos). As características negativas sugerem padrão relativamente simétrico e cor predominantemente única, sem indícios consistentes de múltiplas cores dermatoscópicas bem separadas."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Sim. Há distribuição de pigmento heterogênea com variação de intensidade/tonalidade no interior da lesão, sem um padrão uniforme.",
+            "veu_azul_branco_irregular": "Não. Não é possível identificar com clareza áreas esbranquiçadas/azul-acinzentadas típicas formando um véu irregular.",
+            "vasos_atipicos": "Não. Não há vasos claramente identificáveis na imagem fornecida.",
+            "padrao_de_reticulo_irregular": "Sim. Observa-se um padrão de rede/retículo com irregularidade nas linhas (descontinuidade e variação do desenho), mais evidente no interior da lesão.",
+            "padrao_de_globulos_irregulares": "Não. Não ficam evidentes glóbulos marcadamente irregulares (predominam estruturas em rede/pigmentação difusa).",
+            "hiperpigmentacao_localizada": "Sim. Existem áreas mais escuras/localizadas no interior da lesão.",
+            "regressao": "Não. Não se notam áreas esbranquiçadas ou azul-acinzentadas compatíveis com regressão de forma inequívoca.",
+            "explicacao": "Pontos atribuídos: pigmentação atípica (2), retículo irregular (1), hiperpigmentação localizada (1). Outros critérios (véu azul-branco, vasos, glóbulos irregulares e regressão) não estão claramente demonstrados na imagem. Total = 4 pontos, o que pela regra fornecida corresponde a maior suspeita (≥3), sem constituir diagnóstico clínico."
+        },
+        "validation": {
+            "diagnostico": "Lesão cutânea com **suspeita de melanoma** (ou outra lesão melanocítica de comportamento indeterminado), recomendando **avaliação especializada e biópsia** para confirmação histopatológica.",
+            "justificativa": "Integração dos três métodos: \n- **ABCD:** pontuação numérica global **6,00**, acima do limiar de “maligna” pelo critério fornecido (>5,45). Contribuições principais: **cor com múltiplos tons** (C=4/6) e **estruturas dermatoscópicas** heterogêneas/atípicas (D=4/5), além de **assimetria moderada** e **bordas em geral bem delimitadas** (que reduzem parcialmente a pontuação, mas não compensam os demais achados).\n- **Menzies:** não identifica sinais clássicos de alto risco (ex.: **véu azul-branco**, **múltiplos pontos marrons**, **pseudópodes**, **streaming radial**, **despigmentação cicatricial**, **pontos pretos periféricos** e **vasos**) e descreve tendência a **simetria** e predominância de variação em **tons de marrom** sem múltiplas cores claramente separadas. Ou seja, há **discordância parcial**: o método sugere **menos especificidade** para critérios de alto risco do Menzies na imagem segmentada.\n- **SPCL:** aponta **alto risco por padrão**, com **pigmentação atípica**, **retículo irregular** e **hiperpigmentação localizada** (total=4, com regra de “maior suspeita” por ≥3). Isso reforça a presença de **heterogeneidade interna** e **atipia reticular**, que são achados compatíveis com malignidade no checklist.\n\n**Concordância recorrente entre métodos:** apesar da ausência de sinais Menzies positivos, **ABCD e SPCL convergem** para atipia baseada em **heterogeneidade/cor e retículo/estruturas irregulares** (ABCD: C e D; SPCL: pigmentação atípica + retículo irregular + hiperpigmentação localizada). **Discordância principal:** Menzies não encontrou critérios morfológicos específicos; porém, isso não elimina a suspeita sugerida pelos outros dois métodos quando há atipia estrutural e pigmentar.\n\n**Confiabilidade/limitação:** alguns marcadores de Menzies (véu azul-branco, pseudópodes, pontos/glóbulos específicos, regressão e vasos) não foram claramente observados na imagem segmentada; isso pode reduzir a especificidade, mas não explica sozinho o caráter suspeito indicado por ABCD/SPCL.",
+            "recomendacoes": "- **Encaminhar para avaliação dermatológica presencial** com dermatoscopia e correlação clínico-pessoal.\n- Considerar **biópsia excisional ou incisional** (conforme localização/tamanho e decisão do especialista) para **confirmação histopatológica**.\n- Evitar apenas observação até haver esclarecimento, dado que **SPCL sugere alta suspeita (≥3)** e **ABCD excede limiar** pelo critério fornecido.\n- Se houver plano de estadiamento/conduta conforme risco, discutir com o especialista a necessidade de **margens cirúrgicas e, quando aplicável, linfonodo sentinela** (apenas após diagnóstico histológico)."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

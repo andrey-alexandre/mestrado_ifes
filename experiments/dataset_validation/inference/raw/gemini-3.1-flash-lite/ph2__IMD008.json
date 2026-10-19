@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/PH2/IMD008/IMD008_Dermoscopic_Image/IMD008.bmp": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD008/IMD008_Dermoscopic_Image/IMD008.bmp",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD008/IMD008_lesion/IMD008_lesion.bmp",
+    "diagnosis_abcd": {
+      "assimetria": "1: A lesão apresenta assimetria em um eixo (eixo horizontal), com distribuição irregular de pigmento e contornos.",
+      "bordas": "6: As bordas apresentam interrupções e contornos nítidos em 6 dos 8 quadrantes, com áreas de descontinuidade.",
+      "cor": "2: Foram identificadas duas cores principais além do tom da pele: marrom claro e marrom escuro.",
+      "estruturas": "2: Foram identificadas duas estruturas principais: rede pigmentada e pontos.",
+      "explicacao": "Cálculo da soma ponderada: (Assimetria 1 * 1.3) + (Bordas 6 * 0.1) + (Cor 2 * 0.5) + (Estruturas 2 * 0.5) = 1.3 + 0.6 + 1.0 + 1.0 = 3.9. Como o resultado final é 3.9, que é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "1. Presença de múltiplos pontos e glóbulos marrons distribuídos pela lesão.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de marrom e bege, não atingindo o critério de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "0. A lesão apresenta uma distribuição irregular de pigmentação e estrutura, sendo considerada assimétrica.",
+        "cor_unica": "0. A lesão apresenta variações de tonalidade (diferentes tons de marrom e bege), não sendo de cor única."
+      },
+      "explicacao": "A lesão apresenta a característica positiva de múltiplos pontos marrons, mas não exibe as outras características positivas do método. Em relação às características negativas, a lesão não é simétrica e não possui uma cor única, o que, segundo o método, não favorece a classificação de benignidade, mas a ausência de múltiplas características positivas limita a suspeita de melanoma."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma distribuição de pigmento relativamente homogênea e organizada, sem padrões atípicos complexos.",
+      "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco ou estruturas de cor azulada/esbranquiçada irregular.",
+      "vasos_atipicos": "Não. Não são observados vasos atípicos, como vasos polimórficos ou lineares irregulares.",
+      "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentada (retículo) irregular ou interrompida.",
+      "padrao_de_globulos_irregulares": "Não. Embora existam pontos escuros, eles não formam um padrão de glóbulos irregulares acentuado.",
+      "hiperpigmentacao_localizada": "Sim. Existem pontos escuros localizados dispersos na lesão, o que caracteriza este critério.",
+      "regressao": "Não. Não há áreas de regressão (áreas esbranquiçadas ou azul-acinzentadas cicatriciais).",
+      "explicacao": "A lesão apresenta apenas um critério menor (hiperpigmentação localizada), totalizando 1 ponto na Checklist de Sete Pontos. Como a pontuação é inferior a 3, a lesão não atinge o limiar de suspeição definido pelos critérios de melanoma, embora a avaliação clínica presencial seja sempre recomendada."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna",
+      "justificativa": "A integração dos algoritmos ABCD, Menzies e SPCL aponta para uma lesão de baixo risco. O ABCD resultou em 3.9, abaixo do limiar de suspeição (4.75). O método de Menzies identificou apenas um critério positivo (pontos marrons), insuficiente para sugerir malignidade, enquanto o SPCL pontuou apenas 1 ponto (hiperpigmentação localizada), bem abaixo do limiar de 3 pontos necessário para suspeita de melanoma. A análise visual confirma uma estrutura organizada, sem padrões de alto risco como véu azul-branco, vasos atípicos ou rede pigmentada irregular.",
+      "recomendacoes": "A lesão apresenta características predominantemente benignas. Recomenda-se acompanhamento clínico de rotina e monitoramento dermatoscópico para observar qualquer alteração futura, sem necessidade de biópsia imediata."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

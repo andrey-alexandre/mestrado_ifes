@@ -1,0 +1,1080 @@
+{
+  "gpt-5.4-nano": {
+    "quality_vs_error": null,
+    "error_by_acquisition_source": {
+      "ham10000|melanoma|rosendahl": {
+        "n": 9,
+        "errors": 1,
+        "error_rate": 0.1111111111111111
+      },
+      "ham10000|melanoma|vidir_modern": {
+        "n": 10,
+        "errors": 1,
+        "error_rate": 0.1
+      },
+      "ham10000|melanoma|vidir_molemax": {
+        "n": 1,
+        "errors": 0,
+        "error_rate": 0.0
+      },
+      "ham10000|nevus|vidir_modern": {
+        "n": 2,
+        "errors": 2,
+        "error_rate": 1.0
+      },
+      "ham10000|nevus|vidir_molemax": {
+        "n": 15,
+        "errors": 14,
+        "error_rate": 0.9333333333333333
+      },
+      "ham10000|nevus|vienna_dias": {
+        "n": 1,
+        "errors": 1,
+        "error_rate": 1.0
+      },
+      "ph2|melanoma|pedro_hispano_hospital": {
+        "n": 20,
+        "errors": 1,
+        "error_rate": 0.05
+      },
+      "ph2|nevus|pedro_hispano_hospital": {
+        "n": 20,
+        "errors": 18,
+        "error_rate": 0.9
+      }
+    },
+    "error_by_dx_type": {
+      "ham10000|melanoma|histo": {
+        "n": 20,
+        "errors": 2,
+        "error_rate": 0.1
+      },
+      "ham10000|nevus|consensus": {
+        "n": 1,
+        "errors": 1,
+        "error_rate": 1.0
+      },
+      "ham10000|nevus|follow_up": {
+        "n": 15,
+        "errors": 14,
+        "error_rate": 0.9333333333333333
+      },
+      "ham10000|nevus|histo": {
+        "n": 2,
+        "errors": 2,
+        "error_rate": 1.0
+      }
+    },
+    "error_by_ph2_nevus_subtype": {
+      "ph2|nevus|atypical": {
+        "n": 10,
+        "errors": 10,
+        "error_rate": 1.0
+      },
+      "ph2|nevus|common": {
+        "n": 10,
+        "errors": 8,
+        "error_rate": 0.8
+      }
+    },
+    "ph2_annotation_errors": {
+      "asymmetry": {
+        "melanoma|0": {
+          "n": 1,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "melanoma|1": {
+          "n": 1,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "melanoma|2": {
+          "n": 18,
+          "errors": 1,
+          "error_rate": 0.05555555555555555
+        },
+        "nevus|0": {
+          "n": 14,
+          "errors": 12,
+          "error_rate": 0.8571428571428571
+        },
+        "nevus|1": {
+          "n": 5,
+          "errors": 5,
+          "error_rate": 1.0
+        },
+        "nevus|2": {
+          "n": 1,
+          "errors": 1,
+          "error_rate": 1.0
+        }
+      },
+      "pigment_network": {
+        "melanoma|AT": {
+          "n": 20,
+          "errors": 1,
+          "error_rate": 0.05
+        },
+        "nevus|AT": {
+          "n": 9,
+          "errors": 9,
+          "error_rate": 1.0
+        },
+        "nevus|T": {
+          "n": 11,
+          "errors": 9,
+          "error_rate": 0.8181818181818182
+        }
+      },
+      "dots_globules": {
+        "melanoma|A": {
+          "n": 9,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "melanoma|AT": {
+          "n": 11,
+          "errors": 1,
+          "error_rate": 0.09090909090909091
+        },
+        "nevus|A": {
+          "n": 8,
+          "errors": 7,
+          "error_rate": 0.875
+        },
+        "nevus|AT": {
+          "n": 5,
+          "errors": 4,
+          "error_rate": 0.8
+        },
+        "nevus|T": {
+          "n": 7,
+          "errors": 7,
+          "error_rate": 1.0
+        }
+      },
+      "streaks": {
+        "melanoma|A": {
+          "n": 13,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "melanoma|P": {
+          "n": 7,
+          "errors": 1,
+          "error_rate": 0.14285714285714285
+        },
+        "nevus|A": {
+          "n": 19,
+          "errors": 17,
+          "error_rate": 0.8947368421052632
+        },
+        "nevus|P": {
+          "n": 1,
+          "errors": 1,
+          "error_rate": 1.0
+        }
+      },
+      "regression_areas": {
+        "melanoma|A": {
+          "n": 11,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "melanoma|P": {
+          "n": 9,
+          "errors": 1,
+          "error_rate": 0.1111111111111111
+        },
+        "nevus|A": {
+          "n": 19,
+          "errors": 17,
+          "error_rate": 0.8947368421052632
+        },
+        "nevus|P": {
+          "n": 1,
+          "errors": 1,
+          "error_rate": 1.0
+        }
+      },
+      "blue_whitish_veil": {
+        "melanoma|A": {
+          "n": 8,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "melanoma|P": {
+          "n": 12,
+          "errors": 1,
+          "error_rate": 0.08333333333333333
+        },
+        "nevus|A": {
+          "n": 20,
+          "errors": 18,
+          "error_rate": 0.9
+        }
+      }
+    },
+    "agent_profiles": {
+      "ph2|melanoma": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 0.4,
+          "sd": 0.5026246899500346,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 4.65,
+          "sd": 2.207046132634963,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 3.55,
+          "sd": 1.050062654772261,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 3.45,
+          "sd": 0.8870412083230169,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 4.485000000000001,
+          "sd": 1.3164045930608035,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 1.05,
+          "sd": 0.7591546545162482,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 0.25,
+          "sd": 0.6386663736585051,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 3.0,
+          "sd": 1.5559732104309982,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 1.9,
+          "sd": 0.9679060415469872,
+          "n": 20
+        },
+        "abcd_class": {
+          "maligna": 6,
+          "benigna": 12,
+          "suspeita": 2
+        },
+        "menzies_decision": {
+          "melanoma": 14,
+          "indeterminada": 3,
+          "suspeita": 1,
+          "benigna": 2
+        },
+        "spcl_decision": {
+          "suspeita": 15,
+          "benigna": 5
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.0,
+          "menzies_multiplos_pontos_marrons": 0.75,
+          "menzies_pseudopodes": 0.0,
+          "menzies_streaming_radial": 0.0,
+          "menzies_despigmentacao_tipo_cicatriz": 0.0,
+          "menzies_pontos_pretos_perifericos": 0.0,
+          "menzies_multiplas_cores": 0.3,
+          "menzies_simetria": 0.15,
+          "menzies_cor_unica": 0.1,
+          "spcl_padrao_de_pigmentacao_atipico": 0.85,
+          "spcl_veu_azul_branco_irregular": 0.0,
+          "spcl_vasos_atipicos": 0.0,
+          "spcl_padrao_de_reticulo_irregular": 0.4,
+          "spcl_padrao_de_globulos_irregulares": 0.25,
+          "spcl_hiperpigmentacao_localizada": 0.65,
+          "spcl_regressao": 0.0
+        }
+      },
+      "ph2|nevus": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 0.15,
+          "sd": 0.36634754853252327,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 4.2,
+          "sd": 2.30788123383195,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 3.1,
+          "sd": 1.020835571068081,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 2.7,
+          "sd": 1.0310954828418377,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 3.5149999999999997,
+          "sd": 1.2700082884105832,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 0.5,
+          "sd": 0.6069769786668839,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 0.9,
+          "sd": 0.9679060415469871,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 1.4,
+          "sd": 1.6351404253232553,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 0.8,
+          "sd": 0.8335087534664907,
+          "n": 20
+        },
+        "abcd_class": {
+          "benigna": 17,
+          "maligna": 2,
+          "suspeita": 1
+        },
+        "menzies_decision": {
+          "benigna": 7,
+          "melanoma": 8,
+          "indeterminada": 5
+        },
+        "spcl_decision": {
+          "benigna": 15,
+          "suspeita": 5
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.0,
+          "menzies_multiplos_pontos_marrons": 0.4,
+          "menzies_pseudopodes": 0.0,
+          "menzies_streaming_radial": 0.0,
+          "menzies_despigmentacao_tipo_cicatriz": 0.0,
+          "menzies_pontos_pretos_perifericos": 0.0,
+          "menzies_multiplas_cores": 0.1,
+          "menzies_simetria": 0.45,
+          "menzies_cor_unica": 0.45,
+          "spcl_padrao_de_pigmentacao_atipico": 0.4,
+          "spcl_veu_azul_branco_irregular": 0.0,
+          "spcl_vasos_atipicos": 0.0,
+          "spcl_padrao_de_reticulo_irregular": 0.15,
+          "spcl_padrao_de_globulos_irregulares": 0.1,
+          "spcl_hiperpigmentacao_localizada": 0.35,
+          "spcl_regressao": 0.0
+        }
+      },
+      "ham10000|melanoma": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 0.3,
+          "sd": 0.4701623459816272,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 4.525,
+          "sd": 2.0993420021771736,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 3.55,
+          "sd": 0.7591546545162482,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 2.7,
+          "sd": 0.7326950970650465,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 3.9675000000000002,
+          "sd": 1.1616996395934618,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 0.25,
+          "sd": 0.5501196042201808,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 1.0,
+          "sd": 0.9733285267845752,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 2.55,
+          "sd": 1.637552731171861,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 1.2,
+          "sd": 0.8944271909999157,
+          "n": 20
+        },
+        "abcd_class": {
+          "benigna": 14,
+          "maligna": 3,
+          "suspeita": 3
+        },
+        "menzies_decision": {
+          "indeterminada": 7,
+          "benigna": 9,
+          "melanoma": 3,
+          "suspeita": 1
+        },
+        "spcl_decision": {
+          "benigna": 6,
+          "suspeita": 14
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.0,
+          "menzies_multiplos_pontos_marrons": 0.2,
+          "menzies_pseudopodes": 0.0,
+          "menzies_streaming_radial": 0.0,
+          "menzies_despigmentacao_tipo_cicatriz": 0.0,
+          "menzies_pontos_pretos_perifericos": 0.0,
+          "menzies_multiplas_cores": 0.05,
+          "menzies_simetria": 0.5,
+          "menzies_cor_unica": 0.5,
+          "spcl_padrao_de_pigmentacao_atipico": 0.75,
+          "spcl_veu_azul_branco_irregular": 0.0,
+          "spcl_vasos_atipicos": 0.0,
+          "spcl_padrao_de_reticulo_irregular": 0.1,
+          "spcl_padrao_de_globulos_irregulares": 0.3,
+          "spcl_hiperpigmentacao_localizada": 0.65,
+          "spcl_regressao": 0.0
+        }
+      },
+      "ham10000|nevus": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 0.1,
+          "sd": 0.30779350562554625,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 4.275,
+          "sd": 2.623150977856894,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 2.55,
+          "sd": 0.7591546545162482,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 1.75,
+          "sd": 0.7863975156570492,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 2.7075,
+          "sd": 1.0667554102338352,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 0.1,
+          "sd": 0.44721359549995787,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 1.3,
+          "sd": 0.8645047258706176,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 1.05,
+          "sd": 1.3945382182304158,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 0.3,
+          "sd": 0.7326950970650465,
+          "n": 20
+        },
+        "abcd_class": {
+          "benigna": 19,
+          "maligna": 1
+        },
+        "menzies_decision": {
+          "benigna": 11,
+          "indeterminada": 8,
+          "melanoma": 1
+        },
+        "spcl_decision": {
+          "benigna": 16,
+          "suspeita": 4
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.0,
+          "menzies_multiplos_pontos_marrons": 0.05,
+          "menzies_pseudopodes": 0.0,
+          "menzies_streaming_radial": 0.0,
+          "menzies_despigmentacao_tipo_cicatriz": 0.0,
+          "menzies_pontos_pretos_perifericos": 0.0,
+          "menzies_multiplas_cores": 0.05,
+          "menzies_simetria": 0.6,
+          "menzies_cor_unica": 0.7,
+          "spcl_padrao_de_pigmentacao_atipico": 0.4,
+          "spcl_veu_azul_branco_irregular": 0.0,
+          "spcl_vasos_atipicos": 0.0,
+          "spcl_padrao_de_reticulo_irregular": 0.05,
+          "spcl_padrao_de_globulos_irregulares": 0.05,
+          "spcl_hiperpigmentacao_localizada": 0.15,
+          "spcl_regressao": 0.0
+        }
+      }
+    }
+  },
+  "gemini-3.1-flash-lite": {
+    "quality_vs_error": null,
+    "error_by_acquisition_source": {
+      "ham10000|melanoma|rosendahl": {
+        "n": 9,
+        "errors": 1,
+        "error_rate": 0.1111111111111111
+      },
+      "ham10000|melanoma|vidir_modern": {
+        "n": 10,
+        "errors": 1,
+        "error_rate": 0.1
+      },
+      "ham10000|melanoma|vidir_molemax": {
+        "n": 1,
+        "errors": 0,
+        "error_rate": 0.0
+      },
+      "ham10000|nevus|vidir_modern": {
+        "n": 3,
+        "errors": 1,
+        "error_rate": 0.3333333333333333
+      },
+      "ham10000|nevus|vidir_molemax": {
+        "n": 16,
+        "errors": 2,
+        "error_rate": 0.125
+      },
+      "ham10000|nevus|vienna_dias": {
+        "n": 1,
+        "errors": 1,
+        "error_rate": 1.0
+      },
+      "ph2|melanoma|pedro_hispano_hospital": {
+        "n": 20,
+        "errors": 3,
+        "error_rate": 0.15
+      },
+      "ph2|nevus|pedro_hispano_hospital": {
+        "n": 20,
+        "errors": 1,
+        "error_rate": 0.05
+      }
+    },
+    "error_by_dx_type": {
+      "ham10000|melanoma|histo": {
+        "n": 20,
+        "errors": 2,
+        "error_rate": 0.1
+      },
+      "ham10000|nevus|consensus": {
+        "n": 1,
+        "errors": 0,
+        "error_rate": 0.0
+      },
+      "ham10000|nevus|follow_up": {
+        "n": 16,
+        "errors": 2,
+        "error_rate": 0.125
+      },
+      "ham10000|nevus|histo": {
+        "n": 3,
+        "errors": 2,
+        "error_rate": 0.6666666666666666
+      }
+    },
+    "error_by_ph2_nevus_subtype": {
+      "ph2|nevus|atypical": {
+        "n": 10,
+        "errors": 1,
+        "error_rate": 0.1
+      },
+      "ph2|nevus|common": {
+        "n": 10,
+        "errors": 0,
+        "error_rate": 0.0
+      }
+    },
+    "ph2_annotation_errors": {
+      "asymmetry": {
+        "melanoma|0": {
+          "n": 1,
+          "errors": 1,
+          "error_rate": 1.0
+        },
+        "melanoma|1": {
+          "n": 1,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "melanoma|2": {
+          "n": 18,
+          "errors": 2,
+          "error_rate": 0.1111111111111111
+        },
+        "nevus|0": {
+          "n": 14,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "nevus|1": {
+          "n": 5,
+          "errors": 1,
+          "error_rate": 0.2
+        },
+        "nevus|2": {
+          "n": 1,
+          "errors": 0,
+          "error_rate": 0.0
+        }
+      },
+      "pigment_network": {
+        "melanoma|AT": {
+          "n": 20,
+          "errors": 3,
+          "error_rate": 0.15
+        },
+        "nevus|AT": {
+          "n": 9,
+          "errors": 1,
+          "error_rate": 0.1111111111111111
+        },
+        "nevus|T": {
+          "n": 11,
+          "errors": 0,
+          "error_rate": 0.0
+        }
+      },
+      "dots_globules": {
+        "melanoma|A": {
+          "n": 9,
+          "errors": 3,
+          "error_rate": 0.3333333333333333
+        },
+        "melanoma|AT": {
+          "n": 11,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "nevus|A": {
+          "n": 8,
+          "errors": 1,
+          "error_rate": 0.125
+        },
+        "nevus|AT": {
+          "n": 5,
+          "errors": 0,
+          "error_rate": 0.0
+        },
+        "nevus|T": {
+          "n": 7,
+          "errors": 0,
+          "error_rate": 0.0
+        }
+      },
+      "streaks": {
+        "melanoma|A": {
+          "n": 13,
+          "errors": 2,
+          "error_rate": 0.15384615384615385
+        },
+        "melanoma|P": {
+          "n": 7,
+          "errors": 1,
+          "error_rate": 0.14285714285714285
+        },
+        "nevus|A": {
+          "n": 19,
+          "errors": 1,
+          "error_rate": 0.05263157894736842
+        },
+        "nevus|P": {
+          "n": 1,
+          "errors": 0,
+          "error_rate": 0.0
+        }
+      },
+      "regression_areas": {
+        "melanoma|A": {
+          "n": 11,
+          "errors": 2,
+          "error_rate": 0.18181818181818182
+        },
+        "melanoma|P": {
+          "n": 9,
+          "errors": 1,
+          "error_rate": 0.1111111111111111
+        },
+        "nevus|A": {
+          "n": 19,
+          "errors": 1,
+          "error_rate": 0.05263157894736842
+        },
+        "nevus|P": {
+          "n": 1,
+          "errors": 0,
+          "error_rate": 0.0
+        }
+      },
+      "blue_whitish_veil": {
+        "melanoma|A": {
+          "n": 8,
+          "errors": 1,
+          "error_rate": 0.125
+        },
+        "melanoma|P": {
+          "n": 12,
+          "errors": 2,
+          "error_rate": 0.16666666666666666
+        },
+        "nevus|A": {
+          "n": 20,
+          "errors": 1,
+          "error_rate": 0.05
+        }
+      }
+    },
+    "agent_profiles": {
+      "ph2|melanoma": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 1.7,
+          "sd": 0.5712405705774795,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 6.5,
+          "sd": 1.4327007988227578,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 3.4,
+          "sd": 0.7539370349250519,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 2.75,
+          "sd": 0.6386663736585051,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 5.9350000000000005,
+          "sd": 1.340178699789107,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 1.5,
+          "sd": 2.2124052165246,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 0.55,
+          "sd": 0.7591546545162482,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 4.65,
+          "sd": 2.4553914898486253,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 2.1,
+          "sd": 1.0711528467275955,
+          "n": 20
+        },
+        "abcd_class": {
+          "maligna": 15,
+          "benigna": 5
+        },
+        "menzies_decision": {
+          "melanoma": 10,
+          "indeterminada": 7,
+          "benigna": 3
+        },
+        "spcl_decision": {
+          "suspeita": 17,
+          "benigna": 3
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.35,
+          "menzies_multiplos_pontos_marrons": 0.4,
+          "menzies_pseudopodes": 0.1,
+          "menzies_streaming_radial": 0.1,
+          "menzies_despigmentacao_tipo_cicatriz": 0.15,
+          "menzies_pontos_pretos_perifericos": 0.15,
+          "menzies_multiplas_cores": 0.25,
+          "menzies_simetria": 0.4,
+          "menzies_cor_unica": 0.15,
+          "spcl_padrao_de_pigmentacao_atipico": 0.8,
+          "spcl_veu_azul_branco_irregular": 0.45,
+          "spcl_vasos_atipicos": 0.0,
+          "spcl_padrao_de_reticulo_irregular": 0.3,
+          "spcl_padrao_de_globulos_irregulares": 0.55,
+          "spcl_hiperpigmentacao_localizada": 0.85,
+          "spcl_regressao": 0.45
+        }
+      },
+      "ph2|nevus": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 1.2,
+          "sd": 0.41039134083406165,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 6.3,
+          "sd": 1.7501879598308412,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 1.95,
+          "sd": 0.39403446282620613,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 1.85,
+          "sd": 0.36634754853252327,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 4.09,
+          "sd": 0.7362064927722385,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 0.1,
+          "sd": 0.30779350562554625,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 1.45,
+          "sd": 0.6863327411532597,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 0.3,
+          "sd": 0.9233805168766387,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 0.35,
+          "sd": 0.5871429486123997,
+          "n": 20
+        },
+        "abcd_class": {
+          "benigna": 16,
+          "suspeita": 4
+        },
+        "menzies_decision": {
+          "melanoma": 2,
+          "indeterminada": 7,
+          "benigna": 11
+        },
+        "spcl_decision": {
+          "suspeita": 1,
+          "benigna": 19
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.05,
+          "menzies_multiplos_pontos_marrons": 0.05,
+          "menzies_pseudopodes": 0.0,
+          "menzies_streaming_radial": 0.0,
+          "menzies_despigmentacao_tipo_cicatriz": 0.0,
+          "menzies_pontos_pretos_perifericos": 0.0,
+          "menzies_multiplas_cores": 0.0,
+          "menzies_simetria": 0.9,
+          "menzies_cor_unica": 0.55,
+          "spcl_padrao_de_pigmentacao_atipico": 0.05,
+          "spcl_veu_azul_branco_irregular": 0.0,
+          "spcl_vasos_atipicos": 0.0,
+          "spcl_padrao_de_reticulo_irregular": 0.05,
+          "spcl_padrao_de_globulos_irregulares": 0.0,
+          "spcl_hiperpigmentacao_localizada": 0.1,
+          "spcl_regressao": 0.05
+        }
+      },
+      "ham10000|melanoma": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 1.8,
+          "sd": 0.41039134083406165,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 6.7,
+          "sd": 1.1742858972247996,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 3.0,
+          "sd": 0.5619514869490163,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 2.3,
+          "sd": 0.47016234598162726,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 5.660000000000002,
+          "sd": 0.9207548390772706,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 0.4,
+          "sd": 0.5982430416161189,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 0.25,
+          "sd": 0.4442616583193193,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 4.8,
+          "sd": 2.566997016790344,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 2.05,
+          "sd": 0.8255779474818964,
+          "n": 20
+        },
+        "abcd_class": {
+          "maligna": 15,
+          "benigna": 4,
+          "suspeita": 1
+        },
+        "menzies_decision": {
+          "indeterminada": 13,
+          "melanoma": 7
+        },
+        "spcl_decision": {
+          "suspeita": 18,
+          "benigna": 2
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.1,
+          "menzies_multiplos_pontos_marrons": 0.3,
+          "menzies_pseudopodes": 0.0,
+          "menzies_streaming_radial": 0.0,
+          "menzies_despigmentacao_tipo_cicatriz": 0.0,
+          "menzies_pontos_pretos_perifericos": 0.0,
+          "menzies_multiplas_cores": 0.0,
+          "menzies_simetria": 0.25,
+          "menzies_cor_unica": 0.0,
+          "spcl_padrao_de_pigmentacao_atipico": 0.9,
+          "spcl_veu_azul_branco_irregular": 0.15,
+          "spcl_vasos_atipicos": 0.25,
+          "spcl_padrao_de_reticulo_irregular": 0.5,
+          "spcl_padrao_de_globulos_irregulares": 0.4,
+          "spcl_hiperpigmentacao_localizada": 0.9,
+          "spcl_regressao": 0.4
+        }
+      },
+      "ham10000|nevus": {
+        "n": 20,
+        "abcd_assimetria": {
+          "mean": 1.15,
+          "sd": 0.4893604849295929,
+          "n": 20
+        },
+        "abcd_bordas": {
+          "mean": 5.2,
+          "sd": 1.6415653633362466,
+          "n": 20
+        },
+        "abcd_cor": {
+          "mean": 1.95,
+          "sd": 0.5104177855340405,
+          "n": 20
+        },
+        "abcd_estruturas": {
+          "mean": 1.75,
+          "sd": 0.4442616583193193,
+          "n": 20
+        },
+        "abcd_total": {
+          "mean": 3.8650000000000007,
+          "sd": 0.9675117298350553,
+          "n": 20
+        },
+        "menzies_positive_count": {
+          "mean": 0.05,
+          "sd": 0.22360679774997894,
+          "n": 20
+        },
+        "menzies_negative_count": {
+          "mean": 1.4,
+          "sd": 0.6805570473787205,
+          "n": 20
+        },
+        "spcl_score": {
+          "mean": 0.7,
+          "sd": 1.719853114903161,
+          "n": 20
+        },
+        "n_methods_high_risk": {
+          "mean": 0.4,
+          "sd": 0.7539370349250519,
+          "n": 20
+        },
+        "abcd_class": {
+          "benigna": 16,
+          "maligna": 2,
+          "suspeita": 2
+        },
+        "menzies_decision": {
+          "benigna": 10,
+          "indeterminada": 9,
+          "melanoma": 1
+        },
+        "spcl_decision": {
+          "benigna": 17,
+          "suspeita": 3
+        },
+        "binary_criteria_rate": {
+          "menzies_veu_azul_branco": 0.0,
+          "menzies_multiplos_pontos_marrons": 0.05,
+          "menzies_pseudopodes": 0.0,
+          "menzies_streaming_radial": 0.0,
+          "menzies_despigmentacao_tipo_cicatriz": 0.0,
+          "menzies_pontos_pretos_perifericos": 0.0,
+          "menzies_multiplas_cores": 0.0,
+          "menzies_simetria": 0.9,
+          "menzies_cor_unica": 0.5,
+          "spcl_padrao_de_pigmentacao_atipico": 0.15,
+          "spcl_veu_azul_branco_irregular": 0.0,
+          "spcl_vasos_atipicos": 0.0,
+          "spcl_padrao_de_reticulo_irregular": 0.15,
+          "spcl_padrao_de_globulos_irregulares": 0.1,
+          "spcl_hiperpigmentacao_localizada": 0.15,
+          "spcl_regressao": 0.0
+        }
+      }
+    }
+  }
+}

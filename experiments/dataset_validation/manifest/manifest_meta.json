@@ -1,0 +1,38 @@
+{
+  "seed": 42,
+  "n_per_class": 20,
+  "n_images": 80,
+  "fingerprint": "e577fe88ee6668cb2c59e2f2a9b7bf96b1b857b4dd98f7f808f8b44021cc2fe3",
+  "expected_fingerprint": "e577fe88ee6668cb2c59e2f2a9b7bf96b1b857b4dd98f7f808f8b44021cc2fe3",
+  "reference_hash_check": {
+    "reference_present": true,
+    "image_hash_mismatch": [],
+    "mask_hash_mismatch": []
+  },
+  "provenance": {
+    "versions": {
+      "python": "3.11.15",
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "PIL": "12.3.0",
+      "pandas": "3.0.6",
+      "sklearn": "1.9.1",
+      "yaml": "6.0.3",
+      "matplotlib": "unavailable",
+      "torch": "2.14.1",
+      "langchain": "1.4.6",
+      "langchain_core": "1.6.10",
+      "langgraph": "unknown",
+      "langchain_openai": "1.7.2",
+      "langchain_google_genai": "4.4.2"
+    },
+    "git_commit": "bb11e6677184cf22b3bcc581163d3d8f3103c47d",
+    "git_branch": "exp/dataset_validation",
+    "git_dirty_paths_in_src_scripts_config": [
+      "M config/config.yaml"
+    ],
+    "seed": 42,
+    "created_at": "2026-10-19T00:38:25.223734+00:00"
+  }
+}

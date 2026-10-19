@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/PH2/IMD404/IMD404_Dermoscopic_Image/IMD404.bmp": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD404/IMD404_Dermoscopic_Image/IMD404.bmp",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD404/IMD404_lesion/IMD404_lesion.bmp",
+        "diagnosis_abcd": {
+            "assimetria": "1 (assimetria em um eixo): a lesão não é perfeitamente espelhada; há variação mais evidente na distribuição/forma ao longo de um eixo, sem evidência forte de assimetria em ambos os eixos.",
+            "bordas": "6/8 (bordas nítidas em vários quadrantes): os contornos parecem relativamente bem delimitados em parte dos quadrantes, enquanto em alguns trechos há transição menos definida, sugerindo borda parcialmente nítida.",
+            "cor": "4/6 (múltiplas cores internas além da cor de base): observa-se presença de tons marrom claro e marrom escuro, além de áreas vermelho/rosa e pequenas regiões azul-cinza/acinzentadas. (Pontuação por cor presente: marrom claro + marrom escuro + vermelho/rosa + azul-cinza = 4)",
+            "estruturas": "4/5 (estruturas visíveis): nota-se rede pigmentada/linhas finas, além de pontos/glóbulos discretos em uma das regiões. Não há evidência muito clara de “áreas sem estrutura” extensas como um único componente dominante. (Rede pigmentada/linhas + pontos/glóbulos + linhas ramificadas (parcial) = 3–4; considerarei 4 estruturas no total pelas combinações mais evidentes)",
+            "explicacao": "Pontuações (A,B,C,D) e soma ponderada:\n- A = 1, peso 1.3  ⇒ 1 × 1.3 = 1.30\n- B = 6, peso 0.1  ⇒ 6 × 0.1 = 0.60\n- C = 4, peso 0.5  ⇒ 4 × 0.5 = 2.00\n- D = 4, peso 0.5  ⇒ 4 × 0.5 = 2.00\nSoma ponderada = 1.30 + 0.60 + 2.00 + 2.00 = 5.90\nClassificação pelo limiar fornecido: > 5.45 → 'maligna'. (Observação: a análise descreve critérios visuais do ABCD; não é um diagnóstico clínico.)"
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Não há um véu azul-branco claramente identificável na imagem segmentada.",
+                "multiplos_pontos_marrons": "1. Observam-se vários pontos/glóbulos de aspecto marrom dispersos na lesão.",
+                "pseudopodes": "0. Não identifico com clareza projeções em “pseudópodes”.",
+                "streaming_radial": "0. Não há evidência nítida de streaming radial bem definido.",
+                "despigmentacao_tipo_cicatriz": "0. Não vejo área de despigmentação em padrão tipo cicatriz de forma claramente reconhecível.",
+                "pontos_pretos_perifericos": "0. Não ficam claramente definidos pontos/glóbulos pretos periféricos.",
+                "multiplas_cores": "0. A distribuição parece predominantemente em tons marrons/alaranjados, sem evidência segura de 5–6 cores distintas (ex.: preto, azul, cinza e branco) na imagem segmentada."
+            },
+            "negativas": {
+                "simetria": "0. A distribuição de pigmentação parece irregular/assimétrica no contorno e no padrão interno.",
+                "cor_unica": "0. Há mais de uma tonalidade visível (não apenas uma cor uniforme)."
+            },
+            "explicacao": "Padrões observáveis na imagem sugerem múltiplos pontos/glóbulos marrons. Não foram identificados, de forma clara, critérios específicos como véu azul-branco, streaming radial, pseudópodes, despigmentação tipo cicatriz, pontos pretos periféricos ou múltiplas cores (5–6). Quanto aos critérios negativos, não há cor única e o padrão não é claramente simétrico."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Sim. Observa-se distribuição de pigmento com variação irregular de tons dentro da lesão, sem um padrão homogêneo uniforme.",
+            "veu_azul_branco_irregular": "Não. Não há áreas claramente identificáveis com aspecto de véu azul-branco (rede esbranquiçada/azulada mal definida).",
+            "vasos_atipicos": "Não. Não são visualizados vasos claramente sugestivos de atipia (não há estruturas vasculares bem delimitadas e com morfologia atípica).",
+            "padrao_de_reticulo_irregular": "Sim. Há uma reticulação visível com aspectos irregulares/heterogêneos em parte da lesão, com descontinuidade do padrão.",
+            "padrao_de_globulos_irregulares": "Não. Não se distinguem globulos com irregularidade acentuada e bem delimitada; o que aparece mais é textura/pigmentação difusa.",
+            "hiperpigmentacao_localizada": "Não. Não se notam pontos/áreas escuras localizadas de forma bem definida e intensa (pelo menos com nitidez suficiente na imagem).",
+            "regressao": "Não. Não se observam áreas esbranquiçadas ou azul-acinzentadas compatíveis com regressão de forma clara.",
+            "explicacao": "Com base na Checklist de Sete Pontos, a imagem mostra principalmente indícios de padrão de pigmentação irregular (2 pontos) e retículo irregular (1 ponto). Não há evidência visual nítida de véu azul-branco, vasos atípicos, globulos irregulares, hiperpigmentação localizada bem delimitada ou regressão. A soma total estimada é 3 pontos (suspeita conforme critério operacional da checklist), porém sem confirmação clínica."
+        },
+        "validation": {
+            "diagnostico": "Lesão indeterminada com **suspeita dermatológica** (maior risco dentre os cenários avaliados); recomendação de investigação por especialista.",
+            "justificativa": "Integração dos algoritmos:\n- **ABCD:** maior peso para alerta. Pontuou alto (soma ponderada **5,90** > limiar **5,45**), devido a **múltiplas cores** (incluindo marrom claro/escuro, áreas rosadas/vermelhas e componentes acinzentados/azulados discretos), **estruturas visíveis** (rede pigmentada/linhas finas e pontos/glóbulos discretos) e **assimetria em um eixo** com **bordas parcialmente nítidas**. Isso posiciona a lesão mais próxima de um padrão **maligno/alto risco** nesse framework.\n- **Menzies:** aponta critérios mais específicos de alto risco como majoritariamente **ausentes** (sem véu azul-branco, sem streaming radial, sem pseudópodes, sem despigmentação tipo cicatriz, sem pontos pretos periféricos e sem 5–6 cores claramente distintas). Ainda assim, observa **padrão não simétrico** e **não “cor única”**, o que é compatível com **atipia**, mas com menor especificidade que o ABCD para melanoma.\n- **SPCL:** marca **padrão de pigmentação atípico** e **retículo irregular** como presentes; os demais itens de alto risco (véu azul-branco irregular, vasos atípicos, globulos irregulares, hiperpigmentação localizada bem delimitada, regressão) foram **negativos**. A soma estimada (3 pontos) fica no espectro de **suspeita** conforme a própria checklist.\n\nConcordância/discordância:\n- Há **concordância** entre **ABCD** e **SPCL** em **atipia estrutural/pigmentar** (múltiplas cores/estruturas no ABCD e retículo/padrão atípico no SPCL).\n- O **Menzies** diverge ao não identificar “assinaturas” mais específicas (véu azul-branco/streaming/pseudópodes), sugerindo que, apesar da **atipia**, nem todos os marcadores de alto risco do modelo estão evidentes na imagem.\n\nPadrões recorrentes de maior preocupação entre os pareceres:\n- **Atipia do padrão/pigmentação** (SPCL) e **múltiplas cores + estruturas** (ABCD).\n- **Assimetria**/heterogeneidade global (ABCD e Menzies). \n\nDada a elevação do ABCD acima do limiar e a presença de retículo/padrão atípico no SPCL, o cenário fica mais alinhado a **lesão indeterminada com suspeita**, sem confirmação diagnóstica apenas pela imagem segmentada.",
+            "recomendacoes": "- **Encaminhar para avaliação presencial** com dermatologista/dermatopatologia para definir conduta.\n- Considerar **dermatoscopia em alta resolução** (se ainda não realizada) e, com base no alto escore do ABCD e atipia no SPCL, discutir **biópsia** (excisional quando apropriado pela localização/tamanho, ou punch/raspagem conforme critério do especialista).\n- Evitar apenas acompanhamento visual sem exame adicional, pois os algoritmos já indicam **atipia** (especialmente pelo ABCD acima do limiar).\n- Se houver decisão por vigilância, estabelecer **intervalo curto** e critérios objetivos de mudança (crescimento, alteração de cor/forma), mas isso deve ser decidido clinicamente após dermatoscopia completa."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 1
+    }
+}

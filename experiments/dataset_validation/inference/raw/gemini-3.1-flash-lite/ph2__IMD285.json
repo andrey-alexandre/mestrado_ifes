@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/PH2/IMD285/IMD285_Dermoscopic_Image/IMD285.bmp": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD285/IMD285_Dermoscopic_Image/IMD285.bmp",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/data/PH2/IMD285/IMD285_lesion/IMD285_lesion.bmp",
+    "diagnosis_abcd": {
+      "assimetria": "0: A lesão apresenta uma forma globalmente ovalada e simétrica em ambos os eixos.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+      "cor": "2: Identificam-se duas cores principais: marrom claro e marrom escuro (desconsiderando o tom da pele).",
+      "estruturas": "2: Observam-se a presença de rede pigmentada e pontos distribuídos pela lesão.",
+      "explicacao": "A pontuação foi calculada da seguinte forma: Assimetria (0 * 1.3 = 0), Bordas (8 * 0.1 = 0.8), Cor (2 * 0.5 = 1.0), Estruturas (2 * 0.5 = 1.0). A soma ponderada total é 0 + 0.8 + 1.0 + 1.0 = 2.8. Como o valor de 2.8 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "0. Ausente.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de marrom e bege, não atingindo o critério de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "1. A lesão apresenta um padrão de pigmentação simétrico e organizado, com distribuição uniforme dos orifícios foliculares.",
+        "cor_unica": "0. A lesão apresenta variações de tonalidade entre marrom e bege, não sendo estritamente de uma cor única."
+      },
+      "explicacao": "A lesão apresenta um padrão dermatoscópico característico de uma lesão melanocítica benigna, com simetria evidente na distribuição da pigmentação e ausência de critérios positivos do Método Menzies, como véu azul-branco, pseudópodes ou estruturas vasculares atípicas."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta um padrão de sulcos e cristas característico de pele acral, sem pigmentação atípica difusa.",
+      "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco ou estruturas de regressão associadas.",
+      "vasos_atipicos": "Não. Não são observados vasos atípicos ou estruturas vasculares anormais.",
+      "padrao_de_reticulo_irregular": "Não. O padrão observado é de sulcos paralelos, típico de lesões acrais benignas, e não um retículo pigmentar irregular.",
+      "padrao_de_globulos_irregulares": "Não. Não há presença de glóbulos ou pontos irregulares distribuídos de forma desorganizada.",
+      "hiperpigmentacao_localizada": "Não. A pigmentação segue o padrão de sulcos paralelos de forma homogênea.",
+      "regressao": "Não. Não há áreas de despigmentação ou estruturas de regressão visíveis.",
+      "explicacao": "A lesão apresenta um padrão dermatoscópico de sulcos paralelos, que é uma característica clássica e benigna de lesões melanocíticas em áreas acrais (palmas das mãos ou plantas dos pés). Nenhum dos critérios da checklist de sete pontos foi identificado, resultando em uma pontuação total de 0."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna",
+      "justificativa": "Há uma concordância absoluta entre os três algoritmos (ABCD, Menzies e SPCL). O ABCD pontuou 2.8, indicando benignidade; o método de Menzies não identificou critérios positivos de malignidade, destacando a simetria; e o SPCL confirmou a ausência de qualquer critério de risco, identificando o padrão de sulcos paralelos típico de lesões melanocíticas acrais benignas. A análise visual da imagem corrobora esses achados, mostrando uma lesão com pigmentação organizada e sem estruturas atípicas.",
+      "recomendacoes": "Considerando o padrão dermatoscópico benigno de sulcos paralelos em área acral, não há necessidade de biópsia ou intervenção imediata. Recomenda-se apenas o acompanhamento clínico de rotina para monitoramento de possíveis alterações futuras."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 1
+  }
+}
