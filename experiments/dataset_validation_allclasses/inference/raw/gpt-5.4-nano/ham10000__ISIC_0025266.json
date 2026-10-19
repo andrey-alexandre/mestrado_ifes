@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025266.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025266.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0025266_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "1 — Observa-se assimetria moderada em relação aos eixos (a lesão não é perfeitamente espelhada), mas sem evidência forte de assimetria em ambos os eixos.",
+      "bordas": "6 — As bordas aparecem relativamente nítidas e bem delimitadas na maior parte dos “quadrantes” (há pouca área com transição totalmente indistinta).",
+      "cor": "3 — Há pelo menos 3 categorias de cor dermatoscópica visível na lesão (predomínio roxo/avermelhado/rosa, áreas mais claras/begeadas e tons escuros tipo marrom/acinzentado).",
+      "estruturas": "3 — Observam-se estruturas/elementos visíveis: áreas com pouca estrutura (regiões homogêneas), e formações puntiformes/blotches discretos (pontos/glóbulos) e/ou pequenas áreas de aspecto ramificado/irregular.",
+      "explicacao": "Cálculo da soma ponderada (pesos: A=1.3, B=0.1, C=0.5, D=0.5):\n- A: 1 × 1.3 = 1.30\n- B: 6 × 0.1 = 0.60\n- C: 3 × 0.5 = 1.50\n- D: 3 × 0.5 = 1.50\nSoma total = 1.30 + 0.60 + 1.50 + 1.50 = 4.90\nInterpretação apenas pelo limiar do algoritmo (sem diagnóstico): 4.90 > 4.75 e < 5.45 → classifica como “suspeita” pelo score, com base exclusivamente nos critérios visuais fornecidos."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Não há estrutura claramente identificável como véu azul-branco na imagem (apenas áreas rosadas/acinzentadas gerais).",
+        "multiplos_pontos_marrons": "0. Não se observam claramente múltiplos pontos/glóbulos marrons distintos e periféricos; as áreas parecem mais homogêneas/aglomeradas do que em múltiplos pontos marrons.",
+        "pseudopodes": "0. Não há projeções digitiformes/pseudópodes claramente visíveis a partir do contorno.",
+        "streaming_radial": "0. Não se notam linhas radiais/“streaming” claramente definidas a partir de um centro.",
+        "despigmentacao_tipo_cicatriz": "0. Não há uma área branca bem delimitada compatível com despigmentação tipo cicatriz.",
+        "pontos_pretos_perifericos": "0. Não se veem glóbulos/pontos pretos claramente definidos na periferia.",
+        "multiplas_cores": "0. A lesão parece majoritariamente em tons rosados/arroxeados com poucas variações bem separadas, não chegando a 5–6 cores distintas claramente identificáveis na segmentação/dermatoscopia mostrada."
+      },
+      "negativas": {
+        "simetria": "0. A distribuição de pigmento/estrutura interna não parece nitidamente simétrica no contorno e na extensão das áreas mais escuras/claras.",
+        "cor_unica": "0. Não é apenas uma cor: há variações de tom (ex.: regiões mais rosadas/arroxeadas e áreas mais escuras/acinzentadas)."
+      },
+      "explicacao": "Pela segmentação fornecida, a lesão exibe contornos irregulares e variação interna de tons (não homogênea em uma única cor). Entretanto, não foram identificados com clareza critérios positivos do Método de Menzies (como véu azul-branco, múltiplos pontos marrons, pseudópodes, streaming radial, despigmentação tipo cicatriz, pontos pretos periféricos ou múltiplas cores em quantidade suficiente). As características negativas não estão simultaneamente presentes: cor única não ocorre, e a simetria não parece acentuada."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Sim. Observa-se distribuição de pigmento heterogênea e irregular dentro da lesão, com áreas de diferentes intensidades/tonalidades.",
+      "veu_azul_branco_irregular": "Não. Não há evidência clara de áreas esbranquiçadas/azul-acinzentadas com aspecto de véu bem definido e irregular.",
+      "vasos_atipicos": "Não. Não é possível identificar estruturas vasculares com morfologia atípica de forma nítida na imagem fornecida.",
+      "padrao_de_reticulo_irregular": "Não. O padrão de retículo (rede) não está claramente visível; quando presente, a textura não mostra irregularidade acentuada e bem delimitada.",
+      "padrao_de_globulos_irregulares": "Não. Não se distinguem globulos claramente definidos com irregularidade acentuada; há apenas variações gerais de pigmento.",
+      "hiperpigmentacao_localizada": "Não. Não se veem focos bem delimitados de pontos escuros concentrados de forma inequívoca.",
+      "regressao": "Não. Não se observam áreas esbranquiçadas ou azul-acinzentadas compatíveis de maneira clara com regressão.",
+      "explicacao": "Avaliação visual dos critérios da Checklist de Sete Pontos na imagem segmentada: há principalmente heterogeneidade de pigmentação (padrão de pigmentação atípico), mas não foram identificados de forma confiável véu azul-branco irregular, vasos atípicos, retículo/góbulos irregulares acentuados, hiperpigmentação focal típica, nem áreas claras de regressão. Assim, a pontuação total estimada fica abaixo de 3 pontos."
+    },
+    "validation": {
+      "diagnostico": "Lesão indeterminada com achados dermatoscópicos heterogêneos; necessidade de avaliação por especialista e, em geral, considerar biópsia/retirada para elucidação histopatológica.",
+      "justificativa": "Há **concordância parcial** entre os três sistemas quanto à **heterogeneidade**: \n- **ABCD**: “suspeita” por score (4.90) principalmente devido a **múltiplas categorias de cor** (C=3), **estruturas/elementos variados** (D=3) e **assimetria moderada** (A=1). As **bordas** aparecem relativamente nítidas (B=6 não favorecendo malignidade por si só), o que explica que a suspeita não seja “máxima”.\n- **Menzies**: não identifica critérios clássicos de alto risco (ex.: **véu azul-branco**, **pseudópodes**, **streaming radial**, **múltiplos pontos marrons periféricos**, **pontos pretos periféricos**, despigmentação cicatricial), mas reforça **não ser cor única** e **não ser claramente simétrica**, alinhando com o achado de heterogeneidade/assimetria sugeridos pelo ABCD.\n- **SPCL**: aponta **padrão de pigmentação atípico** (positivo), porém **sem confirmação** dos demais sinais mais específicos de alto risco (véu azul-branco irregular, retículo/glóbulos irregulares acentuados, vasos atípicos, hiperpigmentação focal típica, regressão). A pontuação estimada fica baixa (<3), reduzindo a especificidade para melanoma.\n\n**Integração**: o “ponto de convergência” é **pigmentação heterogênea/atípica (SPCL)** e **variação de cor e estruturas (ABCD)**, com **ausência** (ou não identificação confiável) de múltiplos marcadores de alto risco na abordagem de **Menzies** e em parte da **SPCL**. Assim, não há consenso para um “alto risco definitivo” pelos critérios específicos, mas o **score do ABCD** e a **atipia de pigmentação** justificam tratar como **indeterminada/suspeita** até confirmação histológica. A confiabilidade dos critérios varia: bordas relativamente nítidas e ausência de sinais vasculares/reticulares bem definidos diminuem a força do alerta, mas não eliminam risco porque a **heterogeneidade** permanece como achado comum.",
+      "recomendacoes": "- **Encaminhar para dermatologista/dermatoscopia por especialista** para reavaliação em dermatoscópio (idealmente com imagem comparativa seriada). \n- Dado o caráter **indeterminado com suspeita pelo ABCD** e **pigmentação atípica (SPCL)**, **considerar biópsia/excisão diagnóstica** conforme avaliação clínica (padrão de crescimento, sintomas, história pessoal/familiar, imunossupressão e possibilidade de amostragem adequada).\n- Se a lesão for julgada clinicamente benigna após exame presencial e se houver alta reprodutibilidade do padrão observado, pode-se optar por **acompanhamento dermatoscópico** com fotografia total e regra de comparação (ex.: 3–6 meses), mas **a preferência tende a ser por confirmação histológica** quando o ABCD sinaliza “suspeita”.\n- Orientar **sinais de alarme** para retorno imediato: crescimento rápido, mudança marcante de forma/cor, sangramento, ulceração ou prurido persistente."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

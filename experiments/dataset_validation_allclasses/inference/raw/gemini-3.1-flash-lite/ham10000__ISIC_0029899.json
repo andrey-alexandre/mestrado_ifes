@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0029899.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0029899.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0029899_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto na forma quanto na distribuição dos pigmentos.",
+      "bordas": "6: As bordas são nítidas e bem delimitadas em aproximadamente 6 dos 8 quadrantes, apresentando contornos irregulares.",
+      "cor": "3: Estão presentes as cores branco/bege (fundo), vermelho/rosa (vasos) e marrom claro/escuro (pigmentação).",
+      "estruturas": "3: Observam-se áreas sem estrutura, pontos pigmentados e linhas ramificadas (vasos).",
+      "explicacao": "Cálculo da soma ponderada: (2 * 1.3) + (6 * 0.1) + (3 * 0.5) + (3 * 0.5) = 2.6 + 0.6 + 1.5 + 1.5 = 6.2. Com base no resultado de 6.2, a lesão enquadra-se na categoria de lesão maligna segundo o critério estabelecido (> 5.45)."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "0. Não há múltiplos pontos marrons distribuídos.",
+        "pseudopodes": "0. Ausentes.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausentes.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e marrom claro, não atingindo o critério de cinco ou seis cores."
+      },
+      "negativas": {
+        "simetria": "0. A lesão apresenta assimetria na distribuição de pigmento e estrutura.",
+        "cor_unica": "0. A lesão apresenta mais de uma cor (tons de rosa, marrom e áreas esbranquiçadas)."
+      },
+      "explicacao": "A lesão não apresenta critérios positivos definidos pelo método de Menzies, como véu azul-branco, pseudópodes ou streaming radial. No entanto, também não preenche os critérios de benignidade, pois apresenta assimetria estrutural e múltiplas cores, o que impede a classificação como lesão benigna segundo este método."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta áreas de pigmentação dispersas e irregulares, mas não forma um padrão atípico complexo e difuso.",
+      "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco identificáveis na imagem.",
+      "vasos_atipicos": "Sim. Observam-se vasos lineares e ramificados na porção inferior da lesão, que podem ser considerados atípicos.",
+      "padrao_de_reticulo_irregular": "Não. Não há evidência de um padrão de retículo pigmentar irregular.",
+      "padrao_de_globulos_irregulares": "Não. Embora existam áreas pigmentadas, não há um padrão organizado de glóbulos irregulares.",
+      "hiperpigmentacao_localizada": "Sim. Existem áreas de hiperpigmentação focal, especialmente na parte superior e inferior da lesão.",
+      "regressao": "Não. Não há áreas características de regressão (áreas esbranquiçadas ou azul-acinzentadas sem estrutura).",
+      "explicacao": "A lesão apresenta critérios menores e maiores pontuáveis: vasos atípicos (2 pontos) e hiperpigmentação localizada (1 ponto), totalizando 3 pontos. A presença de vasos atípicos e pigmentação focal irregular justifica a pontuação, sugerindo a necessidade de avaliação clínica especializada."
+    },
+    "validation": {
+      "diagnostico": "Lesão Indeterminada com necessidade de investigação",
+      "justificativa": "A análise integrada revela uma divergência entre os algoritmos. Enquanto o ABCD aponta para uma pontuação de malignidade (6.2), o método de Menzies não confirma critérios positivos de melanoma, e o SPCL atribui uma pontuação moderada (3 pontos) baseada em vasos atípicos e hiperpigmentação focal. A imagem corrobora a presença de assimetria estrutural e vascularização atípica, mas a ausência de critérios clássicos de alto risco (como véu azul-branco ou rede pigmentar atípica) torna o diagnóstico inconclusivo apenas pela dermatoscopia.",
+      "recomendacoes": "Devido à presença de vasos atípicos e assimetria estrutural, recomenda-se a realização de biópsia excisional para exame histopatológico definitivo, visando descartar malignidade, ou, alternativamente, acompanhamento dermatoscópico rigoroso em curto prazo caso a lesão seja clinicamente estável."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

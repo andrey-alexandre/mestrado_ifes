@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0024539.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0024539.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0024539_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto na distribuição de pigmento quanto na morfologia geral.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+      "cor": "3: Estão presentes as cores branco/bege, vermelho/rosa e marrom escuro.",
+      "estruturas": "3: Observam-se áreas sem estrutura (áreas esbranquiçadas/hipopigmentadas), pontos e glóbulos de pigmento.",
+      "explicacao": "Cálculo da soma ponderada: (Assimetria 2 * 1.3) + (Bordas 8 * 0.1) + (Cor 3 * 0.5) + (Estruturas 3 * 0.5) = 2.6 + 0.8 + 1.5 + 1.5 = 6.4. Com base no resultado de 6.4, a lesão é classificada como maligna conforme os critérios estabelecidos."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Nao ha area de veu azul-branco identificavel.",
+        "multiplos_pontos_marrons": "0. Nao ha multiplos pontos marrons distintos.",
+        "pseudopodes": "0. Nao ha pseudopodes presentes.",
+        "streaming_radial": "0. Nao ha streaming radial presente.",
+        "despigmentacao_tipo_cicatriz": "0. Nao ha areas de despigmentacao cicatricial.",
+        "pontos_pretos_perifericos": "0. Nao ha pontos pretos perifericos.",
+        "multiplas_cores": "0. A lesao apresenta predominantemente tons de rosa, bege e marrom claro, nao atingindo o criterio de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "1. A lesao apresenta uma distribuicao de padroes e cores relativamente simetrica.",
+        "cor_unica": "0. A lesao apresenta variacao de cores, incluindo tons de rosa, bege e marrom."
+      },
+      "explicacao": "A lesao nao apresenta caracteristicas positivas do metodo Menzies. Embora nao possua cor unica, a presenca de simetria estrutural e a ausencia de criterios positivos sugerem uma lesao com caracteristicas de benignidade."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta uma distribuição irregular de pigmentos castanhos e escuros, sem um padrão uniforme.",
+      "veu_azul_branco_irregular": "Sim, há áreas centrais com tonalidades azuladas e esbranquiçadas que sugerem a presença de véu azul-branco.",
+      "vasos_atipicos": "Sim, são observadas estruturas vasculares irregulares e polimórficas em várias partes da lesão.",
+      "padrao_de_reticulo_irregular": "Não, não é possível identificar um padrão de retículo pigmentar típico ou irregular nesta lesão.",
+      "padrao_de_globulos_irregulares": "Sim, existem glóbulos e estruturas arredondadas de tamanhos e cores variados distribuídos de forma irregular.",
+      "hiperpigmentacao_localizada": "Sim, há áreas de hiperpigmentação intensa e focalizada, especialmente na porção central e superior.",
+      "regressao": "Sim, a presença de áreas esbranquiçadas e despigmentadas entre as áreas pigmentadas sugere fenômenos de regressão.",
+      "explicacao": "A lesão apresenta múltiplos critérios da Checklist de Sete Pontos. Foram identificados critérios maiores (pigmentação atípica, véu azul-branco e vasos atípicos) e critérios menores (glóbulos irregulares, hiperpigmentação localizada e áreas de regressão). A pontuação total é de 9 pontos, o que indica uma alta complexidade estrutural na imagem analisada."
+    },
+    "validation": {
+      "diagnostico": "Lesão Indeterminada com alta suspeição de malignidade",
+      "justificativa": "A análise integrada revela uma divergência significativa entre os algoritmos. Enquanto o método de Menzies sugere benignidade baseando-se em uma percepção de simetria, os algoritmos ABCD e SPCL identificam critérios de alto risco. A inspeção visual da imagem corrobora os achados do SPCL e ABCD, evidenciando estruturas vasculares atípicas, áreas de regressão (esbranquiçadas), glóbulos irregulares e uma distribuição de pigmento heterogênea que não condiz com uma lesão benigna simples. A presença de vasos atípicos e áreas de regressão são marcadores dermatoscópicos críticos que frequentemente superam a avaliação de simetria isolada.",
+      "recomendacoes": "Dada a discordância entre os métodos e a presença de critérios de alto risco (vasos atípicos e regressão), recomenda-se a realização de biópsia excisional para exame histopatológico definitivo, visando descartar melanoma ou outras neoplasias cutâneas."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

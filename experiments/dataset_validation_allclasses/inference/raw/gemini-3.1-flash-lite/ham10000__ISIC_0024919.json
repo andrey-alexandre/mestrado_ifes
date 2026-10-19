@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0024919.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0024919.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation/inputs/ham10000_masks/ISIC_0024919_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "1: A lesão apresenta assimetria em um eixo principal, sendo mais alongada em uma direção.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+      "cor": "2: Foram identificadas duas cores principais: tons de marrom (pigmentação) e tons de vermelho/rosa (vascularização/fundo).",
+      "estruturas": "2: Observam-se áreas sem estrutura (fundo homogêneo) e uma rede pigmentada fina.",
+      "explicacao": "Cálculo da soma ponderada: Assimetria (1 * 1.3 = 1.3) + Bordas (8 * 0.1 = 0.8) + Cor (2 * 0.5 = 1.0) + Estruturas (2 * 0.5 = 1.0). Soma total = 1.3 + 0.8 + 1.0 + 1.0 = 4.1. Como o valor de 4.1 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "1. Presença de múltiplos pontos e glóbulos marrons distribuídos pela lesão.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de marrom e avermelhado, não atingindo o critério de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "0. A lesão apresenta assimetria na distribuição dos padrões de pigmentação.",
+        "cor_unica": "0. A lesão apresenta variação de tons de marrom e áreas avermelhadas, não sendo de cor única."
+      },
+      "explicacao": "A lesão apresenta uma característica positiva (múltiplos pontos marrons) e a ausência das duas características negativas (simetria e cor única). De acordo com o Método Menzies, a presença de pelo menos uma característica positiva associada à ausência das características negativas sugere a necessidade de investigação clínica adicional."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta uma distribuição heterogênea de pigmento com áreas de diferentes tons de marrom e desorganização estrutural.",
+      "veu_azul_branco_irregular": "Não, não há evidência clara de véu azul-branco estruturado.",
+      "vasos_atipicos": "Não, não são observados vasos atípicos ou polimórficos distintos.",
+      "padrao_de_reticulo_irregular": "Sim, observa-se um padrão de rede (retículo) que não é uniforme em toda a extensão da lesão.",
+      "padrao_de_globulos_irregulares": "Sim, há presença de glóbulos e estruturas arredondadas de tamanhos e distribuições irregulares.",
+      "hiperpigmentacao_localizada": "Sim, existem áreas com acúmulo de pigmento mais escuro em regiões específicas da lesão.",
+      "regressao": "Não, não há áreas características de regressão (áreas esbranquiçadas ou azul-acinzentadas cicatriciais).",
+      "explicacao": "A lesão apresenta um padrão de pigmentação atípico (2 pontos), retículo irregular (1 ponto), glóbulos irregulares (1 ponto) e hiperpigmentação localizada (1 ponto), totalizando 5 pontos na Checklist de Sete Pontos."
+    },
+    "validation": {
+      "diagnostico": "Lesão Indeterminada",
+      "justificativa": "Existe uma divergência entre os algoritmos: o ABCD classifica a lesão como benigna (pontuação 4.1), enquanto o Menzies e o SPCL apontam para a necessidade de investigação. O SPCL é o mais preocupante, com uma pontuação de 5 pontos devido à presença de retículo irregular, glóbulos irregulares e hiperpigmentação localizada. A imagem confirma uma estrutura heterogênea e desorganizada, o que contradiz a avaliação de benignidade do ABCD e reforça os achados de atipia estrutural do SPCL.",
+      "recomendacoes": "Devido à pontuação elevada no SPCL e à desorganização estrutural observada na imagem, recomenda-se a realização de uma biópsia excisional para exame histopatológico definitivo, visando descartar malignidade."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0029930.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0029930.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0029930_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos (horizontal e vertical), com contornos irregulares e distribuição desigual de pigmento.",
+      "bordas": "6: As bordas são nítidas e bem delimitadas em aproximadamente 6 dos 8 quadrantes, apresentando recortes e irregularidades.",
+      "cor": "3: Estão presentes as cores: branco/bege (áreas claras), vermelho/rosa (fundo vascular/eritematoso) e marrom (pigmentação focal).",
+      "estruturas": "3: Observam-se áreas sem estrutura (áreas hipopigmentadas), rede pigmentada (em áreas periféricas) e glóbulos (estruturas arredondadas pigmentadas).",
+      "explicacao": "Cálculo da soma ponderada: (2 * 1.3) + (6 * 0.1) + (3 * 0.5) + (3 * 0.5) = 2.6 + 0.6 + 1.5 + 1.5 = 6.2. Com base no algoritmo ABCD, o valor de 6.2 é superior a 5.45, classificando a lesão como suspeita de malignidade segundo os critérios estabelecidos."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Nao ha areas de veu azul-branco homogeneo.",
+        "multiplos_pontos_marrons": "0. Nao ha multiplos pontos marrons distintos.",
+        "pseudopodes": "0. Nao ha estruturas de pseudopodes na periferia.",
+        "streaming_radial": "0. Nao ha streaming radial visivel.",
+        "despigmentacao_tipo_cicatriz": "0. Nao ha areas de despigmentacao cicatricial.",
+        "pontos_pretos_perifericos": "0. Nao ha pontos ou globulos pretos perifericos.",
+        "multiplas_cores": "0. A lesao apresenta predominantemente tons de rosa e marrom, nao atingindo o criterio de cinco ou seis cores."
+      },
+      "negativas": {
+        "simetria": "0. A lesao apresenta distribuicao irregular de pigmento e estruturas, sendo assimetrica.",
+        "cor_unica": "0. A lesao apresenta variacao de cores, incluindo tons de rosa, bege e marrom."
+      },
+      "explicacao": "A lesao apresenta padroes caracteristicos de queratose seborreica, como estruturas pseudofoliculares (aberturas foliculares preenchidas por queratina) e padrao cerebriforme. Nao foram identificadas caracteristicas positivas do metodo Menzies para melanoma, e a lesao nao apresenta cor unica nem simetria perfeita, sendo classificada como benigna pelo metodo."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta áreas de pigmentação marrom distribuídas de forma assimétrica e irregular, com variações de tonalidade e densidade.",
+      "veu_azul_branco_irregular": "Não, não há evidência clara de véu azul-branco estruturado.",
+      "vasos_atipicos": "Não, não são observados vasos atípicos claramente definidos na imagem.",
+      "padrao_de_reticulo_irregular": "Não, não há um padrão de rede pigmentada (retículo) típico ou irregular visível.",
+      "padrao_de_globulos_irregulares": "Sim, a lesão exibe múltiplos glóbulos e estruturas arredondadas de tamanhos e cores variados, distribuídos de forma irregular.",
+      "hiperpigmentacao_localizada": "Sim, existem áreas de hiperpigmentação marrom mais densa e concentrada em regiões específicas da lesão.",
+      "regressao": "Não, não há áreas características de regressão (áreas cicatriciais esbranquiçadas ou azul-acinzentadas).",
+      "explicacao": "A lesão apresenta um padrão de pigmentação atípico (2 pontos), presença de glóbulos irregulares (1 ponto) e hiperpigmentação localizada (1 ponto), totalizando 4 pontos na Checklist de Sete Pontos. A pontuação total de 4 indica que a lesão atende aos critérios de suspeição para melanoma, sendo necessária avaliação clínica especializada."
+    },
+    "validation": {
+      "diagnostico": "Lesão Indeterminada",
+      "justificativa": "A análise apresenta um conflito significativo entre os algoritmos. Enquanto o ABCD e o SPCL apontam para suspeição devido à assimetria, irregularidade de bordas e presença de glóbulos, o método de Menzies sugere benignidade, identificando padrões sugestivos de queratose seborreica, como estruturas pseudofoliculares e aspecto cerebriforme. A imagem corrobora a presença de aberturas foliculares preenchidas por queratina (milia-like cysts), que são marcadores clássicos de lesões melanocíticas benignas, mas a desorganização estrutural e a variação de pigmento justificam a cautela.",
+      "recomendacoes": "Devido à divergência entre os algoritmos e à presença de critérios de suspeição (ABCD e SPCL), recomenda-se a correlação clínica com dermatoscopia digital de seguimento (follow-up) em 3 meses ou, caso haja dúvida persistente ou mudança clínica, a realização de biópsia excisional para confirmação histopatológica."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025711.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025711.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0025711_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "2: A lesão apresenta assimetria acentuada tanto no eixo horizontal quanto no vertical, com distribuição irregular de pigmento e estruturas.",
+      "bordas": "6: As bordas apresentam delimitação nítida em 6 dos 8 quadrantes, com transições abruptas entre a lesão e a pele adjacente.",
+      "cor": "4: Foram identificadas quatro cores distintas: branco/bege (áreas hipopigmentadas), vermelho/rosa (áreas eritematosas), marrom escuro e azul-cinza.",
+      "estruturas": "2: Foram identificadas duas estruturas principais: áreas sem estrutura (áreas amorfas) e pontos/glóbulos pigmentados.",
+      "explicacao": "Cálculo da soma ponderada: (2 * 1.3) + (6 * 0.1) + (4 * 0.5) + (2 * 0.5) = 2.6 + 0.6 + 2.0 + 1.0 = 6.2. Com base no resultado de 6.2, que é superior a 5.45, a lesão é classificada como maligna segundo o algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "1. A lesão apresenta áreas de véu azul-acinzentado e esbranquiçado sobre as zonas pigmentadas.",
+        "multiplos_pontos_marrons": "0. Não são observados múltiplos pontos marrons distintos distribuídos pela lesão.",
+        "pseudopodes": "0. Não são identificadas estruturas digitiformes na periferia da lesão.",
+        "streaming_radial": "0. Não há evidência de estrias radiais ou streaming na periferia.",
+        "despigmentacao_tipo_cicatriz": "1. Observam-se áreas claras e esbranquiçadas que sugerem despigmentação tipo cicatriz.",
+        "pontos_pretos_perifericos": "0. Não há pontos ou glóbulos pretos claramente dispostos na periferia.",
+        "multiplas_cores": "0. A lesão apresenta tons de marrom, azul-acinzentado, rosa e vermelho, mas não atinge o critério de 5 ou 6 cores distintas."
+      },
+      "negativas": {
+        "simetria": "0. A lesão apresenta assimetria acentuada na distribuição de cores e estruturas.",
+        "cor_unica": "0. A lesão é claramente multicromática, apresentando diversas tonalidades."
+      },
+      "explicacao": "A lesão apresenta características positivas como véu azul-branco e áreas de despigmentação tipo cicatriz. Além disso, a lesão é claramente assimétrica e apresenta múltiplas cores, falhando em ambos os critérios negativos. A presença de características positivas associada à ausência de características negativas sugere uma lesão que requer investigação clínica detalhada."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta uma distribuição irregular de pigmentos com áreas de cores variadas e desorganizadas.",
+      "veu_azul_branco_irregular": "Sim, há áreas com tonalidades azuladas e esbranquiçadas irregulares, particularmente na porção central e à direita da lesão.",
+      "vasos_atipicos": "Não, não são claramente identificáveis estruturas vasculares atípicas distintas na imagem fornecida.",
+      "padrao_de_reticulo_irregular": "Não, não se observa um padrão de retículo pigmentar típico ou irregular na lesão.",
+      "padrao_de_globulos_irregulares": "Sim, observam-se glóbulos e estruturas pigmentadas de tamanhos e formas irregulares, especialmente nas áreas de pigmentação mais densa.",
+      "hiperpigmentacao_localizada": "Sim, existem áreas de hiperpigmentação focal, notadamente a área central avermelhada/acastanhada e a mancha escura à direita.",
+      "regressao": "Sim, a presença de áreas esbranquiçadas e azul-acinzentadas sugere áreas de regressão dentro da lesão.",
+      "explicacao": "A lesão apresenta múltiplos critérios da Checklist de Sete Pontos. Foram identificados: padrão de pigmentação atípico (2 pontos), véu azul-branco irregular (2 pontos), padrão de glóbulos irregulares (1 ponto), hiperpigmentação localizada (1 ponto) e áreas de regressão (1 ponto), totalizando 7 pontos. A pontuação total de 7 indica uma alta probabilidade de características associadas a malignidade, exigindo avaliação clínica especializada."
+    },
+    "validation": {
+      "diagnostico": "Suspeita de Melanoma",
+      "justificativa": "A análise integrada dos algoritmos ABCD, Menzies e SPCL apresenta alta concordância quanto à natureza atípica da lesão. O ABCD pontuou 6.2, superando o limiar de malignidade. O Menzies identificou critérios positivos críticos, como véu azul-branco e áreas de despigmentação tipo cicatriz, enquanto o SPCL totalizou 7 pontos, destacando o padrão de pigmentação atípico, glóbulos irregulares e sinais claros de regressão. A presença recorrente de assimetria, multicromaticidade e estruturas amorfas na imagem reforça a necessidade de investigação diagnóstica imediata.",
+      "recomendacoes": "Recomenda-se a excisão cirúrgica da lesão com margens de segurança para exame histopatológico definitivo, dada a alta probabilidade de malignidade indicada pelos critérios dermatoscópicos combinados."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

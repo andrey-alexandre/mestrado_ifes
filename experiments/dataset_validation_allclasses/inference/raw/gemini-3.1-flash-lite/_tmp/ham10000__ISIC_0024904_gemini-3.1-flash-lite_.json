@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0024904.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0024904.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0024904_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "1: A lesão apresenta assimetria em um eixo, sendo relativamente arredondada, mas com distribuição irregular de estruturas internas.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes, apresentando um contorno definido.",
+            "cor": "2: Estão presentes as cores vermelho/rosa e branco/bege.",
+            "estruturas": "2: Observam-se glóbulos e áreas sem estrutura (lacunas vasculares).",
+            "explicacao": "Cálculo da soma ponderada: Assimetria (1 * 1.3 = 1.3) + Bordas (8 * 0.1 = 0.8) + Cor (2 * 0.5 = 1.0) + Estruturas (2 * 0.5 = 1.0). Soma total = 1.3 + 0.8 + 1.0 + 1.0 = 4.1. Como o valor de 4.1 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Nao ha presenca de veu azul-branco.",
+                "multiplos_pontos_marrons": "0. A lesao apresenta lacunas vasculares, nao pontos marrons.",
+                "pseudopodes": "0. Nao ha presenca de pseudopodes.",
+                "streaming_radial": "0. Nao ha presenca de streaming radial.",
+                "despigmentacao_tipo_cicatriz": "0. Nao ha presenca de areas de despigmentacao cicatricial.",
+                "pontos_pretos_perifericos": "0. Nao ha pontos ou globulos pretos perifericos.",
+                "multiplas_cores": "0. A lesao apresenta predominantemente tons de vermelho e rosa, nao atingindo a contagem de 5 ou 6 cores distintas."
+            },
+            "negativas": {
+                "simetria": "0. A lesao apresenta uma distribuicao irregular de lacunas vasculares, nao sendo simetrica.",
+                "cor_unica": "0. A lesao apresenta variacoes de tons de vermelho e rosa, nao sendo de cor unica."
+            },
+            "explicacao": "A lesao apresenta caracteristicas dermatoscopicas tipicas de um hemangioma ou angioma, com lacunas vasculares (lacunas vermelhas/roxas) bem definidas. Nao foram identificados criterios positivos do metodo Menzies para melanoma, como veu azul-branco, pseudopodes ou pigmentacao marrom/preta. A lesao nao e simetrica e nao possui cor unica, o que e esperado para lesoes vasculares."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração avermelhada homogênea, característica de estruturas vasculares, sem pigmentação melânica atípica.",
+            "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco ou estruturas de regressão associadas a pigmento.",
+            "vasos_atipicos": "Sim. A lesão é composta predominantemente por lacunas vasculares dilatadas e irregulares, típicas de um hemangioma ou lesão vascular.",
+            "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo.",
+            "padrao_de_globulos_irregulares": "Não. Embora existam estruturas arredondadas, elas correspondem a lacunas vasculares (lacunas vermelhas/púrpuras) e não a glóbulos de pigmento melânico.",
+            "hiperpigmentacao_localizada": "Não. Não há pontos escuros de pigmento melânico.",
+            "regressao": "Não. Não há áreas de despigmentação ou cicatriciais sugestivas de regressão.",
+            "explicacao": "A lesão apresenta um padrão dermatoscópico clássico de lesão vascular, caracterizado por múltiplas lacunas avermelhadas/púrpuras separadas por septos esbranquiçados. Não foram identificados critérios de malignidade melânica (como rede, glóbulos de pigmento, véu ou pigmentação atípica). A pontuação total é de 2 pontos, baseada exclusivamente na presença de estruturas vasculares, que, neste contexto, sugerem uma natureza benigna (como um angioma)."
+        },
+        "validation": {
+            "diagnostico": "Lesão Benigna (Sugestivo de Hemangioma/Angioma)",
+            "justificativa": "Há uma concordância robusta entre os três algoritmos (ABCD, Menzies e SPCL). O ABCD classifica a lesão como benigna (pontuação 4.1 < 4.75), o Menzies não identifica critérios de malignidade melânica (ausência de véu, pseudópodes ou pigmentação atípica), e o SPCL confirma a natureza vascular da lesão, identificando lacunas avermelhadas/púrpuras típicas de angiomas em vez de estruturas de pigmento melânico. A imagem corrobora esses achados, exibindo lacunas vasculares bem delimitadas e septos claros, sem características de atipia melânica.",
+            "recomendacoes": "A lesão apresenta características dermatoscópicas clássicas de benignidade (lesão vascular). Não há indicação imediata de biópsia ou excisão, a menos que haja mudança clínica, sangramento recorrente ou desconforto estético. Recomenda-se acompanhamento clínico de rotina."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

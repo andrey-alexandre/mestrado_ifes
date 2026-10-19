@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0034196.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0034196.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0034196_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "1: A lesão apresenta assimetria acentuada em um eixo (eixo vertical), com a massa pigmentada central deslocada para a parte superior.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes, apresentando um contorno claro e definido em relação à pele circundante.",
+            "cor": "3: Estão presentes três cores distintas: preto (centro da lesão), azul-cinza (periferia da área central) e rosa/vermelho (halo periférico).",
+            "estruturas": "1: A única estrutura claramente identificável é a área sem estrutura (área homogênea) que compõe o centro pigmentado e o halo periférico.",
+            "explicacao": "Cálculo da soma ponderada: (1 * 1.3) + (8 * 0.1) + (3 * 0.5) + (1 * 0.5) = 1.3 + 0.8 + 1.5 + 0.5 = 4.1. Como o resultado final é 4.1, que é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Nao ha presenca de veu azul-branco estruturado.",
+                "multiplos_pontos_marrons": "0. Nao ha multiplos pontos marrons visiveis.",
+                "pseudopodes": "0. Nao ha presenca de pseudopodes.",
+                "streaming_radial": "0. Nao ha presenca de streaming radial.",
+                "despigmentacao_tipo_cicatriz": "0. Nao ha areas de despigmentacao tipo cicatriz.",
+                "pontos_pretos_perifericos": "0. Nao ha pontos ou globulos pretos na periferia.",
+                "multiplas_cores": "0. A lesao apresenta basicamente duas cores (preto central e rosa periferico), nao atingindo o criterio de multiplas cores."
+            },
+            "negativas": {
+                "simetria": "1. A lesao apresenta uma simetria radial clara, com um centro escuro circundado por uma borda rosa uniforme.",
+                "cor_unica": "0. A lesao apresenta duas cores distintas (preto e rosa), portanto nao possui cor unica."
+            },
+            "explicacao": "A lesao apresenta simetria radial, o que e uma caracteristica negativa (benigna) segundo o metodo Menzies. Nao foram identificadas caracteristicas positivas de malignidade como veu azul-branco, pseudopodes ou multiplas cores. Embora nao possua cor unica, a presenca de simetria e a ausencia de criterios positivos sugerem um padrao benigno."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta uma distribuição de pigmento central densa e irregular, não seguindo um padrão uniforme.",
+            "veu_azul_branco_irregular": "Sim, há uma área central de pigmentação azul-acinzentada profunda e opaca, característica de véu azul-branco.",
+            "vasos_atipicos": "Não, não são observadas estruturas vasculares atípicas claramente definidas nesta imagem.",
+            "padrao_de_reticulo_irregular": "Não, não há presença de rede pigmentar (retículo) visível.",
+            "padrao_de_globulos_irregulares": "Não, não há glóbulos ou pontos distintos distribuídos de forma irregular na periferia.",
+            "hiperpigmentacao_localizada": "Sim, a área central apresenta uma hiperpigmentação intensa e localizada.",
+            "regressao": "Sim, a área periférica ao redor do núcleo pigmentado apresenta uma coloração esbranquiçada/hipopigmentada, sugestiva de áreas de regressão.",
+            "explicacao": "A lesão apresenta critérios significativos: Padrão de pigmentação atípico (2 pontos), Véu azul-branco (2 pontos), Hiperpigmentação localizada (1 ponto) e Regressão (1 ponto), totalizando 6 pontos na Checklist de Sete Pontos."
+        },
+        "validation": {
+            "diagnostico": "Lesão Indeterminada com necessidade de investigação histopatológica",
+            "justificativa": "Existe uma divergência significativa entre os algoritmos. Enquanto o ABCD e o Menzies sugerem benignidade baseando-se na simetria radial e bordas bem definidas, o SPCL aponta para critérios de alto risco, como a presença de véu azul-branco, hiperpigmentação central e áreas sugestivas de regressão. A análise visual da imagem confirma uma estrutura central densamente pigmentada circundada por um halo claro, o que, apesar da simetria, levanta preocupações dermatoscópicas que não podem ser descartadas apenas pelos critérios de simetria e bordas.",
+            "recomendacoes": "Devido à pontuação elevada no SPCL e à presença de características estruturais atípicas (véu azul-branco e possível regressão), recomenda-se a excisão cirúrgica da lesão para exame histopatológico definitivo, visando excluir a possibilidade de melanoma ou outras neoplasias melanocíticas."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

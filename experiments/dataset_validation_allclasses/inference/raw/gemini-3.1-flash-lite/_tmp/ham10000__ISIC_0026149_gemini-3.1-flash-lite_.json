@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0026149.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0026149.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0026149_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto no formato quanto na distribuição das estruturas internas.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+            "cor": "2: Foram identificadas duas cores principais: branco/bege (áreas claras/hipopigmentadas) e vermelho/rosa (áreas eritematosas).",
+            "estruturas": "2: Foram observadas áreas sem estrutura (áreas homogêneas) e glóbulos (estruturas arredondadas claras).",
+            "explicacao": "Cálculo da soma ponderada: (Assimetria 2 * 1.3) + (Bordas 8 * 0.1) + (Cor 2 * 0.5) + (Estruturas 2 * 0.5) = 2.6 + 0.8 + 1.0 + 1.0 = 5.4. Com base no resultado de 5.4, a lesão é classificada como suspeita (valor entre 4.75 e 5.45)."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Ausente.",
+                "multiplos_pontos_marrons": "0. Ausente.",
+                "pseudopodes": "0. Ausente.",
+                "streaming_radial": "0. Ausente.",
+                "despigmentacao_tipo_cicatriz": "0. Ausente.",
+                "pontos_pretos_perifericos": "0. Ausente.",
+                "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e vermelho, não atingindo o critério de cinco ou seis cores distintas."
+            },
+            "negativas": {
+                "simetria": "1. A lesão apresenta uma distribuição de padrão relativamente simétrica.",
+                "cor_unica": "1. A lesão é composta predominantemente por tons de rosa e vermelho, caracterizando uma cor única."
+            },
+            "explicacao": "A lesão apresenta características morfológicas sugestivas de benignidade, como a presença de estruturas globulares/lacunares rosadas típicas de hemangiomas ou lesões vasculares. Não foram identificadas características positivas do Método Menzies, enquanto as duas características negativas (simetria e cor única) estão presentes, o que aponta para uma lesão benigna."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta um padrão vascular predominante, sem áreas de pigmentação atípica significativa.",
+            "veu_azul_branco_irregular": "Não. Não há evidência de véu azul-branco.",
+            "vasos_atipicos": "Não. Embora a lesão seja vascular, os vasos observados não apresentam características de atipia (como polimorfismo vascular).",
+            "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo.",
+            "padrao_de_globulos_irregulares": "Não. Não há glóbulos pigmentados irregulares.",
+            "hiperpigmentacao_localizada": "Não. A lesão é predominantemente eritematosa, sem focos de hiperpigmentação.",
+            "regressao": "Não. Não há áreas de regressão cicatricial ou azul-acinzentada.",
+            "explicacao": "A lesão apresenta um padrão predominantemente vascular, caracterizado por estruturas globulares eritematosas que sugerem uma natureza vascular (como um hemangioma ou lesão similar), sem a presença de critérios dermatoscópicos de malignidade da Checklist de Sete Pontos. A pontuação total é 0."
+        },
+        "validation": {
+            "diagnostico": "Lesão Benigna (Sugestivo de Hemangioma ou Lesão Vascular)",
+            "justificativa": "A análise integrada dos algoritmos revela uma divergência pontual no ABCD, que classificou a lesão como suspeita devido a uma interpretação técnica de assimetria e bordas, enquanto os métodos Menzies e SPCL foram unânimes em classificar a lesão como benigna. A imagem dermatoscópica demonstra claramente estruturas globulares eritematosas (lacunas vasculares) típicas de lesões vasculares benignas, como hemangiomas. A ausência de critérios de malignidade no SPCL (pontuação 0) e a presença de características negativas no Menzies (cor única e simetria estrutural) corroboram a natureza benigna, sugerindo que a pontuação do ABCD foi influenciada por uma interpretação morfológica que não reflete atipia biológica.",
+            "recomendacoes": "Considerando a forte correlação com lesões vasculares benignas, não há indicação imediata de biópsia. Recomenda-se acompanhamento clínico de rotina ou, caso haja dúvida persistente ou alteração clínica, a realização de uma dermatoscopia de seguimento para confirmar a estabilidade da lesão."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

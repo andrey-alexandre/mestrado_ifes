@@ -1,0 +1,43 @@
+{
+  "seed": 42,
+  "n_per_class": 20,
+  "n_images": 140,
+  "fingerprint": "a6fbe0abdc9fab94590289b860d77c8d656794bd45b3ed0cc94efe3cf5a09e11",
+  "expected_fingerprint": "a6fbe0abdc9fab94590289b860d77c8d656794bd45b3ed0cc94efe3cf5a09e11",
+  "classes": [
+    "melanoma",
+    "nevus",
+    "akiec",
+    "bcc",
+    "bkl",
+    "df",
+    "vasc"
+  ],
+  "provenance": {
+    "versions": {
+      "python": "3.11.15",
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "PIL": "12.3.0",
+      "pandas": "3.0.6",
+      "sklearn": "1.9.1",
+      "yaml": "6.0.3",
+      "matplotlib": "unavailable",
+      "torch": "2.14.1",
+      "langchain": "1.4.6",
+      "langchain_core": "1.6.10",
+      "langgraph": "unknown",
+      "langchain_openai": "1.7.2",
+      "langchain_google_genai": "4.4.2"
+    },
+    "git_commit": "efd0ea151170cf5bd7ec5a79a2340a8f624fb5bf",
+    "git_branch": "exp/dataset_validation",
+    "git_dirty_paths_in_src_scripts_config": [
+      "M config/config.yaml",
+      "?? config/config_mac.yaml"
+    ],
+    "seed": 42,
+    "created_at": "2026-10-19T22:14:27.170948+00:00"
+  }
+}

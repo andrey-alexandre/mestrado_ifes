@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0031900.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0031900.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation/inputs/ham10000_masks/ISIC_0031900_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "2: A lesão apresenta assimetria acentuada tanto no eixo horizontal quanto no vertical, com contornos irregulares e distribuição desigual de pigmento.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes, apresentando um padrão irregular e recortado.",
+      "cor": "3: Estão presentes as cores marrom claro, marrom escuro e tons de rosa/vermelho (desconsiderando a cor da pele).",
+      "estruturas": "2: Observa-se claramente a presença de rede pigmentada e áreas sem estrutura (áreas hipopigmentadas).",
+      "explicacao": "Cálculo da soma ponderada: (Assimetria 2 * 1.3) + (Bordas 8 * 0.1) + (Cor 3 * 0.5) + (Estruturas 2 * 0.5) = 2.6 + 0.8 + 1.5 + 1.0 = 5.9. Com base na pontuação final de 5.9, a lesão é classificada como suspeita de malignidade conforme os critérios estabelecidos (valor > 5.45)."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "0. Ausente.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de marrom claro e rosa, não atingindo o critério de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "1. A lesão apresenta uma distribuição de pigmentação e estrutura relativamente simétrica.",
+        "cor_unica": "0. A lesão apresenta variações de tons de marrom e áreas rosadas, não sendo de cor única."
+      },
+      "explicacao": "A lesão não apresenta nenhuma das características positivas do Método Menzies. Em relação às características negativas, apresenta simetria, mas não possui cor única. De acordo com os critérios fornecidos, a ausência de características positivas sugere uma lesão benigna."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta uma distribuição irregular de pigmento com áreas de diferentes tonalidades e densidades.",
+      "veu_azul_branco_irregular": "Não, não há evidência clara de véu azul-branco estruturado.",
+      "vasos_atipicos": "Não, não são observados vasos atípicos claramente definidos.",
+      "padrao_de_reticulo_irregular": "Sim, observa-se um padrão de rede (retículo) que não é uniforme em toda a extensão da lesão.",
+      "padrao_de_globulos_irregulares": "Não, não há presença de glóbulos ou estruturas globulares irregulares acentuadas.",
+      "hiperpigmentacao_localizada": "Sim, existem áreas com maior concentração de pigmento distribuídas de forma assimétrica.",
+      "regressao": "Sim, há áreas hipopigmentadas que sugerem áreas de regressão.",
+      "explicacao": "A lesão apresenta um padrão de pigmentação atípico (2 pontos), retículo irregular (1 ponto), hiperpigmentação localizada (1 ponto) e áreas sugestivas de regressão (1 ponto), totalizando 5 pontos na Checklist de Sete Pontos."
+    },
+    "validation": {
+      "diagnostico": "Lesão Indeterminada com necessidade de investigação adicional",
+      "justificativa": "A análise integrada revela uma divergência significativa entre os algoritmos. Enquanto o método Menzies sugere benignidade pela ausência de critérios positivos clássicos, o ABCD (pontuação 5.9) e o SPCL (pontuação 5) apontam para características de risco, como assimetria, retículo irregular, hiperpigmentação localizada e áreas sugestivas de regressão. A imagem dermatoscópica confirma a presença de um retículo atípico e áreas hipopigmentadas, que, embora possam ser encontradas em lesões benignas como ceratoses seborreicas ou lentigos solares, também são marcadores de alerta para melanoma em estágio inicial ou lesões melanocíticas atípicas.",
+      "recomendacoes": "Devido à pontuação elevada nos critérios de ABCD e SPCL, recomenda-se a avaliação presencial por um dermatologista experiente, possivelmente com auxílio de dermatoscopia digital sequencial ou, caso haja dúvida persistente, a realização de biópsia excisional para análise histopatológica definitiva."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 1
+  }
+}

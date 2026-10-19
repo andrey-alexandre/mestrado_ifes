@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0030744.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0030744.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0030744_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "1: A lesão apresenta assimetria em um eixo principal, sendo mais alongada horizontalmente com contornos irregulares.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes, apresentando um contorno definido em relação à pele adjacente.",
+      "cor": "2: Foram identificadas duas cores principais: rosa/vermelho (predominante) e marrom claro (áreas focais).",
+      "estruturas": "2: Observam-se áreas sem estrutura (áreas hipopigmentadas/rosadas) e uma rede pigmentada tênue em algumas regiões.",
+      "explicacao": "Cálculo da soma ponderada: (1 * 1.3) + (8 * 0.1) + (2 * 0.5) + (2 * 0.5) = 1.3 + 0.8 + 1.0 + 1.0 = 4.1. Como o valor final de 4.1 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "0. Ausente.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e marrom claro, não atingindo o critério de cinco ou seis cores."
+      },
+      "negativas": {
+        "simetria": "1. A lesão apresenta uma distribuição de cores e padrões relativamente simétrica.",
+        "cor_unica": "0. A lesão apresenta variações de tons entre rosa e marrom claro, não sendo de cor única."
+      },
+      "explicacao": "A lesão não apresenta nenhuma das características positivas do Método Menzies. Em relação às características negativas, apresenta simetria, mas não possui cor única, o que não permite classificá-la como benigna pelo critério estrito de ausência de características positivas e presença de ambas as negativas."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma pigmentação difusa e pouco definida, sem um padrão atípico claro.",
+      "veu_azul_branco_irregular": "Não. Não há evidência de estruturas de véu azul-branco.",
+      "vasos_atipicos": "Não. Embora existam vasos visíveis, eles não apresentam morfologia atípica característica de malignidade.",
+      "padrao_de_reticulo_irregular": "Não. Não se observa um padrão de retículo pigmentar irregular.",
+      "padrao_de_globulos_irregulares": "Não. Não há presença de glóbulos ou estruturas globulares irregulares.",
+      "hiperpigmentacao_localizada": "Não. A pigmentação é difusa e não apresenta focos de hiperpigmentação localizada.",
+      "regressao": "Não. Não há áreas de regressão (esbranquiçadas ou azul-acinzentadas) identificáveis.",
+      "explicacao": "A lesão apresenta uma aparência predominantemente hipopigmentada com vasos lineares finos, sem a presença de critérios maiores ou menores da Checklist de Sete Pontos. A pontuação total é 0."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna",
+      "justificativa": "A análise integrada dos algoritmos ABCD, Menzies e SPCL aponta para uma lesão de baixo risco. O algoritmo ABCD classificou a lesão como benigna (pontuação 4.1), destacando a ausência de critérios de malignidade significativos. O método de Menzies, embora não tenha preenchido os critérios estritos para benignidade, não identificou nenhuma das características positivas de malignidade (como véu azul-branco, pseudópodes ou estrias radiais). O SPCL (Seven Point Checklist) reforçou essa avaliação com uma pontuação de 0, confirmando a ausência de padrões atípicos, vasos irregulares ou áreas de regressão. A imagem corrobora esses achados, exibindo uma lesão predominantemente rosada com pigmentação tênue e bordas bem definidas, características típicas de lesões melanocíticas benignas ou queratoses actínicas/seborreicas em fase inicial.",
+      "recomendacoes": "Considerando a ausência de critérios de malignidade em todos os algoritmos, a conduta recomendada é o acompanhamento clínico periódico para monitoramento de possíveis alterações. Caso haja dúvida diagnóstica persistente ou mudança na morfologia da lesão, a dermatoscopia digital de seguimento ou uma biópsia excisional para confirmação histopatológica podem ser consideradas."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

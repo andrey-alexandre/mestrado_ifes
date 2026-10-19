@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0034196.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0034196.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0034196_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "1 (assimetria mais evidente em um eixo: área central escurecida e um “acúmulo” mais denso deslocado para um lado).",
+            "bordas": "6/8 (bordas relativamente nítidas na maior parte dos quadrantes; há transição para a periferia clara, mas não uniforme em todos os setores).",
+            "cor": "4 (cores observáveis dentro da lesão: preto/acinzentado escuro; marrom escuro; marrom claro; branco/bege na periferia; sem evidência clara adicional de vermelho/rosa ou azul-cinza como cor distinta).",
+            "estruturas": "3 (estruturas dermoscópicas identificáveis com clareza: áreas sem estrutura predominantes/halo claro periférico; rede pigmentada não evidente de forma nítida; presença de pontos/glóbulos muito limitados ou pouco definidos; maior destaque para regiões sem padrão e áreas pigmentadas homogêneas).",
+            "explicacao": "Pontuação ABCD com soma ponderada (pesos: A=1.3, B=0.1, C=0.5, D=0.5):\n- A (Assimetria) = 1 → 1 * 1.3 = 1.3\n- B (Bordas) = 6 → 6 * 0.1 = 0.6\n- C (Cor) = 4 → 4 * 0.5 = 2.0\n- D (Estruturas) = 3 → 3 * 0.5 = 1.5\nSoma ponderada total = 1.3 + 0.6 + 2.0 + 1.5 = 5.4.\nClassificação pelo limiar fornecido: 5.4 fica >4.75 e <5.45, portanto, seria “suspeita” pelo critério numérico do algoritmo (sem caracterizar diagnóstico clínico)."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Não identifiquei estruturas azul-acinzentadas/veil azul-branco claramente definidas na segmentação.",
+                "multiplos_pontos_marrons": "0. Não observo múltiplos pontos/glóbulos marrons claramente separados na área pigmentada central.",
+                "pseudopodes": "0. Não há projeções/pseudópodes periféricos bem evidentes na imagem.",
+                "streaming_radial": "0. Não vejo estrias/streaming radial nítidas saindo do centro para a periferia.",
+                "despigmentacao_tipo_cicatriz": "0. Não identifico áreas lineares/folhas despigmentadas com padrão tipo cicatriz de forma clara.",
+                "pontos_pretos_perifericos": "0. Não se destacam pontos/glóbulos pretos periféricos discretos.",
+                "multiplas_cores": "0. A segmentação sugere predominantemente tons escuros centrais com halo claro, sem evidência clara de 5–6 cores distintas bem separadas por critérios do método; não pontuo múltiplas cores pelo limiar exigido. "
+            },
+            "negativas": {
+                "simetria": "1. O padrão parece aproximadamente simétrico em torno do eixo vertical do contorno (distribuição geral sem assimetria acentuada na imagem).",
+                "cor_unica": "0. A lesão não apresenta cor única: há região central bem mais escura e halo/área clara periférica. "
+            },
+            "explicacao": "Na imagem segmentada, a lesão mostra uma área central predominantemente escura com contorno relativamente bem delimitado e um halo mais claro ao redor. Não foram observadas, de forma claramente identificável, características dermatoscópicas positivas específicas (véu azul-branco, múltiplos pontos marrons, pseudópodes, streaming radial, despigmentação tipo cicatriz, pontos pretos periféricos ou evidência robusta de múltiplas cores). Em relação às características negativas, há aparência de simetria aproximada do padrão global e a lesão não parece de cor única devido à diferença entre centro escuro e halo claro."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Sim. Observa-se área predominantemente escura com distribuição interna não uniforme (variação de intensidade de pigmento) e presença de zonas mais densas, sem um padrão regular homogêneo.",
+            "veu_azul_branco_irregular": "Não. Não há evidência clara de áreas esbranquiçadas/azul-acinzentadas em padrão de “véu” com aspecto irregular bem definido.",
+            "vasos_atipicos": "Não. Não se distinguem vasos/estruturas vasculares com morfologia atípica de forma inequívoca na imagem fornecida.",
+            "padrao_de_reticulo_irregular": "Não. A rede (retículo) não é claramente identificável; quando visível, não apresenta um padrão irregular bem estabelecido.",
+            "padrao_de_globulos_irregulares": "Não. Não há glóbulos claramente discerníveis com irregularidade acentuada no interior da lesão segmentada.",
+            "hiperpigmentacao_localizada": "Não. Não se observam múltiplos pontos/discos escuros bem delimitados e localizados de forma inequívoca; a maior parte do escurecimento parece mais difusa do que pontual.",
+            "regressao": "Não. Não há áreas esbranquiçadas ou azul-acinzentadas compatíveis de forma clara com regressão.",
+            "explicacao": "Na imagem, o principal achado objetivo é uma área central escura com distribuição interna de pigmento não homogênea, caracterizando um padrão de pigmentação atípico. Os demais critérios da checklist (véu azul-branco, vasos, retículo irregular, glóbulos irregulares, hiper-pigmentação pontual e regressão) não ficam suficientemente evidentes/definidos para pontuação conservadora. Pontuação total estimada: 2 (apenas critério maior de pigmentação atípica)."
+        },
+        "validation": {
+            "diagnostico": "Lesão cutânea indeterminada (necessita avaliação presencial especializada; considerar biópsia/excisão conforme risco clínico)",
+            "justificativa": "- **Convergências entre os pareceres:** todos os algoritmos/pareceres apontam para **achados que não são totalmente benignos**. O destaque recorrente é uma **área central mais escura** com **alguma irregularidade na distribuição do pigmento** (ABCD: estruturas/padrões pouco definidos e assimetria; SPCL: “padrão de pigmentação atípico” como principal critério positivo).\n- **ABCD:** apesar de reportar **bordas relativamente nítidas** em vários setores (pontuação de bordas moderada/alta), há **assimetria (A=1)** e **pontuação total na faixa de “suspeita”** pelo critério numérico do método (5,4). Isso sugere que a combinação de assimetria + cor + pouca/atipia estrutural supera o limiar de benignidade.\n- **Menzies:** não encontra critérios dermatoscópicos “positivos” típicos (p.ex., véu azul-branco, pseudópodes, streaming radial, múltiplos pontos marrons bem separados, vasos atípicos), e descreve **simetria aproximada** e **não evidência de múltiplas cores bem separadas**. Isso funciona mais como um **rebaixamento** de especificidade para malignidade, mas **não anula** os indícios de atipia global observados pelos outros métodos.\n- **SPCL:** identifica **padrão de pigmentação atípico** (critério maior) e não pontua os demais itens de alto risco por falta de evidência clara na imagem (véu azul-branco, vasos, retículo irregular, glóbulos irregulares, hiper-pigmentação pontual, regressão). Mesmo assim, a presença do critério maior mantém a lesão **no espectro indeterminado/necessitando manejo**.\n- **Conflito principal:** Menzies é mais conservador (muitos “0” nos critérios positivos), enquanto ABCD e SPCL indicam **atipia** (ABCD por escore; SPCL por pigmentação atípica). Pelo conjunto, a imagem parece menos compatível com um padrão claramente benigno e mais compatível com **lesão indeterminada com atipia**, sem um “conjunto completo” de sinais clássicos de alto risco.\n\nObservação importante: a avaliação foi baseada na **imagem segmentada** e nos critérios fornecidos pelos pareceres; ausência de certos sinais pode refletir limitações de imagem/segmentação e não garante benignidade.",
+            "recomendacoes": "- **Encaminhar para avaliação dermatológica presencial** com dermatoscopia de alta qualidade.\n- Dado o **status indeterminado com atipia** (SPCL critério maior + escore suspeito no ABCD), **considerar biópsia/excisão** (tipo conforme localização/tamanho: geralmente biópsia excisional ou punch/incisional planejada pelo especialista).\n- Caso o especialista opte por vigilância (menos provável com “suspeita” por ABCD + atipia por SPCL), estabelecer **plano de acompanhamento com critérios objetivos de mudança** (tamanho/assimetria/cor/elevação) e reavaliações em intervalo definido pelo médico.\n- Orientar **fotodocumentação** e registro de evolução para comparação seriada."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

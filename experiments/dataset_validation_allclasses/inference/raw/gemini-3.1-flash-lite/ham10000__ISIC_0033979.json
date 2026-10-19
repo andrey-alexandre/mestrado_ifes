@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0033979.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0033979.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0033979_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "1: A lesão apresenta assimetria em um eixo principal, com contornos irregulares que não se espelham perfeitamente.",
+      "bordas": "4: A lesão apresenta bordas nítidas e delimitadas em aproximadamente metade dos quadrantes avaliados.",
+      "cor": "2: Foram identificadas duas cores principais: rosa/vermelho (predominante) e tons de marrom claro.",
+      "estruturas": "2: Foram observadas áreas sem estrutura e presença de pontos pigmentados dispersos.",
+      "explicacao": "Cálculo da soma ponderada: (1 * 1.3) + (4 * 0.1) + (2 * 0.5) + (2 * 0.5) = 1.3 + 0.4 + 1.0 + 1.0 = 3.7. Como o valor final de 3.7 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "0. Ausente.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e áreas acastanhadas claras, não atingindo o critério de cinco ou seis cores."
+      },
+      "negativas": {
+        "simetria": "1. A lesão apresenta uma distribuição de cores e estrutura relativamente simétrica.",
+        "cor_unica": "0. A lesão apresenta variações de tons, incluindo áreas rosadas e áreas acastanhadas."
+      },
+      "explicacao": "A lesão não apresenta nenhuma das características positivas do Método Menzies. Em relação às características negativas, apresenta simetria, mas não possui uma cor única, exibindo variações de tons rosados e acastanhados. De acordo com os critérios, a ausência de características positivas sugere uma lesão de natureza benigna."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração predominantemente rosada e homogênea, sem padrões de pigmentação atípicos.",
+      "veu_azul_branco_irregular": "Não. Não há evidências de véu azul-branco na imagem.",
+      "vasos_atipicos": "Não. Embora a lesão seja eritematosa, não se observam estruturas vasculares atípicas claramente definidas.",
+      "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo irregular.",
+      "padrao_de_globulos_irregulares": "Não. Não se observam glóbulos ou estruturas globulares irregulares.",
+      "hiperpigmentacao_localizada": "Não. A lesão não apresenta áreas de hiperpigmentação focal ou pontos escuros localizados.",
+      "regressao": "Não. Não há áreas de regressão (esbranquiçadas ou azul-acinzentadas) visíveis.",
+      "explicacao": "A lesão apresenta-se como uma área eritematosa (rosada) relativamente homogênea, sem a presença de estruturas dermatoscópicas específicas como rede pigmentar, glóbulos, vasos atípicos ou áreas de regressão. A pontuação total é 0, indicando ausência de critérios da Checklist de Sete Pontos."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna",
+      "justificativa": "Os três algoritmos (ABCD, Menzies e SPCL) apresentam alta concordância ao classificar a lesão como benigna. O ABCD resultou em uma pontuação de 3.7, abaixo do limiar de malignidade. O método de Menzies não identificou nenhum critério positivo de risco, e o SPCL obteve pontuação zero, confirmando a ausência de estruturas dermatoscópicas atípicas como rede pigmentar irregular, vasos atípicos ou véu azul-branco. A imagem corrobora esses achados, exibindo uma lesão predominantemente eritematosa e homogênea, sem características morfológicas sugestivas de melanoma.",
+      "recomendacoes": "Considerando a ausência de critérios de malignidade em todos os algoritmos, não há indicação imediata de biópsia. Recomenda-se acompanhamento clínico de rotina ou monitoramento dermatoscópico caso haja qualquer alteração clínica percebida pelo paciente."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

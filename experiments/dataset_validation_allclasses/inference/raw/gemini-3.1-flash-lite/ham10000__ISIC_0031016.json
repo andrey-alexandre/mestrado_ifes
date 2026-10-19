@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0031016.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0031016.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0031016_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto no formato quanto na distribuição das estruturas internas.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+      "cor": "3: Estão presentes três cores distintas: rosa/avermelhado, marrom claro e tons esbranquiçados/bege.",
+      "estruturas": "2: Foram identificadas duas estruturas principais: rede pigmentada (periférica) e áreas sem estrutura (central).",
+      "explicacao": "Cálculo da soma ponderada: (Assimetria 2 * 1.3) + (Bordas 8 * 0.1) + (Cor 3 * 0.5) + (Estruturas 2 * 0.5) = 2.6 + 0.8 + 1.5 + 1.0 = 5.9. Com base no valor final de 5.9, a lesão se enquadra na categoria de lesão maligna segundo os critérios do algoritmo ABCD (valor > 5.45)."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Não observado.",
+        "multiplos_pontos_marrons": "0. Não observado.",
+        "pseudopodes": "0. Não observado.",
+        "streaming_radial": "0. Não observado.",
+        "despigmentacao_tipo_cicatriz": "0. Não observado.",
+        "pontos_pretos_perifericos": "0. Não observado.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e marrom claro, não atingindo o critério de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "0. A lesão apresenta contornos irregulares e distribuição assimétrica de pigmentação.",
+        "cor_unica": "0. A lesão apresenta variação de cores, com áreas rosadas e áreas acastanhadas."
+      },
+      "explicacao": "A lesão não apresenta nenhuma das características positivas do Método Menzies. Em relação às características negativas, ambas estão ausentes (a lesão não possui cor única e não é simétrica), o que, segundo o método, não permite a classificação como lesão benigna, mas a ausência de critérios positivos também não sustenta a suspeita de melanoma."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração predominantemente rosada e homogênea, sem padrões de pigmentação atípicos evidentes.",
+      "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco ou estruturas de cor azulada/esbranquiçada irregular.",
+      "vasos_atipicos": "Não. Embora existam estruturas vasculares visíveis, elas não apresentam características de atipia, como polimorfismo ou distribuição caótica.",
+      "padrao_de_reticulo_irregular": "Não. O retículo pigmentar, onde presente nas bordas, é fino e regular, sem interrupções abruptas ou irregularidades significativas.",
+      "padrao_de_globulos_irregulares": "Não. Não foram observados glóbulos ou pontos pigmentados com distribuição irregular ou tamanhos variados.",
+      "hiperpigmentacao_localizada": "Não. A lesão não apresenta áreas de hiperpigmentação focal ou pontos escuros isolados.",
+      "regressao": "Não. Não há áreas de despigmentação, cicatrizes ou tons azul-acinzentados que sugiram fenômenos de regressão.",
+      "explicacao": "A lesão apresenta-se predominantemente como uma área rosada com estruturas vasculares lineares e um retículo pigmentar periférico fino e regular. Nenhum dos critérios da Checklist de Sete Pontos foi identificado, resultando em uma pontuação total de 0."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna",
+      "justificativa": "Embora o algoritmo ABCD tenha sugerido uma pontuação elevada, a análise detalhada da imagem e a aplicação dos métodos de Menzies e SPCL indicam um perfil benigno. O ABCD parece ter sido influenciado pela assimetria de formato, mas a ausência total de critérios de malignidade no SPCL (pontuação 0) e a falta de características positivas no método de Menzies são mais robustas. A lesão apresenta um retículo pigmentar periférico fino e regular, com uma área central rosada homogênea, características típicas de lesões melanocíticas benignas ou lesões vasculares, sem os padrões caóticos ou atípicos associados ao melanoma.",
+      "recomendacoes": "Acompanhamento clínico de rotina. Não há indicação imediata de biópsia com base nos critérios dermatoscópicos atuais, mas recomenda-se monitoramento para avaliar qualquer alteração morfológica futura."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

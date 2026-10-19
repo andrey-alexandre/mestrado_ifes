@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0032076.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0032076.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0032076_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto na forma quanto na distribuição das cores.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+            "cor": "4: Estão presentes as cores branco/bege, vermelho/rosa, azul-cinza e preto.",
+            "estruturas": "2: Observam-se áreas sem estrutura e pontos/glóbulos pigmentados.",
+            "explicacao": "Cálculo da soma ponderada: (Assimetria 2 * 1.3) + (Bordas 8 * 0.1) + (Cor 4 * 0.5) + (Estruturas 2 * 0.5) = 2.6 + 0.8 + 2.0 + 1.0 = 6.4. Com base no resultado de 6.4, a lesão é classificada como maligna conforme os critérios estabelecidos."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "1. A lesão apresenta uma área central extensa com tonalidade azulada e esbranquiçada, característica de véu azul-branco.",
+                "multiplos_pontos_marrons": "0. Não são observados múltiplos pontos marrons distintos.",
+                "pseudopodes": "0. Não são observados pseudópodes nas bordas da lesão.",
+                "streaming_radial": "0. Não é observado streaming radial.",
+                "despigmentacao_tipo_cicatriz": "0. Não há áreas claras que sugiram despigmentação cicatricial.",
+                "pontos_pretos_perifericos": "0. Não são observados pontos pretos na periferia da lesão.",
+                "multiplas_cores": "0. A lesão apresenta predominantemente tons de azul, roxo e áreas esbranquiçadas, não atingindo o critério de cinco ou seis cores distintas."
+            },
+            "negativas": {
+                "simetria": "0. A lesão apresenta uma distribuição irregular de cores e estruturas, não sendo simétrica.",
+                "cor_unica": "0. A lesão apresenta múltiplas tonalidades, incluindo azul, roxo e branco, portanto não possui cor única."
+            },
+            "explicacao": "A lesão apresenta a característica positiva de véu azul-branco (pontuação 1). As características negativas (simetria e cor única) estão ausentes (pontuação 0 para ambas). De acordo com o Método Menzies, a presença de pelo menos uma característica positiva e a ausência das características negativas sugere a necessidade de investigação adicional para melanoma."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta uma distribuição heterogênea de pigmentos com áreas de tons variados de azul e roxo, configurando um padrão atípico.",
+            "veu_azul_branco_irregular": "Sim, observa-se uma área central com tonalidade azulada e esbranquiçada, característica de véu azul-branco.",
+            "vasos_atipicos": "Não, não são claramente identificáveis estruturas vasculares atípicas na imagem fornecida.",
+            "padrao_de_reticulo_irregular": "Não, não há um padrão de retículo pigmentar definido ou irregular visível.",
+            "padrao_de_globulos_irregulares": "Não, não se observam glóbulos ou estruturas globulares distintas e irregulares.",
+            "hiperpigmentacao_localizada": "Sim, existem áreas de pigmentação mais intensa e concentrada, especialmente nas porções periféricas da lesão.",
+            "regressao": "Sim, a presença de áreas esbranquiçadas e azul-acinzentadas sugere áreas de regressão.",
+            "explicacao": "A lesão apresenta critérios significativos: padrão de pigmentação atípico (2 pontos), véu azul-branco (2 pontos), hiperpigmentação localizada (1 ponto) e sinais de regressão (1 ponto), totalizando 6 pontos. A pontuação total de 6 indica uma alta probabilidade de características associadas a malignidade, sendo necessária avaliação clínica especializada."
+        },
+        "validation": {
+            "diagnostico": "Suspeita de Melanoma",
+            "justificativa": "A integração dos três algoritmos aponta para uma alta probabilidade de malignidade. O ABCD (pontuação 6.4) destaca a assimetria e a diversidade de cores. O método de Menzies confirma a presença crítica de véu azul-branco, um marcador de alta especificidade para melanoma. O SPCL (7 pontos) corrobora esses achados com uma pontuação elevada (6 pontos), evidenciando padrão de pigmentação atípico, áreas de regressão e hiperpigmentação localizada. A convergência desses critérios em todos os modelos reforça a necessidade de investigação diagnóstica imediata.",
+            "recomendacoes": "Recomenda-se a excisão cirúrgica da lesão para exame histopatológico definitivo, dada a presença de múltiplos critérios de malignidade (véu azul-branco, regressão e assimetria estrutural)."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

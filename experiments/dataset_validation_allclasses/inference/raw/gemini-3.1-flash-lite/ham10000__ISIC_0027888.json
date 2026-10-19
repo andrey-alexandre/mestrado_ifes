@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0027888.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0027888.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0027888_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "0: A lesão apresenta contornos arredondados e simétricos em ambos os eixos.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+      "cor": "1: Apenas uma cor (rosa/avermelhado) é observada na lesão.",
+      "estruturas": "1: Apenas áreas sem estrutura (homogêneas) são observadas.",
+      "explicacao": "A pontuação foi calculada da seguinte forma: Assimetria (0 * 1.3 = 0), Bordas (8 * 0.1 = 0.8), Cor (1 * 0.5 = 0.5), Estruturas (1 * 0.5 = 0.5). A soma ponderada total é 0 + 0.8 + 0.5 + 0.5 = 1.8. Como o valor de 1.8 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Ausente.",
+        "multiplos_pontos_marrons": "0. Ausente.",
+        "pseudopodes": "0. Ausente.",
+        "streaming_radial": "0. Ausente.",
+        "despigmentacao_tipo_cicatriz": "0. Ausente.",
+        "pontos_pretos_perifericos": "0. Ausente.",
+        "multiplas_cores": "0. A lesão apresenta uma coloração homogênea, não atingindo o critério de múltiplas cores."
+      },
+      "negativas": {
+        "simetria": "1. A lesão apresenta simetria na sua forma e distribuição de cor.",
+        "cor_unica": "1. A lesão apresenta uma cor única e uniforme."
+      },
+      "explicacao": "A lesão analisada não apresenta nenhuma das características positivas do Método Menzies. Por outro lado, apresenta ambas as características negativas (simetria e cor única), o que, segundo o método, caracteriza uma lesão com padrão de benignidade."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração rosada homogênea, sem padrões de pigmentação atípicos.",
+      "veu_azul_branco_irregular": "Não. Não há presença de véu azul-branco.",
+      "vasos_atipicos": "Não. Não são observados vasos atípicos ou estruturas vasculares polimórficas.",
+      "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo.",
+      "padrao_de_globulos_irregulares": "Não. Não há presença de glóbulos ou estruturas globulares.",
+      "hiperpigmentacao_localizada": "Não. A lesão é uniformemente rosada, sem áreas de hiperpigmentação focal.",
+      "regressao": "Não. Não há áreas de regressão, como despigmentação ou tons azul-acinzentados.",
+      "explicacao": "A lesão apresenta-se como uma estrutura rosada, homogênea e sem características dermatoscópicas específicas de malignidade (como rede, glóbulos, vasos atípicos ou pigmentação irregular) conforme os critérios da Checklist de Sete Pontos. A pontuação total é 0."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna",
+      "justificativa": "Existe uma concordância absoluta entre os três algoritmos (ABCD, Menzies e SPCL). O ABCD classifica a lesão como benigna com pontuação de 1.8, bem abaixo do limiar de corte. O método de Menzies confirma a benignidade pela ausência de critérios positivos e presença de critérios negativos (simetria e cor única). O SPCL reforça a ausência de qualquer sinal de malignidade, como rede pigmentar, vasos atípicos ou estruturas irregulares. A análise visual da imagem corrobora esses achados, mostrando uma lesão homogênea, rosada e bem delimitada.",
+      "recomendacoes": "Considerando a ausência de critérios dermatoscópicos de malignidade, a lesão apresenta características sugestivas de benignidade. Recomenda-se acompanhamento clínico de rotina ou, caso haja dúvida clínica persistente ou mudança na lesão, a realização de biópsia excisional para confirmação histopatológica."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

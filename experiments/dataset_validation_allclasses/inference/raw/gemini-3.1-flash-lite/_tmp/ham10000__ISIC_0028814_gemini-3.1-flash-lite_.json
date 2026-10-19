@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0028814.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0028814.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0028814_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto no formato quanto na distribuição das estruturas internas.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+            "cor": "3: Estão presentes as cores rosa/vermelho, marrom claro e marrom escuro.",
+            "estruturas": "2: Observam-se áreas sem estrutura (áreas hipopigmentadas/rosadas) e pontos pigmentados.",
+            "explicacao": "Cálculo da soma ponderada: (Assimetria 2 * 1.3) + (Bordas 8 * 0.1) + (Cor 3 * 0.5) + (Estruturas 2 * 0.5) = 2.6 + 0.8 + 1.5 + 1.0 = 5.9. Com base no resultado de 5.9, a lesão enquadra-se na categoria de lesão maligna (valor > 5.45)."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Ausente.",
+                "multiplos_pontos_marrons": "0. Não há múltiplos pontos marrons distintos.",
+                "pseudopodes": "0. Ausentes.",
+                "streaming_radial": "0. Ausente.",
+                "despigmentacao_tipo_cicatriz": "0. Ausente.",
+                "pontos_pretos_perifericos": "0. Ausentes.",
+                "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e áreas acastanhadas, não atingindo o critério de cinco ou seis cores."
+            },
+            "negativas": {
+                "simetria": "0. A lesão apresenta contornos irregulares e distribuição assimétrica de pigmentação.",
+                "cor_unica": "0. A lesão apresenta mais de uma cor, com áreas rosadas e áreas acastanhadas."
+            },
+            "explicacao": "A lesão não apresenta as características positivas do Método Menzies. Em relação às características negativas, a lesão não possui cor única nem simetria de padrão, o que, segundo o método, não permite a classificação imediata como benigna, mas a ausência de critérios positivos sugere uma baixa probabilidade de melanoma pelos critérios de Menzies."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta áreas de pigmentação marrom distribuídas de forma assimétrica e irregular no centro.",
+            "veu_azul_branco_irregular": "Não, não há evidência clara de véu azul-branco.",
+            "vasos_atipicos": "Não, não são observados vasos atípicos claramente definidos.",
+            "padrao_de_reticulo_irregular": "Não, não há um padrão de rede pigmentada (retículo) visível.",
+            "padrao_de_globulos_irregulares": "Não, não há glóbulos ou estruturas globulares claramente definidos.",
+            "hiperpigmentacao_localizada": "Sim, existem áreas de hiperpigmentação marrom concentradas na porção central da lesão.",
+            "regressao": "Não, não há áreas de regressão (áreas esbranquiçadas ou azul-acinzentadas) claramente identificáveis.",
+            "explicacao": "A lesão apresenta um padrão de pigmentação atípico (2 pontos) e hiperpigmentação localizada (1 ponto), totalizando 3 pontos. Embora a pontuação atinja o limiar de 3 pontos, esta análise é estritamente visual e não substitui a avaliação clínica presencial por um dermatologista."
+        },
+        "validation": {
+            "diagnostico": "Lesão Indeterminada",
+            "justificativa": "A análise integrada revela uma divergência entre os algoritmos. O ABCD sugere malignidade (pontuação 5.9), impulsionado pela assimetria e pela presença de múltiplas cores, enquanto o Menzies não identifica critérios positivos de melanoma, e o SPCL atinge um limiar de 3 pontos devido à pigmentação atípica e localizada. A imagem mostra uma lesão predominantemente rosada com áreas de pigmentação central, o que pode ser compatível tanto com lesões melanocíticas atípicas quanto com lesões não melanocíticas, como o carcinoma basocelular pigmentado ou queratose seborreica irritada.",
+            "recomendacoes": "Dada a natureza indeterminada e a discordância entre os métodos, recomenda-se a avaliação dermatológica presencial com dermatoscopia manual, considerando a possibilidade de biópsia excisional ou acompanhamento rigoroso para descartar malignidade."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

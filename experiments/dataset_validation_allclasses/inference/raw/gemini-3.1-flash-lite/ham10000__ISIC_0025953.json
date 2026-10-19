@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025953.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025953.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0025953_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "0: A lesão apresenta uma distribuição relativamente uniforme e simétrica em ambos os eixos.",
+      "bordas": "0: As bordas são indistintas e se fundem gradualmente com a pele circundante em todos os quadrantes.",
+      "cor": "3: Foram identificadas três cores distintas: branco/bege (áreas claras), vermelho/rosa (fundo vascular) e marrom claro (pigmentação difusa).",
+      "estruturas": "2: Foram identificadas duas estruturas principais: áreas sem estrutura (áreas hipopigmentadas) e pontos (estruturas foliculares/pseudofoliculares).",
+      "explicacao": "Cálculo da soma ponderada: (0 * 1.3) + (0 * 0.1) + (3 * 0.5) + (2 * 0.5) = 0 + 0 + 1.5 + 1.0 = 2.5. Como o valor final de 2.5 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Nao ha area de véu azul-branco homogeneo.",
+        "multiplos_pontos_marrons": "0. Nao ha multiplos pontos marrons distintos.",
+        "pseudopodes": "0. Nao ha estruturas de pseudopodes nas bordas.",
+        "streaming_radial": "0. Nao ha padrao de streaming radial.",
+        "despigmentacao_tipo_cicatriz": "0. Nao ha areas de despigmentacao cicatricial.",
+        "pontos_pretos_perifericos": "0. Nao ha pontos ou globulos pretos na periferia.",
+        "multiplas_cores": "0. A lesao apresenta predominantemente tons de marrom e rosa, nao atingindo o criterio de 5 ou 6 cores."
+      },
+      "negativas": {
+        "simetria": "1. A lesao apresenta uma distribuicao de padroes relativamente simetrica.",
+        "cor_unica": "0. A lesao apresenta variacao de tons entre marrom e rosa, nao sendo de cor unica."
+      },
+      "explicacao": "A lesao apresenta padroes de pseudorrede e estruturas foliculares (aberturas foliculares preenchidas por queratina), tipicas de lesoes melanociticas benignas ou queratose seborreica. Nao foram identificados criterios positivos do metodo Menzies, e a lesao apresenta simetria, embora nao possua cor unica."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta um padrão predominantemente pseudofolicular com aberturas foliculares proeminentes, típico de lesões queratinocíticas, sem pigmentação atípica difusa.",
+      "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco, que são estruturas densas e opacas associadas a melanomas.",
+      "vasos_atipicos": "Não. Os vasos observados são predominantemente estruturas foliculares e não vasos polimórficos ou atípicos.",
+      "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentada (retículo) irregular; a estrutura é composta por aberturas foliculares.",
+      "padrao_de_globulos_irregulares": "Não. Não há glóbulos pigmentados irregulares; as estruturas presentes são aberturas foliculares preenchidas por queratina.",
+      "hiperpigmentacao_localizada": "Não. A pigmentação é difusa e relacionada às estruturas foliculares, sem focos de hiperpigmentação densa e irregular.",
+      "regressao": "Não. Não há áreas de regressão (áreas cicatriciais brancas ou azul-acinzentadas sem estruturas).",
+      "explicacao": "A imagem apresenta características dermatoscópicas clássicas de uma lesão queratinocítica, como uma ceratose seborreica, evidenciada pela presença de aberturas foliculares (pseudofolículos) e estruturas semelhantes a milia. Não foram identificados critérios da Checklist de Sete Pontos que sugiram malignidade, resultando em uma pontuação total de 0."
+    },
+    "validation": {
+      "diagnostico": "Lesão Benigna (Sugestivo de Ceratose Seborreica)",
+      "justificativa": "Há uma concordância absoluta entre os três algoritmos (ABCD, Menzies e SPCL). O ABCD classifica a lesão como benigna (pontuação 2.5 < 4.75), o método de Menzies não identifica critérios positivos de malignidade, e o SPCL apresenta pontuação zero. A análise visual da imagem confirma a presença de aberturas foliculares preenchidas por queratina (pseudofolículos), que são achados dermatoscópicos clássicos e patognomônicos de lesões queratinocíticas benignas, como a ceratose seborreica, descartando padrões de atipia melanocítica.",
+      "recomendacoes": "Nenhuma ação imediata é necessária, pois a lesão apresenta características dermatoscópicas benignas. Recomenda-se apenas o acompanhamento clínico de rotina ou a remoção caso haja queixa estética ou irritação local."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

@@ -1,0 +1,596 @@
+{
+  "indeterminate_as_positive": {
+    "per_class": {
+      "melanoma": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 18,
+        "categories": {
+          "INDETERMINADA": 11,
+          "SUSPEITA": 7,
+          "BENIGNA": 2
+        },
+        "sensitivity": 0.9,
+        "sensitivity_ci": [
+          0.6989663547715129,
+          0.9721335187862318
+        ]
+      },
+      "nevus": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 4,
+        "categories": {
+          "BENIGNA": 16,
+          "INDETERMINADA": 4
+        },
+        "false_positive_rate": 0.2,
+        "false_positive_rate_ci": [
+          0.08065766257979806,
+          0.41601743225189347
+        ],
+        "specificity": 0.8,
+        "specificity_ci": [
+          0.5839825677481065,
+          0.9193423374202019
+        ]
+      },
+      "akiec": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 13,
+        "categories": {
+          "BENIGNA": 7,
+          "INDETERMINADA": 12,
+          "SUSPEITA": 1
+        },
+        "false_positive_rate": 0.65,
+        "false_positive_rate_ci": [
+          0.43285427668523635,
+          0.8188081758989179
+        ],
+        "specificity": 0.35,
+        "specificity_ci": [
+          0.18119182410108212,
+          0.5671457233147637
+        ]
+      },
+      "bcc": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 16,
+        "categories": {
+          "INDETERMINADA": 9,
+          "SUSPEITA": 7,
+          "BENIGNA": 4
+        },
+        "false_positive_rate": 0.8,
+        "false_positive_rate_ci": [
+          0.5839825677481065,
+          0.9193423374202019
+        ],
+        "specificity": 0.2,
+        "specificity_ci": [
+          0.08065766257979806,
+          0.41601743225189347
+        ]
+      },
+      "bkl": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 9,
+        "categories": {
+          "BENIGNA": 11,
+          "INDETERMINADA": 9
+        },
+        "false_positive_rate": 0.45,
+        "false_positive_rate_ci": [
+          0.25819785825562425,
+          0.6579146575496576
+        ],
+        "specificity": 0.55,
+        "specificity_ci": [
+          0.3420853424503424,
+          0.7418021417443758
+        ]
+      },
+      "df": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 5,
+        "categories": {
+          "BENIGNA": 15,
+          "INDETERMINADA": 5
+        },
+        "false_positive_rate": 0.25,
+        "false_positive_rate_ci": [
+          0.11186170140766569,
+          0.4687008776187439
+        ],
+        "specificity": 0.75,
+        "specificity_ci": [
+          0.531299122381256,
+          0.8881382985923343
+        ]
+      },
+      "vasc": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 8,
+        "categories": {
+          "SUSPEITA": 4,
+          "INDETERMINADA": 4,
+          "BENIGNA": 12
+        },
+        "false_positive_rate": 0.4,
+        "false_positive_rate_ci": [
+          0.21880653237281714,
+          0.6134184992377468
+        ],
+        "specificity": 0.6,
+        "specificity_ci": [
+          0.38658150076225317,
+          0.7811934676271829
+        ]
+      }
+    },
+    "melanoma_vs_all_others_pooled": {
+      "n": 140,
+      "n_positive": 20,
+      "n_negative": 120,
+      "tp": 18,
+      "tn": 65,
+      "fp": 55,
+      "fn": 2,
+      "confusion_matrix": [
+        [
+          65,
+          55
+        ],
+        [
+          2,
+          18
+        ]
+      ],
+      "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+      "ci_method": {
+        "sensitivity": "Wilson",
+        "specificity": "Wilson",
+        "precision": "Wilson",
+        "accuracy": "Wilson",
+        "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+        "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+      },
+      "confidence": 0.95,
+      "sensitivity": {
+        "estimate": 0.9,
+        "ci_low": 0.6989663547715129,
+        "ci_high": 0.9721335187862318,
+        "numerator": 18,
+        "denominator": 20
+      },
+      "specificity": {
+        "estimate": 0.5416666666666666,
+        "ci_low": 0.4526096906236999,
+        "ci_high": 0.6281387121747415,
+        "numerator": 65,
+        "denominator": 120
+      },
+      "precision": {
+        "estimate": 0.2465753424657534,
+        "ci_low": 0.162044646480518,
+        "ci_high": 0.35644445344224984,
+        "numerator": 18,
+        "denominator": 73
+      },
+      "accuracy": {
+        "estimate": 0.5928571428571429,
+        "ci_low": 0.5100502812317813,
+        "ci_high": 0.6707042815567563,
+        "numerator": 83,
+        "denominator": 140
+      },
+      "f1": {
+        "estimate": 0.3870967741935484,
+        "ci_low": 0.3225806451612903,
+        "ci_high": 0.45454545454545453,
+        "n_resamples_valid": 10000
+      },
+      "balanced_accuracy": {
+        "estimate": 0.7208333333333333,
+        "ci_low": 0.6373958333333342,
+        "ci_high": 0.7958333333333334,
+        "n_resamples_valid": 10000
+      },
+      "roc_auc": {
+        "estimate": null,
+        "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+      }
+    },
+    "melanoma_vs_nevus_only": {
+      "n": 40,
+      "n_positive": 20,
+      "n_negative": 20,
+      "tp": 18,
+      "tn": 16,
+      "fp": 4,
+      "fn": 2,
+      "confusion_matrix": [
+        [
+          16,
+          4
+        ],
+        [
+          2,
+          18
+        ]
+      ],
+      "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+      "ci_method": {
+        "sensitivity": "Wilson",
+        "specificity": "Wilson",
+        "precision": "Wilson",
+        "accuracy": "Wilson",
+        "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+        "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+      },
+      "confidence": 0.95,
+      "sensitivity": {
+        "estimate": 0.9,
+        "ci_low": 0.6989663547715129,
+        "ci_high": 0.9721335187862318,
+        "numerator": 18,
+        "denominator": 20
+      },
+      "specificity": {
+        "estimate": 0.8,
+        "ci_low": 0.5839825677481065,
+        "ci_high": 0.9193423374202019,
+        "numerator": 16,
+        "denominator": 20
+      },
+      "precision": {
+        "estimate": 0.8181818181818182,
+        "ci_low": 0.6148339256287347,
+        "ci_high": 0.9269311541657794,
+        "numerator": 18,
+        "denominator": 22
+      },
+      "accuracy": {
+        "estimate": 0.85,
+        "ci_low": 0.709276756335103,
+        "ci_high": 0.9293881228267964,
+        "numerator": 34,
+        "denominator": 40
+      },
+      "f1": {
+        "estimate": 0.8571428571428571,
+        "ci_low": 0.75,
+        "ci_high": 0.9523809523809523,
+        "n_resamples_valid": 10000
+      },
+      "balanced_accuracy": {
+        "estimate": 0.8500000000000001,
+        "ci_low": 0.7250000000000001,
+        "ci_high": 0.95,
+        "n_resamples_valid": 10000
+      },
+      "roc_auc": {
+        "estimate": null,
+        "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+      }
+    },
+    "macro_specificity_non_melanoma": 0.5416666666666666,
+    "natural_prevalence_weighted_specificity": {
+      "estimate": 0.7141260390923387,
+      "ci_low": 0.5667459559649518,
+      "ci_high": 0.8379260278589081,
+      "weights": {
+        "nevus": 0.7532015277465738,
+        "akiec": 0.036733318355425745,
+        "bcc": 0.057739833745225795,
+        "bkl": 0.12345540328016176,
+        "df": 0.01291844529319254,
+        "vasc": 0.015951471579420354
+      },
+      "note": "pesos = frequência de cada classe não-melanoma no HAM10000 completo (imagens); IC por bootstrap estratificado por classe"
+    }
+  },
+  "indeterminate_as_negative": {
+    "per_class": {
+      "melanoma": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 7,
+        "categories": {
+          "INDETERMINADA": 11,
+          "SUSPEITA": 7,
+          "BENIGNA": 2
+        },
+        "sensitivity": 0.35,
+        "sensitivity_ci": [
+          0.18119182410108212,
+          0.5671457233147637
+        ]
+      },
+      "nevus": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 0,
+        "categories": {
+          "BENIGNA": 16,
+          "INDETERMINADA": 4
+        },
+        "false_positive_rate": 0.0,
+        "false_positive_rate_ci": [
+          0.0,
+          0.16112515805281927
+        ],
+        "specificity": 1.0,
+        "specificity_ci": [
+          0.8388748419471808,
+          1.0
+        ]
+      },
+      "akiec": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 1,
+        "categories": {
+          "BENIGNA": 7,
+          "INDETERMINADA": 12,
+          "SUSPEITA": 1
+        },
+        "false_positive_rate": 0.05,
+        "false_positive_rate_ci": [
+          0.00888144880079543,
+          0.23613119344674194
+        ],
+        "specificity": 0.95,
+        "specificity_ci": [
+          0.763868806553258,
+          0.9911185511992047
+        ]
+      },
+      "bcc": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 7,
+        "categories": {
+          "INDETERMINADA": 9,
+          "SUSPEITA": 7,
+          "BENIGNA": 4
+        },
+        "false_positive_rate": 0.35,
+        "false_positive_rate_ci": [
+          0.18119182410108212,
+          0.5671457233147637
+        ],
+        "specificity": 0.65,
+        "specificity_ci": [
+          0.43285427668523635,
+          0.8188081758989179
+        ]
+      },
+      "bkl": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 0,
+        "categories": {
+          "BENIGNA": 11,
+          "INDETERMINADA": 9
+        },
+        "false_positive_rate": 0.0,
+        "false_positive_rate_ci": [
+          0.0,
+          0.16112515805281927
+        ],
+        "specificity": 1.0,
+        "specificity_ci": [
+          0.8388748419471808,
+          1.0
+        ]
+      },
+      "df": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 0,
+        "categories": {
+          "BENIGNA": 15,
+          "INDETERMINADA": 5
+        },
+        "false_positive_rate": 0.0,
+        "false_positive_rate_ci": [
+          0.0,
+          0.16112515805281927
+        ],
+        "specificity": 1.0,
+        "specificity_ci": [
+          0.8388748419471808,
+          1.0
+        ]
+      },
+      "vasc": {
+        "n": 20,
+        "n_evaluable": 20,
+        "predicted_melanoma": 4,
+        "categories": {
+          "SUSPEITA": 4,
+          "INDETERMINADA": 4,
+          "BENIGNA": 12
+        },
+        "false_positive_rate": 0.2,
+        "false_positive_rate_ci": [
+          0.08065766257979806,
+          0.41601743225189347
+        ],
+        "specificity": 0.8,
+        "specificity_ci": [
+          0.5839825677481065,
+          0.9193423374202019
+        ]
+      }
+    },
+    "melanoma_vs_all_others_pooled": {
+      "n": 140,
+      "n_positive": 20,
+      "n_negative": 120,
+      "tp": 7,
+      "tn": 108,
+      "fp": 12,
+      "fn": 13,
+      "confusion_matrix": [
+        [
+          108,
+          12
+        ],
+        [
+          13,
+          7
+        ]
+      ],
+      "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+      "ci_method": {
+        "sensitivity": "Wilson",
+        "specificity": "Wilson",
+        "precision": "Wilson",
+        "accuracy": "Wilson",
+        "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+        "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+      },
+      "confidence": 0.95,
+      "sensitivity": {
+        "estimate": 0.35,
+        "ci_low": 0.18119182410108212,
+        "ci_high": 0.5671457233147637,
+        "numerator": 7,
+        "denominator": 20
+      },
+      "specificity": {
+        "estimate": 0.9,
+        "ci_low": 0.833318258891048,
+        "ci_high": 0.9418664079739892,
+        "numerator": 108,
+        "denominator": 120
+      },
+      "precision": {
+        "estimate": 0.3684210526315789,
+        "ci_low": 0.19149512745135083,
+        "ci_high": 0.5896046683519693,
+        "numerator": 7,
+        "denominator": 19
+      },
+      "accuracy": {
+        "estimate": 0.8214285714285714,
+        "ci_low": 0.7496696703597742,
+        "ci_high": 0.8760192008313173,
+        "numerator": 115,
+        "denominator": 140
+      },
+      "f1": {
+        "estimate": 0.358974358974359,
+        "ci_low": 0.17142857142857143,
+        "ci_high": 0.5405405405405406,
+        "n_resamples_valid": 10000
+      },
+      "balanced_accuracy": {
+        "estimate": 0.625,
+        "ci_low": 0.5208333333333334,
+        "ci_high": 0.7333333333333334,
+        "n_resamples_valid": 10000
+      },
+      "roc_auc": {
+        "estimate": null,
+        "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+      }
+    },
+    "melanoma_vs_nevus_only": {
+      "n": 40,
+      "n_positive": 20,
+      "n_negative": 20,
+      "tp": 7,
+      "tn": 20,
+      "fp": 0,
+      "fn": 13,
+      "confusion_matrix": [
+        [
+          20,
+          0
+        ],
+        [
+          13,
+          7
+        ]
+      ],
+      "confusion_matrix_axes": "linhas = real [nevo, melanoma]; colunas = previsto [nevo, melanoma]",
+      "ci_method": {
+        "sensitivity": "Wilson",
+        "specificity": "Wilson",
+        "precision": "Wilson",
+        "accuracy": "Wilson",
+        "f1": "bootstrap percentil estratificado (B=10000, seed=42)",
+        "balanced_accuracy": "bootstrap percentil estratificado (B=10000, seed=42)"
+      },
+      "confidence": 0.95,
+      "sensitivity": {
+        "estimate": 0.35,
+        "ci_low": 0.18119182410108212,
+        "ci_high": 0.5671457233147637,
+        "numerator": 7,
+        "denominator": 20
+      },
+      "specificity": {
+        "estimate": 1.0,
+        "ci_low": 0.8388748419471808,
+        "ci_high": 1.0,
+        "numerator": 20,
+        "denominator": 20
+      },
+      "precision": {
+        "estimate": 1.0,
+        "ci_low": 0.6456695649333127,
+        "ci_high": 1.0,
+        "numerator": 7,
+        "denominator": 7
+      },
+      "accuracy": {
+        "estimate": 0.675,
+        "ci_low": 0.5201774618987768,
+        "ci_high": 0.799154977682173,
+        "numerator": 27,
+        "denominator": 40
+      },
+      "f1": {
+        "estimate": 0.5185185185185185,
+        "ci_low": 0.2608695652173913,
+        "ci_high": 0.7096774193548387,
+        "n_resamples_valid": 10000
+      },
+      "balanced_accuracy": {
+        "estimate": 0.675,
+        "ci_low": 0.575,
+        "ci_high": 0.775,
+        "n_resamples_valid": 10000
+      },
+      "roc_auc": {
+        "estimate": null,
+        "note": "não calculada: saída categórica, sem escores contínuos comparáveis"
+      }
+    },
+    "macro_specificity_non_melanoma": 0.8999999999999999,
+    "natural_prevalence_weighted_specificity": {
+      "estimate": 0.9747640979555157,
+      "ci_low": 0.9613794652886992,
+      "ci_high": 0.9871096382835319,
+      "weights": {
+        "nevus": 0.7532015277465738,
+        "akiec": 0.036733318355425745,
+        "bcc": 0.057739833745225795,
+        "bkl": 0.12345540328016176,
+        "df": 0.01291844529319254,
+        "vasc": 0.015951471579420354
+      },
+      "note": "pesos = frequência de cada classe não-melanoma no HAM10000 completo (imagens); IC por bootstrap estratificado por classe"
+    }
+  }
+}

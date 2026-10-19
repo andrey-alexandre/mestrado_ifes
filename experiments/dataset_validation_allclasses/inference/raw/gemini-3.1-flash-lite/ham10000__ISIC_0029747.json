@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0029747.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0029747.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0029747_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "1: A lesão apresenta assimetria em um eixo principal, sendo mais alongada em uma direção.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+      "cor": "2: Estão presentes as cores rosa/vermelho (predominante) e branco/bege (na área central).",
+      "estruturas": "2: Observam-se áreas sem estrutura (áreas hipopigmentadas/rosadas) e presença de vasos/linhas ramificadas.",
+      "explicacao": "A pontuação foi calculada da seguinte forma: Assimetria (1 * 1.3 = 1.3), Bordas (8 * 0.1 = 0.8), Cor (2 * 0.5 = 1.0), Estruturas (2 * 0.5 = 1.0). A soma ponderada total é 1.3 + 0.8 + 1.0 + 1.0 = 4.1. Como o valor de 4.1 é inferior a 4.75, a lesão é classificada como benigna segundo os critérios do algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Não há evidência de véu azul-branco estruturado.",
+        "multiplos_pontos_marrons": "0. Não são observados múltiplos pontos marrons.",
+        "pseudopodes": "0. Não há presença de pseudópodes.",
+        "streaming_radial": "0. Não há evidência de streaming radial.",
+        "despigmentacao_tipo_cicatriz": "0. Não há áreas de despigmentação cicatricial.",
+        "pontos_pretos_perifericos": "0. Não há pontos ou glóbulos pretos na periferia.",
+        "multiplas_cores": "0. A lesão apresenta predominantemente tons de rosa e uma área amarelada, não atingindo o critério de cinco ou seis cores distintas."
+      },
+      "negativas": {
+        "simetria": "0. A lesão apresenta assimetria na distribuição de cores e estruturas.",
+        "cor_unica": "0. A lesão apresenta mais de uma cor (tons de rosa, branco e uma área central amarelada/acastanhada)."
+      },
+      "explicacao": "A lesão não apresenta nenhuma das características positivas do Método Menzies. Embora não apresente as características positivas, também não preenche os critérios de benignidade (cor única e simetria), pois exibe assimetria e múltiplas tonalidades (rosa, branco, amarelo/castanho). A ausência de características positivas sugere uma baixa probabilidade de melanoma segundo este método específico."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração predominantemente rosada e homogênea, sem padrões de pigmentação atípicos claros.",
+      "veu_azul_branco_irregular": "Não. Não há evidência de véu azul-branco estruturado.",
+      "vasos_atipicos": "Sim. Observam-se estruturas vasculares lineares e ramificadas sobre um fundo rosado, características de vascularização atípica.",
+      "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo irregular.",
+      "padrao_de_globulos_irregulares": "Não. Não se observam glóbulos ou estruturas globulares irregulares.",
+      "hiperpigmentacao_localizada": "Não. Não há áreas de hiperpigmentação focal ou pontos escuros significativos.",
+      "regressao": "Não. Não há áreas de regressão cicatricial ou despigmentação azul-acinzentada característica.",
+      "explicacao": "A lesão é predominantemente hipopigmentada/rosada, com a presença de vasos atípicos (2 pontos). Não foram identificados outros critérios da lista de sete pontos, resultando em uma pontuação total de 2."
+    },
+    "validation": {
+      "diagnostico": "Lesão Indeterminada",
+      "justificativa": "A análise integrada revela uma lesão predominantemente hipopigmentada e rosada. Embora o algoritmo ABCD a classifique como benigna (pontuação 4.1) e o método Menzies não identifique critérios positivos para melanoma, o SPCL detectou a presença de vasos atípicos (pontuação 2). A divergência reside na natureza da vascularização: enquanto o ABCD e o Menzies focam em critérios de pigmentação (ausentes), o SPCL identifica estruturas vasculares que podem ser sugestivas de neoplasias queratinocíticas ou vasculares, não excluindo totalmente a necessidade de investigação para lesões amelanóticas.",
+      "recomendacoes": "Devido à presença de estruturas vasculares atípicas identificadas pelo SPCL, recomenda-se a correlação clínica com a história do paciente e, caso a lesão seja recente ou apresente crescimento, considera-se a realização de biópsia excisional ou acompanhamento dermatoscópico rigoroso para descartar carcinoma basocelular ou outras lesões amelanóticas."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}

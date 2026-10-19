@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0028163.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0028163.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0028163_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "0: A lesão apresenta uma forma arredondada e simétrica em ambos os eixos.",
+            "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+            "cor": "2: Foram identificadas duas cores principais: vermelho/rosa (área central e periférica) e branco (áreas de descamação ou brilho periférico).",
+            "estruturas": "1: A estrutura predominante observada é uma área central homogênea sem estrutura definida.",
+            "explicacao": "Cálculo da soma ponderada: (0 * 1.3) + (8 * 0.1) + (2 * 0.5) + (1 * 0.5) = 0 + 0.8 + 1.0 + 0.5 = 2.3. Como o resultado final de 2.3 é inferior a 4.75, a lesão é classificada como benigna segundo o algoritmo ABCD."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Ausente.",
+                "multiplos_pontos_marrons": "0. Ausente.",
+                "pseudopodes": "0. Ausente.",
+                "streaming_radial": "0. Ausente.",
+                "despigmentacao_tipo_cicatriz": "0. Ausente.",
+                "pontos_pretos_perifericos": "0. Ausente.",
+                "multiplas_cores": "0. A lesão apresenta predominantemente tons de vermelho e rosa, não atingindo o critério de múltiplas cores."
+            },
+            "negativas": {
+                "simetria": "1. A lesão apresenta simetria radial evidente na distribuição de suas cores e estrutura.",
+                "cor_unica": "0. A lesão apresenta variação entre tons de vermelho central e bordas rosadas/esbranquiçadas."
+            },
+            "explicacao": "A lesão apresenta simetria radial, o que é uma característica negativa no Método Menzies. Não foram identificadas características positivas como véu azul-branco, pseudópodes ou múltiplos pontos marrons. A lesão exibe uma estrutura central eritematosa com bordas mais claras, não sendo classificada como tendo cor única, mas também não apresentando os critérios de malignidade do método."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração avermelhada homogênea, sem padrões de pigmentação atípicos.",
+            "veu_azul_branco_irregular": "Não. Não há presença de véu azul-branco.",
+            "vasos_atipicos": "Não. Embora a lesão seja eritematosa, não se observam vasos atípicos com morfologia polimórfica ou irregular característica.",
+            "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo.",
+            "padrao_de_globulos_irregulares": "Não. Não há presença de glóbulos ou estruturas globulares.",
+            "hiperpigmentacao_localizada": "Não. A lesão não apresenta áreas de hiperpigmentação localizada.",
+            "regressao": "Não. Não há áreas de regressão (esbranquiçadas ou azul-acinzentadas) visíveis.",
+            "explicacao": "A lesão apresenta-se como uma área eritematosa central bem delimitada, circundada por uma borda esbranquiçada, sem a presença de qualquer um dos critérios dermatoscópicos da Checklist de Sete Pontos. A pontuação total é 0."
+        },
+        "validation": {
+            "diagnostico": "Lesão Benigna",
+            "justificativa": "Os três algoritmos (ABCD, Menzies e SPCL) apresentam alta concordância ao classificar a lesão como benigna. O ABCD obteve uma pontuação de 2.3, bem abaixo do limiar de malignidade. O método de Menzies confirmou a simetria radial e a ausência de critérios positivos de malignidade (como véu azul-branco ou pseudópodes). O SPCL reforçou essa avaliação com uma pontuação de 0, destacando a ausência de padrões atípicos, vasos irregulares ou estruturas de regressão. A imagem corrobora esses achados, exibindo uma lesão eritematosa central bem delimitada, compatível com lesões vasculares benignas, como um angioma ou granuloma piogênico em fase de involução.",
+            "recomendacoes": "Embora os critérios dermatoscópicos apontem para benignidade, recomenda-se a correlação clínica com o histórico do paciente. Caso a lesão apresente crescimento rápido, sangramento recorrente ou sintomas locais, sugere-se a avaliação presencial por um dermatologista para considerar a exérese diagnóstica ou acompanhamento clínico."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

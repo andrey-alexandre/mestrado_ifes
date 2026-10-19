@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0027648.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0027648.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0027648_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "0 — não há assimetria acentuada evidente; a forma geral parece relativamente homogênea entre os eixos.",
+            "bordas": "6 — a borda se mostra bem delimitada em vários dos 8 quadrantes (há limites mais claros em parte do contorno), embora não seja igualmente nítida em toda a circunferência.",
+            "cor": "1 — observo predominantemente tonalidade branco/bege dentro da lesão; não ficam evidentes de forma clara múltiplas cores distintas (por ex., vermelho/rosa, marrom escuro, preto etc.).",
+            "estruturas": "2 — há áreas pouco estruturadas/“sem padrão” e regiões com aspecto homogêneo sem rede pigmentada ou glóbulos claramente definidos; não se veem linhas ramificadas/pontos marcantes.",
+            "explicacao": "Cálculo da soma ponderada (pesos: A=1.3, B=0.1, C=0.5, D=0.5):\n- A: 0 × 1.3 = 0.00\n- B: 6 × 0.1 = 0.60\n- C: 1 × 0.5 = 0.50\n- D: 2 × 0.5 = 1.00\nSoma ponderada total = 0.00 + 0.60 + 0.50 + 1.00 = 2.10.\nClassificação pelo limiar informado: 2.10 < 4.75 ⇒ benigna (conforme regra do enunciado)."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Não há evidência claramente identificável de área azul-esbranquiçada como véu.",
+                "multiplos_pontos_marrons": "0. Não observo múltiplos pontos/glóbulos marrons bem definidos na lesão.",
+                "pseudopodes": "0. Não se veem estruturas digitiformes/pseudópodes evidentes saindo da lesão.",
+                "streaming_radial": "0. Não há linhas radiais/streaming radial claramente identificáveis.",
+                "despigmentacao_tipo_cicatriz": "0. Não é possível identificar despigmentação tipo cicatriz (área hipopigmentada típica) com segurança.",
+                "pontos_pretos_perifericos": "0. Não há pontos/glóbulos pretos periféricos claramente visíveis.",
+                "multiplas_cores": "0. A aparência geral sugere poucas variações cromáticas sem presença clara de 5–6 cores distintas (ex.: azul, branco, preto, cinza, etc.)."
+            },
+            "negativas": {
+                "simetria": "1. O padrão parece relativamente homogêneo e aproximadamente simétrico na distribuição global de pigmento/coloração dentro do contorno segmentado.",
+                "cor_unica": "1. Predomina uma coloração em tons claros/acinzentados/bege com variações leves, sem múltiplas cores nitidamente separadas."
+            },
+            "explicacao": "Na imagem segmentada, a lesão mostra contorno irregular porém com conteúdo interno de aspecto relativamente uniforme, predominando tons claros (bege/rosados/acinzentados) e sem estruturas dermatoscópicas bem definidas como véu azul-branco, múltiplos pontos marrons, pseudópodes, streaming radial, despigmentação tipo cicatriz ou pontos pretos periféricos. Também não há evidência forte de múltiplas cores bem separadas. Observa-se um padrão global relativamente homogêneo e aproximadamente simétrico."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não",
+            "veu_azul_branco_irregular": "Não",
+            "vasos_atipicos": "Não",
+            "padrao_de_reticulo_irregular": "Não",
+            "padrao_de_globulos_irregulares": "Não",
+            "hiperpigmentacao_localizada": "Não",
+            "regressao": "Não",
+            "explicacao": "Na imagem fornecida (lesão segmentada), observa-se uma área relativamente uniforme, sem identificação clara de: (1) variação/heterogeneidade pigmentária marcante caracterizando um padrão atípico; (2) estruturas do tipo véu azul-branco irregular; (3) vasos atípicos; (4) um retículo bem definido com irregularidade acentuada; (5) glóbulos/disposição granular claramente irregular; (6) pontos escuros bem localizados sugerindo hiperpigmentação focal; ou (7) áreas de regressão com aspecto esbranquiçado/azulado-acinzentado. Assim, todos os critérios descritos não foram evidenciados de forma suficientemente nítida para pontuação."
+        },
+        "validation": {
+            "diagnostico": "Lesão cutânea com baixo achado dermatoscópico de atipia (suspeita maior de lesão benigna do que de melanoma), porém com classificação indeterminada pela limitação de evidência na imagem fornecida.",
+            "justificativa": "Integração dos três pareceres: (1) **ABCD**: pontuação total **2,10** (com limiar benigna < 4,75), com **assimetria ausente/leve**, **cor predominantemente clara (branco/bege)**, **bordas mais bem delimitadas em parte do contorno** e **estruturas pouco estruturadas/sem padrão evidente**. Isso puxa para **benignidade**. (2) **Menzies**: ausência de sinais dermatoscópicos de alto risco (zero para véu azul-branco, múltiplos pontos marrons, pseudópodes, streaming radial, pontos pretos periféricos, múltiplas cores e outros marcadores), com **padrão global relativamente homogêneo e aproximadamente simétrico** e **cor única** (tons claros). Isso também favorece **benigno**. (3) **SPCL (Seven-point checklist)**: **nenhum** dos 7 critérios atípicos foi identificado na imagem (sem retículo/glóbulos irregulares, sem hiper-pigmentação localizada, sem regressão, sem vasos atípicos etc.), o que é consistente com **baixo risco**.\n\nConcordância: há **alta concordância** entre os métodos (ABCD/Menzies/SPCL) em não evidenciar marcadores relevantes de malignidade. Divergência: a única “nota” relativamente menos tranquilizadora é a presença de **bordas não igualmente nítidas em toda a circunferência** (ABCD) e o fato de haver **alguma baixa estrutura/padrão**, mas isso não vem acompanhado de sinais de alto risco nos outros algoritmos. Considerando a gravidade potencial, a ausência de múltiplos padrões recorrentes de alto risco em SPCL e Menzies reduz a probabilidade de melanoma; ainda assim, como é baseada apenas na **imagem fornecida** (e não em avaliação clínica completa/medidas/tempo de evolução), o parecer final deve ser entendido como **estimativa** e não como exclusão diagnóstica.",
+            "recomendacoes": "- Se houver qualquer **mudança recente**, **sintomas** (coceira, sangramento) ou **crescimento**, considerar **avaliação presencial por dermatologia**.\n- Em lesões com aspecto dermatoscópico de **baixo risco** como o sugerido aqui, pode-se optar por **acompanhamento clínico/dermatoscópico** (p.ex., reavaliação em algumas semanas/meses conforme protocolo local), desde que a clínica não apresente sinais de alerta.\n- Se houver **dúvida clínica**, achados discordantes no exame físico (assimetria real, ulceração, alteração rápida) ou impossibilidade de garantir estabilidade, considerar **biópsia/excisão diagnóstica** conforme julgamento do dermatologista (método a definir: shave/excisão dependendo da morfologia e localização)."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

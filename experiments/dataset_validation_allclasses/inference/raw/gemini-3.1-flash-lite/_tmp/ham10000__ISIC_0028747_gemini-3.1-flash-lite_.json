@@ -1,0 +1,47 @@
+{
+    "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0028747.jpg": {
+        "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0028747.jpg",
+        "lesion_size": 0.0,
+        "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0028747_segmentation.png",
+        "diagnosis_abcd": {
+            "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto na distribuição de cores quanto na morfologia das estruturas internas.",
+            "bordas": "6: Observam-se bordas nítidas e bem delimitadas em aproximadamente 6 dos 8 quadrantes, com áreas de transição abrupta.",
+            "cor": "2: Foram identificadas duas cores principais além do tom da pele: vermelho/rosa (predominante) e preto (foco hemorrágico).",
+            "estruturas": "2: Identificam-se áreas sem estrutura (áreas esbranquiçadas/leitosas) e linhas ramificadas (vasos sanguíneos arboriformes).",
+            "explicacao": "Cálculo da soma ponderada: (Assimetria 2 * 1.3) + (Bordas 6 * 0.1) + (Cor 2 * 0.5) + (Estruturas 2 * 0.5) = 2.6 + 0.6 + 1.0 + 1.0 = 5.2. Com um resultado de 5.2, a lesão classifica-se como suspeita, situando-se no intervalo entre 4.75 e 5.45."
+        },
+        "diagnosis_menzies": {
+            "positivas": {
+                "veu_azul_branco": "0. Nao ha presenca de veu azul-branco estruturado.",
+                "multiplos_pontos_marrons": "0. Nao ha multiplos pontos marrons definidos.",
+                "pseudopodes": "0. Nao ha pseudopodes visiveis.",
+                "streaming_radial": "0. Nao ha streaming radial.",
+                "despigmentacao_tipo_cicatriz": "0. Nao ha areas de despigmentacao cicatricial.",
+                "pontos_pretos_perifericos": "0. Nao ha pontos pretos perifericos.",
+                "multiplas_cores": "0. A lesao apresenta predominantemente tons de rosa, vermelho e areas esbranquicadas, nao atingindo o criterio de cinco ou seis cores distintas."
+            },
+            "negativas": {
+                "simetria": "0. A lesao apresenta assimetria estrutural e de distribuicao de cores.",
+                "cor_unica": "0. A lesao apresenta multiplas tonalidades, incluindo rosa, vermelho, branco e areas hemorragicas escuras."
+            },
+            "explicacao": "A lesao apresenta padroes vasculares proeminentes, como vasos arboriformes e areas de eritema, alem de uma area central de hemorragia. Nao foram identificadas caracteristicas dermatoscopicas classicas de melanoma segundo o metodo Menzies, como veu azul-branco, pseudopodes ou streaming radial. A lesao e claramente assimetrica e possui multiplas cores, o que afasta a classificacao de benignidade baseada na presenca de caracteristicas negativas, mas nao preenche os criterios positivos para melanoma."
+        },
+        "diagnosis_spcl": {
+            "padrao_de_pigmentacao_atipico": "Não. A lesão apresenta uma coloração predominantemente eritematosa e esbranquiçada, sem um padrão de pigmentação melânica atípico evidente.",
+            "veu_azul_branco_irregular": "Não. Não há áreas de véu azul-branco estruturado típicas de melanoma.",
+            "vasos_atipicos": "Sim. Observam-se vasos lineares e ramificados, alguns com morfologia irregular, que são característicos de lesões vasculares ou inflamatórias/neoplásicas não melanocíticas.",
+            "padrao_de_reticulo_irregular": "Não. Não há presença de rede pigmentar ou retículo atípico.",
+            "padrao_de_globulos_irregulares": "Não. Não se observam glóbulos ou pontos pigmentados irregulares.",
+            "hiperpigmentacao_localizada": "Não. A lesão apresenta uma área de hemorragia/crosta hemática, mas não hiperpigmentação melânica localizada.",
+            "regressao": "Não. Embora existam áreas esbranquiçadas, estas parecem corresponder a estruturas cicatriciais ou queratinização, não a áreas de regressão por melanoma.",
+            "explicacao": "A lesão pontua 2 pontos devido à presença de vasos atípicos. Os demais critérios da Checklist de Sete Pontos não foram identificados. A pontuação total é 2, o que, segundo os critérios fornecidos, indica uma menor probabilidade de malignidade baseada nesta escala específica, embora a presença de vasos atípicos exija avaliação clínica especializada."
+        },
+        "validation": {
+            "diagnostico": "Lesão Indeterminada com necessidade de correlação clínica e histopatológica",
+            "justificativa": "A análise integrada revela uma divergência entre os algoritmos: o ABCD classifica a lesão como suspeita (pontuação 5.2) devido à assimetria e estruturas vasculares, enquanto o Menzies e o SPCL não preenchem critérios clássicos de melanoma. A imagem evidencia uma lesão eritematosa com vasos arboriformes proeminentes e uma área central de hemorragia, o que é altamente sugestivo de neoplasias não melanocíticas, como o carcinoma basocelular (CBC) ou lesões vasculares, embora a presença de vasos atípicos exija cautela para excluir malignidade.",
+            "recomendacoes": "Devido à presença de vasos atípicos e assimetria estrutural, recomenda-se a realização de biópsia excisional ou incisional para diagnóstico histopatológico definitivo, visando descartar carcinoma basocelular ou outras neoplasias cutâneas."
+        },
+        "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+        "real_value": 0
+    }
+}

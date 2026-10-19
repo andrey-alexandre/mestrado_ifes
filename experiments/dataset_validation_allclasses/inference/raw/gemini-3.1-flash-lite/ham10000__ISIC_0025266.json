@@ -1,0 +1,47 @@
+{
+  "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025266.jpg": {
+    "image_path": "/Users/andrey.basilio/Projetos/master/data/HAM10000/HAM10000/ISIC_0025266.jpg",
+    "lesion_size": 0.0,
+    "seg_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/dataset_validation_allclasses/inputs/ham10000_masks/ISIC_0025266_segmentation.png",
+    "diagnosis_abcd": {
+      "assimetria": "2: A lesão apresenta assimetria acentuada em ambos os eixos, tanto na forma quanto na distribuição das estruturas internas.",
+      "bordas": "8: As bordas são nítidas e bem delimitadas em todos os 8 quadrantes da lesão.",
+      "cor": "3: Estão presentes as cores vermelho/rosa, marrom claro e marrom escuro.",
+      "estruturas": "3: São observadas áreas sem estrutura, pontos e glóbulos.",
+      "explicacao": "A pontuação foi calculada da seguinte forma: Assimetria (2 * 1.3 = 2.6), Bordas (8 * 0.1 = 0.8), Cor (3 * 0.5 = 1.5), Estruturas (3 * 0.5 = 1.5). A soma ponderada total é 2.6 + 0.8 + 1.5 + 1.5 = 6.4. Como o valor final é 6.4, que é superior a 5.45, a lesão é classificada como maligna segundo o algoritmo ABCD."
+    },
+    "diagnosis_menzies": {
+      "positivas": {
+        "veu_azul_branco": "0. Nao ha area de veu azul-branco identificavel.",
+        "multiplos_pontos_marrons": "0. Nao ha multiplos pontos marrons distintos.",
+        "pseudopodes": "0. Nao ha estruturas de pseudopodes presentes.",
+        "streaming_radial": "0. Nao ha streaming radial presente.",
+        "despigmentacao_tipo_cicatriz": "0. Nao ha areas de despigmentacao tipo cicatriz.",
+        "pontos_pretos_perifericos": "0. Nao ha pontos ou globulos pretos perifericos.",
+        "multiplas_cores": "0. A lesao apresenta predominantemente tons de rosa e marrom, nao atingindo o criterio de cinco ou seis cores."
+      },
+      "negativas": {
+        "simetria": "1. A lesao apresenta uma distribuicao de cores e padroes relativamente simetrica.",
+        "cor_unica": "0. A lesao apresenta variacao de cores, incluindo tons de rosa e marrom."
+      },
+      "explicacao": "A lesao analisada nao apresenta caracteristicas positivas do metodo Menzies. Embora nao possua cor unica, a presenca de simetria na distribuicao de cores e a ausencia de criterios positivos sugerem um padrao que nao preenche os criterios de suspeita para melanoma segundo este metodo."
+    },
+    "diagnosis_spcl": {
+      "padrao_de_pigmentacao_atipico": "Sim, a lesão apresenta uma distribuição heterogênea de pigmento com áreas de diferentes intensidades e tons, caracterizando um padrão atípico.",
+      "veu_azul_branco_irregular": "Não, não há evidência clara de véu azul-branco estruturado.",
+      "vasos_atipicos": "Não, não são observados vasos atípicos claramente definidos.",
+      "padrao_de_reticulo_irregular": "Não, não há um padrão de retículo pigmentar visível.",
+      "padrao_de_globulos_irregulares": "Sim, a lesão exibe múltiplos glóbulos ou ninhos de pigmento de tamanhos e formas variados, distribuídos de maneira irregular.",
+      "hiperpigmentacao_localizada": "Sim, existem áreas de hiperpigmentação focal mais escuras dentro da estrutura da lesão.",
+      "regressao": "Não, não há áreas características de regressão (áreas esbranquiçadas ou azul-acinzentadas difusas).",
+      "explicacao": "A lesão apresenta um padrão de pigmentação atípico (2 pontos), presença de glóbulos irregulares (1 ponto) e hiperpigmentação localizada (1 ponto), totalizando 4 pontos na Checklist de Sete Pontos."
+    },
+    "validation": {
+      "diagnostico": "Lesão Indeterminada",
+      "justificativa": "A análise apresenta resultados divergentes entre os algoritmos. O ABCD sugere malignidade devido à assimetria e pontuação elevada (6.4), enquanto o Menzies aponta para benignidade pela ausência de critérios específicos de melanoma. O SPCL, com 4 pontos, indica uma lesão com características atípicas (pigmentação e glóbulos irregulares) que requer atenção. A imagem revela uma lesão com áreas de hiperpigmentação e estrutura irregular, o que corrobora os achados de atipia do SPCL e do ABCD, apesar da simetria relativa observada no Menzies.",
+      "recomendacoes": "Devido à pontuação no SPCL e à assimetria estrutural identificada pelo ABCD, recomenda-se a realização de dermatoscopia digital de seguimento em curto prazo (3 meses) ou, caso haja dúvida clínica persistente ou histórico de risco, a excisão cirúrgica para exame histopatológico definitivo."
+    },
+    "final_report": "Confirmação baseada em literatura médica: [RAG desativado no piloto dataset_validation]...",
+    "real_value": 0
+  }
+}
