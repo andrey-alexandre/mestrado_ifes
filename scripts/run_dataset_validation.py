@@ -185,23 +185,33 @@ def cmd_evaluate(cfg, dirs):
     return out, hyp
 
 
+def _opt(path):
+    return read_json(path) if Path(path).exists() else None
+
+
 def cmd_report(cfg, dirs):
     manifest = _manifest(dirs)
-    meta = read_json(dirs["manifest"] / "manifest_meta.json")
+    meta_p = dirs["manifest"] / "manifest_meta.json"
+    meta = _opt(meta_p) or {"seed": cfg["seed"], "n_per_class": cfg["sample"]["n_per_class"],
+                            "n_images": len(manifest), "fingerprint": sampling.manifest_fingerprint(manifest)}
+    evaluation = _opt(dirs["evaluation"] / "metrics.json")
+    if evaluation is None:   # metrics_<modelo>.json gerados por run_inference_pilot.py
+        parts = {p.stem[len("metrics_"):]: read_json(p) for p in sorted(dirs["evaluation"].glob("metrics_*.json"))}
+        evaluation = parts or None
     art = {
         "manifest_meta": meta,
-        "composition": read_json(dirs["quality"] / "composition.json"),
-        "quality_summary": read_json(dirs["quality"] / "comparison.json"),
-        "legacy": read_json(dirs["audit"] / "legacy_ph2_reevaluation.json"),
-        "estimate": read_json(dirs["inference"] / "cost_estimate.json"),
-        "evaluation": (read_json(dirs["evaluation"] / "metrics.json") or None)
-        if (dirs["evaluation"] / "metrics.json").exists() else None,
+        "composition": _opt(dirs["quality"] / "composition.json") or analysis.source_composition(manifest),
+        "quality_summary": _opt(dirs["quality"] / "comparison.json"),
+        "legacy": _opt(dirs["audit"] / "legacy_ph2_reevaluation.json"),
+        "estimate": _opt(dirs["inference"] / "cost_estimate.json") or inference.estimate_cost(cfg, len(manifest)),
+        "evaluation": evaluation,
     }
+    done = lambda x: "executada" if x else "não gerada nesta pasta (rode a etapa correspondente)"  # noqa: E731
     art["status"] = {
-        "auditoria/legado": "executada", "amostragem": f"executada ({len(manifest)} imagens)",
-        "qualidade": "executada",
-        "inferência VLM": "executada" if art["evaluation"] else "NÃO executada (aguarda autorização)",
-        "avaliação": "executada" if art["evaluation"] else "pendente da inferência",
+        "auditoria/legado": done(art["legacy"]), "amostragem": f"executada ({len(manifest)} imagens)",
+        "qualidade": done(art["quality_summary"]),
+        "inferência VLM": "executada" if evaluation else "NÃO executada",
+        "avaliação": "executada" if evaluation else "pendente da inferência",
     }
     return report.write_report(dirs["reports"] / "report.md", art)
 

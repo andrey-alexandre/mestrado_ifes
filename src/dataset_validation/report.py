@@ -81,7 +81,9 @@ def build_report(art: Dict) -> str:
                  f"tipo de confirmação × classe: `{comp[ds]['dx_type_x_class']}`; "
                  f"subtipo do nevo (PH²): `{comp[ds]['ph2_nevus_subtype']}`")
     L.append("\n## 3. Evidências legadas do PH² (recuperadas dos arquivos; sem reconstrução)\n")
-    leg = art["legacy"]
+    leg = art["legacy"] or {}
+    if not leg:
+        L.append("_Não gerado nesta pasta: rode `audit`._")
     rows = []
     for model, res in leg.items():
         if not res.get("present"):
@@ -101,11 +103,14 @@ def build_report(art: Dict) -> str:
     L.append("\n## 4. Qualidade computacional das imagens\n")
     L.append("_Indicadores de sinal; não medem adequação clínica nem dificuldade diagnóstica._\n")
     q = art["quality_summary"]
-    L.append("### PH² × HAM10000 (todas as 40 + 40)\n")
-    L.append(quality_table(q["ph2_vs_ham10000_all"], "ph2", "ham10000", KEY_QUALITY))
-    for cls in ("melanoma", "nevus"):
-        L.append(f"\n### PH² × HAM10000 — somente {cls}\n")
-        L.append(quality_table(q[f"ph2_vs_ham10000_{cls}"], "ph2", "ham10000", KEY_QUALITY))
+    if not q:
+        L.append("_Não gerado nesta pasta (exige as imagens): rode `quality`._")
+    else:
+        L.append("### PH² × HAM10000 (todas as 40 + 40)\n")
+        L.append(quality_table(q["ph2_vs_ham10000_all"], "ph2", "ham10000", KEY_QUALITY))
+        for cls in ("melanoma", "nevus"):
+            L.append(f"\n### PH² × HAM10000 — somente {cls}\n")
+            L.append(quality_table(q[f"ph2_vs_ham10000_{cls}"], "ph2", "ham10000", KEY_QUALITY))
     L.append("\n## 5. Inferência multiagente e avaliação\n")
     ev = art.get("evaluation")
     if not ev:

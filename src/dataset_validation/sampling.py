@@ -106,7 +106,13 @@ def extract_ham_masks(cfg: Dict, image_ids: Sequence[str], out_dir: Path) -> Dic
     """Extrai do zip local SOMENTE as máscaras amostradas (sem download)."""
     ham = cfg["datasets"]["ham10000"]
     if not ham.get("mask_zip"):
-        raise SamplingError("datasets.ham10000.mask_zip e mask_dir ausentes: máscaras indisponíveis.")
+        md = ham.get("mask_dir")
+        expected = [f"{i}{ham['mask_suffix']}.png" for i in list(image_ids)[:3]]
+        found = sorted(p.name for p in Path(md).iterdir())[:5] if md and Path(md).is_dir() else None
+        raise SamplingError(
+            f"{len(list(image_ids))} máscara(s) não encontrada(s) em mask_dir={md!r} "
+            f"(existe: {bool(found is not None)}). Nome esperado, ex.: {expected}. "
+            f"Primeiros arquivos na pasta: {found}. Verifique sufixo/extensão/subpasta ou informe mask_zip.")
     out_dir.mkdir(parents=True, exist_ok=True)
     found: Dict[str, str] = {}
     with zipfile.ZipFile(ham["mask_zip"]) as z:
