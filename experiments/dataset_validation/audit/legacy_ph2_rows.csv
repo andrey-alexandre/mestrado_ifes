@@ -1,0 +1,101 @@
+model,image_id,legacy_real_value,corrected_label,clinical_code,histological,diagnostico,category,tier,pred_indeterminate_as_positive,pred_indeterminate_as_negative,thesis_estimated_value,csv_category,has_seg_path,lesion_size
+gpt-5.4-nano,IMD417,1,1,2,Melanoma,Lesão cutânea com **alto grau de suspeição para melanoma** (classificação de risco por critérios dermatoscópicos; **não é diagnóstico**).,SUSPEITA,extended_keywords,1,1,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD402,0,0,0,,Lesão indeterminada (necessita avaliação presencial/dermatoscópica e considerar biópsia dependendo da correlação clínica).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD348,1,1,2,Melanoma,"Lesão cutânea **indeterminada**, com **sinais dermatoscópicos compatíveis com maior risco de malignidade** (necessita avaliação presencial/histopatológica).",INDETERMINADA,extended_keywords,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD423,1,1,2,Melanoma,"Lesão cutânea indeterminada com **suspeita moderada** para neoplasia pigmentada (p. ex., melanoma não pode ser descartado apenas pela imagem).",INDETERMINADA,extended_keywords,1,0,0,BENIGNA,True,0.0
+gpt-5.4-nano,IMD019,0,0,1,,"Lesão indeterminada (baixo-moderado grau de suspeição dermatológica com base apenas nos achados visuais fornecidos); recomendação de avaliação/conduta instrumental (p.ex., dermatoscopia por especialista e possível biópsia se houver correlação clínica).",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD421,1,1,2,Melanoma,Lesão cutânea com **características indeterminadas/compatíveis com possível melanoma não confirmado** (requer avaliação especializada presencial/dermatoscópica; necessidade de considerar biópsia conforme contexto clínico).,INDETERMINADA,extended_keywords,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD004,0,0,1,,"Lesão indeterminada (necessita avaliação clínica presencial e, se indicado, dermatoscopia detalhada/biopsia).",INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD146,0,0,0,,"Lesão indeterminada (baixa suspeição para melanoma, mas não conclusiva)",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD058,1,1,2,Melanoma,Lesão cutânea indeterminada (com características dermatoscópicas menos sugestivas de padrão altamente atípico; recomendação de avaliação/conduta clínica especializada e possível biópsia se houver fatores clínicos de risco).,INDETERMINADA,extended_keywords,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD040,0,0,1,,Lesão indeterminada (necessita avaliação diagnóstica/dermatoscópica presencial para exclusão de melanoma),INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD356,0,0,1,,"Lesão indeterminada com tendência a benignidade (pela imagem e pelos limiares/critérios descritos nos algoritmos), recomendando avaliação presencial e eventual biópsia se houver dúvida clínica/dermatoscópica complementar.",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD210,0,0,1,Dysplastic Nevus,"Lesão indeterminada (suspeita clínica moderada), com sinais limitados para melanoma quando aplicados critérios específicos; não é possível excluir malignidade apenas pela imagem segmentada.",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD240,1,1,2,Melanoma,"Lesão cutânea com **maior suspeita de malignidade/lesão melanocítica indeterminada**, exigindo avaliação especializada (ex.: dermatoscopia ampliada e consideração de biópsia).",INDETERMINADA,extended_keywords,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD090,1,1,2,Melanoma,"Lesão indeterminada com **sinais dermatoscópicos que não excluem malignidade** (requer avaliação adicional, tipicamente por dermatoscopia em consulta e/ou biópsia conforme decisão clínica).",INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD420,1,1,2,Melanoma,Lesão indeterminada com achados dermatoscópicos que não permitem excluir neoplasia cutânea melanocítica (necessita avaliação especializada / provável biópsia).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD088,1,1,2,Melanoma,"Lesão cutânea indeterminada com **maior suspeita por critérios de risco morfológico**, recomendando avaliação diagnóstica (ex.: dermatoscopia complementar e/ou biópsia conforme avaliação presencial).",INDETERMINADA,extended_keywords,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD418,1,1,2,Melanoma,Lesão cutânea com **características indeterminadas/compatíveis com risco aumentado** para melanoma (necessita avaliação especializada e correlação com exame físico dermatoscópico e história clínica); não é possível estabelecer benignidade apenas pela imagem.,INDETERMINADA,extended_keywords,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD306,0,0,1,,"Lesão indeterminada (baixa a moderada suspeita para melanoma), com maior compatibilidade com lesão benigna pelos critérios morfológicos/dermatoscópicos fornecidos.",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD063,1,1,2,Melanoma,Lesão indeterminada com **suspeita moderada** de neoplasia melanocítica (melanoma não pode ser excluído apenas pela imagem).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD208,0,0,0,,"Lesão cutânea com **achados visuais mais compatíveis com benignidade**, porém **não é possível excluir melanoma/lesão maligna** apenas pela imagem segmentada; tratar como **lesão indeterminada para decisão final** e considerar avaliação presencial/dermatoscópica e, se houver dúvida clínica, biópsia.",INDETERMINADA,legacy_exact,1,0,0,BENIGNA,True,0.0
+gpt-5.4-nano,IMD064,1,1,2,Melanoma,Lesão indeterminada (requer avaliação presencial/dermatoscópica e considerar biópsia conforme critério médico).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD219,1,1,2,Melanoma,"Lesão indeterminada com suspeita aumentada (necessita avaliação presencial e, em geral, biópsia/remoção para diagnóstico histopatológico).",INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD061,0,1,2,,"Lesão indeterminada com **suspeita moderada a relevante de malignidade** (necessita avaliação presencial e, em geral, investigação como biópsia/excisão, conforme critério do dermatoscopista)",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD393,0,0,1,,Lesão indeterminada (suspeita baixa a moderada; recomendação de avaliação presencial para definição diagnóstica).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD431,0,0,1,,"Lesão indeterminada (necessita correlação clínica e, se aplicável, avaliação histopatológica).",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD133,0,0,0,,Lesão indeterminada (baixa suspeição por critérios ABCD/Menzies/SPCL; sem sinais dermatoscópicos de alto risco claramente evidentes na segmentação).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD407,1,1,2,Melanoma,Lesão indeterminada com achados compatíveis com maior suspeita por critérios dermatoscópicos (melanoma não pode ser excluído apenas pela imagem; requer avaliação presencial/dermatoscópica e definição diagnóstica).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD285,1,1,2,Melanoma,Lesão indeterminada com suspeita moderada (considerar avaliação dermatológica e provável biópsia conforme contexto clínico).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD409,1,1,2,Melanoma,"Lesão cutânea indeterminada com suspeição aumentada de melanoma (necessita avaliação especializada e, em geral, histopatologia).",INDETERMINADA,extended_keywords,1,0,1,SUSPEITA,True,0.0
+gpt-5.4-nano,IMD006,0,0,1,,"Lesão indeterminada com características predominantemente compatíveis com lesão benigna/menos suspeita para melanoma, porém com necessidade de correlação clínica e, se houver dúvida persistente, considerar avaliação dermatoscópica presencial e/ou biópsia.",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD389,0,0,0,,"Lesão indeterminada com **suspeita moderada** (necessita avaliação definitiva, preferencialmente por dermatoscopia presencial e/ou biópsia conforme critério do especialista).",INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD196,0,0,0,,"Lesão indeterminada (necessita avaliação presencial e, se clinicamente indicado, dermatoscopia/biopsia para esclarecimento).",INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD304,0,0,1,,"Lesão indeterminada (predomínio de sinais compatíveis com menor suspeição, mas com um critério atípico isolado no SPCL).",INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD278,0,0,1,,Lesão indeterminada com **suspeita moderada** de melanoma (recomendação de avaliação histopatológica / biópsia).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD065,0,1,2,,Lesão indeterminada com suspeita maior para lesão pigmentada atípica (avaliar como possível melanoma até prova em contrário; recomendada investigação histopatológica).,INDETERMINADA,legacy_exact,1,0,1,SUSPEITA,True,0.0
+gpt-5.4-nano,IMD328,0,0,1,,Lesão indeterminada (suspeita baixa a moderada para melanoma/lesão maligna; recomendada avaliação histopatológica se houver critérios clínicos associados).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD126,0,0,1,,"Lesão indeterminada — achados compatíveis com baixa a moderada suspeição por dermatoscopia baseada em imagem (sem critérios fortes e específicos, mas com heterogeneidade pigmentária e pontos/áreas localizadas mais escuras).",INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD211,1,1,2,Nodular Melanoma,Lesão indeterminada (com predomínio de baixa suspeita ao nível dos algoritmos) / considerar avaliação especializada,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD408,1,1,2,Melanoma,"Lesão indeterminada com achados dermatoscópicos sugestivos de maior risco (necessita avaliação presencial e, em geral, consideração de biópsia conforme protocolo local).",INDETERMINADA,legacy_exact,1,0,1,SUSPEITA,True,0.0
+gpt-5.4-nano,IMD403,1,1,2,Melanoma,Lesão indeterminada (necessita avaliação especializada; considerar biópsia/dermatoscopia complementar conforme risco clínico).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD076,0,0,1,Blue Nevus,"Lesão cutânea indeterminada / com baixo a moderado nível de suspeição clínica para melanoma (na imagem fornecida, sem critérios dermatoscópicos de alto risco claramente recorrentes).",INDETERMINADA,extended_keywords,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD419,1,1,2,Melanoma,"Lesão cutânea indeterminada com características parcialmente compatíveis com lesão pigmentada atípica (necessita correlação clínica e, em geral, confirmação por exame histopatológico se clinicamente indicado).",INDETERMINADA,extended_keywords,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD284,1,1,2,Melanoma,Lesão indeterminada / necessidade de avaliação especializada (biopsia para esclarecimento).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD424,1,1,2,Melanoma,Lesão indeterminada com **suspeita de melanoma** baseada em critérios dermatoscópicos (maior contribuição do ABCD; menor contribuição do SPCL/Menzies).,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gpt-5.4-nano,IMD021,0,0,1,,Lesão indeterminada (exige avaliação médica/dermatoscópica presencial; considerar biópsia se houver suspeita clínica).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD388,0,0,1,,Lesão indeterminada com **maior suspeição** por critérios de malignidade (necessita avaliação especializada; biópsia/exérese a considerar).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD410,1,1,2,Melanoma,Lesão indeterminada com sinais dermatoscópicos mistos (sem confirmação de melanoma apenas pela imagem).,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD080,1,1,2,Melanoma,"Lesão cutânea indeterminada (necessita correlação clínica e, idealmente, dermatoscopia/histopatologia para exclusão de melanoma).",INDETERMINADA,extended_keywords,1,0,0,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD349,1,1,2,Melanoma,Lesão indeterminada com achados dermatoscópicos sugestivos de maior risco (necessita avaliação presencial e provável biópsia).,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gpt-5.4-nano,IMD398,0,0,1,,"Lesão indeterminada com tendência baixa a benigna na imagem fornecida (necessita correlação clínica e, se houver dúvida diagnóstica, avaliação presencial com dermatoscopia de maior qualidade e/ou biópsia conforme julgamento médico).",INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD417,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD402,0,0,0,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD348,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD423,1,1,2,Melanoma,Lesão Indeterminada com necessidade de investigação adicional,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD019,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD421,1,1,2,Melanoma,Lesão Indeterminada com alta suspeição,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD004,0,0,1,,Lesão Indeterminada com características de suspeição,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD146,0,0,0,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD058,1,1,2,Melanoma,Lesão Indeterminada com critérios de suspeição,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD040,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD356,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD210,0,0,1,Dysplastic Nevus,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD240,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD090,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD420,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD088,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD418,1,1,2,Melanoma,Lesão Indeterminada,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD306,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD063,1,1,2,Melanoma,Lesão Indeterminada com critérios de malignidade,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD208,0,0,0,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD064,1,1,2,Melanoma,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD219,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD061,0,1,2,,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD393,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD431,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD133,0,0,0,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD407,1,1,2,Melanoma,Lesão Indeterminada com necessidade de investigação histopatológica,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD285,1,1,2,Melanoma,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD409,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD006,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD389,0,0,0,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD196,0,0,0,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD304,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD278,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD065,0,1,2,,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD328,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD126,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD211,1,1,2,Nodular Melanoma,Lesão Indeterminada,INDETERMINADA,legacy_exact,1,0,0,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD408,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD403,1,1,2,Melanoma,Lesão Indeterminada com alta suspeição de malignidade,INDETERMINADA,legacy_exact,1,0,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD076,0,0,1,Blue Nevus,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD419,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD284,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD424,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD021,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD388,0,0,1,,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD410,1,1,2,Melanoma,Lesão Benigna,BENIGNA,legacy_exact,0,0,0,BENIGNA,True,0.0
+gemini-3.1-flash-lite,IMD080,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,SUSPEITA,True,0.0
+gemini-3.1-flash-lite,IMD349,1,1,2,Melanoma,Suspeita de Melanoma,SUSPEITA,legacy_exact,1,1,1,INDETERMINADA,True,0.0
+gemini-3.1-flash-lite,IMD398,0,0,1,,Lesão Indeterminada com necessidade de investigação adicional,INDETERMINADA,legacy_exact,1,0,1,INDETERMINADA,True,0.0

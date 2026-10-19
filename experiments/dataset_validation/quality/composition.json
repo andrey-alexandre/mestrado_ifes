@@ -1,0 +1,79 @@
+{
+  "ph2": {
+    "acquisition_source_x_class": {
+      "pedro_hispano_hospital": {
+        "melanoma": 20,
+        "nevus": 20
+      }
+    },
+    "dx_type_x_class": {},
+    "ph2_nevus_subtype": {
+      "atypical": 10,
+      "common": 10
+    },
+    "localization_x_class": {}
+  },
+  "ham10000": {
+    "acquisition_source_x_class": {
+      "rosendahl": {
+        "melanoma": 9
+      },
+      "vidir_modern": {
+        "melanoma": 10,
+        "nevus": 3
+      },
+      "vidir_molemax": {
+        "melanoma": 1,
+        "nevus": 16
+      },
+      "vienna_dias": {
+        "nevus": 1
+      }
+    },
+    "dx_type_x_class": {
+      "consensus": {
+        "nevus": 1
+      },
+      "follow_up": {
+        "nevus": 16
+      },
+      "histo": {
+        "melanoma": 20,
+        "nevus": 3
+      }
+    },
+    "ph2_nevus_subtype": {},
+    "localization_x_class": {
+      "abdomen": {
+        "nevus": 6
+      },
+      "back": {
+        "melanoma": 8,
+        "nevus": 3
+      },
+      "chest": {
+        "melanoma": 3
+      },
+      "face": {
+        "melanoma": 2
+      },
+      "lower extremity": {
+        "melanoma": 1,
+        "nevus": 4
+      },
+      "neck": {
+        "melanoma": 2
+      },
+      "trunk": {
+        "nevus": 4
+      },
+      "unknown": {
+        "nevus": 1
+      },
+      "upper extremity": {
+        "melanoma": 4,
+        "nevus": 2
+      }
+    }
+  }
+}

@@ -1,7 +1,8 @@
 # Relatório — investigação PH² × HAM10000 (piloto exploratório)
 
-**Estado: etapas locais concluídas; inferência VLM e avaliação diagnóstica NÃO executadas**
-(aguardam autorização de custo e credenciais: 640 chamadas, 2 modelos × 80 imagens × 4 agentes).
+**Estado: concluído.** Inferência executada em 2026-10-18 (macOS, commit `bb11e66`, `agents.py`
+idêntico ao do repositório; 2 modelos × 80 imagens, 640 chamadas, 0 falhas; manifesto com
+fingerprint e hashes iguais ao aprovado). Avaliação refeita nesta máquina com os indicadores de qualidade.
 Tabelas completas: `experiments/dataset_validation/reports/report.md`.
 Tudo abaixo é exploratório (n = 20 por grupo), sem inferência causal.
 
@@ -49,15 +50,60 @@ Achados mais relevantes para H1/H3 (dentro de cada dataset):
 - **HAM10000**: sem diferenças apreciáveis de enquadramento entre classes (δ ≈ 0,2, n.s.), mas a
   **fonte de aquisição está associada à classe** (16/20 nevos e 1/20 melanomas do `vidir_molemax`).
 
-## 3. Situação das hipóteses
+## 3. Resultados diagnósticos (política primária: "indeterminada" = positiva)
 
-| Hipótese | Evidência até aqui | Falta |
+| Modelo | Dataset | TN/FP/FN/TP | Sens. [IC95] | Espec. [IC95] | F1 | Acc. bal. |
+|---|---|---|---|---|---|---|
+| Gemini-3.1-flash-lite | PH² | 19/1/3/17 | 0,85 [0,64–0,95] | 0,95 [0,76–0,99] | 0,89 | 0,90 |
+| Gemini-3.1-flash-lite | HAM10000 | 16/4/2/18 | 0,90 [0,70–0,97] | 0,80 [0,58–0,92] | 0,86 | 0,85 |
+| GPT-5.4-nano | PH² | 2/18/1/19 | 0,95 [0,76–0,99] | 0,10 [0,03–0,30] | 0,67 | 0,53 |
+| GPT-5.4-nano | HAM10000¹ | 1/17/2/18 | 0,90 [0,70–0,97] | 0,06 [0,01–0,26] | 0,65 | 0,48 |
+
+¹ 2 respostas do GPT (nevos do HAM) ficaram `NAO_AVALIAVEL` ("padrão predominantemente benigno …
+baixa suspeição" contém termos benignos e de suspeição) e foram excluídas; lidas como benignas
+virariam 2 TN, sem mudar a conclusão.
+
+**Diferença PH² − HAM10000** (exploratória; Newcombe/Fisher; bootstrap estratificado para acc. bal.):
+
+| Modelo | Δ sens. | Δ espec. | Δ acc. bal. |
+|---|---|---|---|
+| Gemini | −0,05 [−0,27; 0,17], p = 1,0 | 0,15 [−0,07; 0,37], p = 0,34 | 0,05 [−0,10; 0,20] |
+| GPT | 0,05 [−0,15; 0,26], p = 1,0 | 0,04 [−0,17; 0,25], p = 1,0 | 0,05 [−0,06; 0,17] |
+
+Com a política alternativa ("indeterminada" = negativa) o Gemini fica com espec. 1,00 nos dois e
+sens. 0,50 (PH²) × 0,35 (HAM) (Δ 0,15 [−0,15; 0,41], p = 0,52); o GPT perde quase toda a
+sensibilidade (0,10 × 0,05). **Nenhuma diferença PH² × HAM é detectável neste piloto.**
+
+### Reprodutibilidade
+- Gemini: nas 17 imagens PH² que também estavam na execução legada (09/06), a categoria final
+  coincide em **17/17**. GPT: 12/17 categorias e 16/17 na decisão binária.
+- O comportamento legado é reproduzido: o GPT-5.4-nano responde "indeterminada" em ~80 % das imagens
+  das duas classes nos dois datasets (sem poder discriminativo; acc. bal. ≈ 0,5); o Gemini discrimina.
+
+### Onde estão os erros (exploratório)
+- **Gemini, nevos do HAM**: 2/16 erros em `vidir_molemax` (quase todos *follow-up*) × 2/4 nas
+  demais fontes; por confirmação, 2/16 *follow-up* × 2/3 histopatológicos. A especificidade no HAM
+  vem sobretudo de nevos de acompanhamento, os presumivelmente mais banais. No PH²: 1/10 erro em
+  nevos atípicos, 0/10 em comuns.
+- **Critérios dos agentes (melanomas)**: ABCD e 7-Point dão escores parecidos nos dois datasets
+  (Gemini ABCD 5,94 × 5,66; SPCL 4,65 × 4,80). A diferença está nas **estruturas do Menzies**: o
+  Gemini aponta véu azul-esbranquiçado em 35 % dos melanomas PH² × 10 % HAM, múltiplas cores 25 % × 0 %,
+  e nenhum pseudópode/streaming/despigmentação/pontos periféricos no HAM (média de características
+  positivas 1,5 × 0,4; GPT 1,05 × 0,25). No HAM mais melanomas terminam "indeterminada" (11/20 × 7/20),
+  o que só não vira perda de sensibilidade porque a política primária conta "indeterminada" como positiva.
+- **Qualidade × erro**: Gemini — nenhum indicador associado ao erro após Holm (PH² só 4 erros, HAM 6).
+  GPT — as associações (área da lesão, luminância etc.) são espúrias: como ele classifica quase tudo
+  como positivo, "erro" ≈ "ser nevo", e os indicadores refletem a diferença de classe, não de qualidade.
+
+## 4. Situação das hipóteses
+
+| Hipótese | Evidência | Conclusão |
 |---|---|---|
-| **H1** qualidade | *Apoia parcialmente*: PH² tem mais pixels, maior contraste/faixa dinâmica e melhor definição de borda; *enfraquece/ambíguo*: nitidez ligada a ruído, mais artefatos no PH² | Relação dos indicadores com os erros (exige inferência) |
-| **H2** complexidade | **Indeterminada**: HAM não tem anotações dermatoscópicas; nevos PH² são 50 % atípicos, nevos HAM 80 % *follow-up* na amostra. Dificuldade clínica não é inferível da imagem | Erros por critério/estrutura (PH² tem anotações; HAM só dx/localização) |
-| **H3** amostra | *Apoia*: origem do rótulo diferente; 12/40 melanomas PH² fora do rótulo legado; confusão fonte × classe no HAM; regra de leitura altera o resultado. Prevalência já controlada (20/20) | Resultado do piloto estratificado por fonte |
+| **H1** qualidade | PH² com mais pixels, contraste e definição de borda (Etapa B). Melanomas HAM têm menos estruturas dermatoscópicas *reportadas* pelos agentes (véu, cores, Menzies). Nenhum indicador de qualidade se associa aos erros | **Fraca/indeterminada**: compatível com menor visibilidade de estruturas, mas sem efeito mensurável no desempenho final |
+| **H2** complexidade | Erros do Gemini concentrados em nevos histopatológicos/não-*follow-up* do HAM e em nevo atípico do PH² (n mínimos). HAM sem anotações dermatoscópicas | **Indeterminada**; sinal compatível de que nevos excisados são mais difíceis |
+| **H3** amostra/protocolo | Com prevalência, classes (mel × nv), entrada (máscara GT) e regra de leitura iguais, a diferença desaparece dentro dos ICs. No legado: rótulo PH² errado, leitura manual, entrada possivelmente diferente | **Mais apoiada**: a diferença relatada antes provavelmente vinha do protocolo (composição de classes, entrada/segmentação, regra de leitura), não das imagens do HAM em si |
 
-## 4. Limitações
+## 5. Limitações
 
 n = 20 por grupo (ICs largos); 1 inferência por imagem; ruído execução-a-execução ≈ 10 %; leitura
 manual da dissertação não reproduzível (política programática declarada, com sensibilidade);
@@ -65,9 +111,16 @@ indicadores computacionais ≠ adequação clínica; máscaras de origens distin
 da cópia ISIC 2019; versões de modelo/temperatura do legado não verificáveis; sem ground truth do
 ISIC 2019 local; resultado HAM10000 prévio não documentado.
 
-## 5. Decisão pendente do usuário
+## 6. Recomendação para o ISIC 2019
 
-Autorizar (ou não) a inferência: 640 chamadas LLM (320 por modelo; estimativa de ≈ 0,69 M tokens
-de entrada e 0,12 M de saída por modelo, premissas em `cost_estimate.json`), definir
-`OPENAI_API_KEY`/`GOOGLE_API_KEY`, e informar os preços para o cálculo em US$. Alternativa de
-custo menor: um só modelo (`--models gpt-5.4-nano`).
+**Avançar**, com três condições (ver `isic2019_risk.md`):
+1. Usar **só o Gemini-3.1-flash-lite** como sistema diagnóstico de referência. O GPT-5.4-nano não
+   discrimina melanoma × nevo em nenhum dataset; mantê-lo só como comparação qualitativa.
+2. Reportar métricas **por fonte** (BCN_20000 / HAM10000 e subfontes / MSK) e, no HAM, por tipo de
+   confirmação: a especificidade observada se apoia em nevos de *follow-up* que podem não
+   representar os nevos do ISIC 2019.
+3. Fixar de antemão a política de leitura das respostas "indeterminadas" e reportar as duas: ela
+   move a sensibilidade do Gemini de ~0,9 para ~0,4–0,5.
+
+O piloto não mostra degradação no HAM10000 para melanoma × nevo, mas com n = 20 só exclui
+diferenças grandes (≳ 0,3); diferenças moderadas (~0,15 em especificidade) seguem possíveis.

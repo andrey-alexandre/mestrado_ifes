@@ -40,7 +40,7 @@
           "specificity": {
             "estimate": 0.1,
             "ci_low": 0.027866481213768224,
-            "ci_high": 0.3010336452284872,
+            "ci_high": 0.30103364522848725,
             "numerator": 2,
             "denominator": 20
           },
@@ -88,7 +88,7 @@
             "specificity": {
               "estimate": 0.1,
               "ci_low": 0.027866481213768224,
-              "ci_high": 0.3010336452284872,
+              "ci_high": 0.30103364522848725,
               "numerator": 2,
               "denominator": 20
             },
@@ -172,7 +172,7 @@
           "sensitivity": {
             "estimate": 0.1,
             "ci_low": 0.027866481213768224,
-            "ci_high": 0.3010336452284872,
+            "ci_high": 0.30103364522848725,
             "numerator": 2,
             "denominator": 20
           },
@@ -185,8 +185,8 @@
           },
           "precision": {
             "estimate": 0.4,
-            "ci_low": 0.117620774232648,
-            "ci_high": 0.7692757187239869,
+            "ci_low": 0.11762077423264794,
+            "ci_high": 0.769275718723987,
             "numerator": 2,
             "denominator": 5
           },
@@ -220,7 +220,7 @@
             "sensitivity": {
               "estimate": 0.1,
               "ci_low": 0.027866481213768224,
-              "ci_high": 0.3010336452284872,
+              "ci_high": 0.30103364522848725,
               "numerator": 2,
               "denominator": 20
             },
@@ -233,8 +233,8 @@
             },
             "precision": {
               "estimate": 0.4,
-              "ci_low": 0.117620774232648,
-              "ci_high": 0.7692757187239869,
+              "ci_low": 0.11762077423264794,
+              "ci_high": 0.769275718723987,
               "numerator": 2,
               "denominator": 5
             },
@@ -312,22 +312,22 @@
           "confidence": 0.95,
           "sensitivity": {
             "estimate": 0.9,
-            "ci_low": 0.6989663547715129,
-            "ci_high": 0.9721335187862318,
+            "ci_low": 0.6989663547715128,
+            "ci_high": 0.9721335187862319,
             "numerator": 18,
             "denominator": 20
           },
           "specificity": {
             "estimate": 0.05555555555555555,
-            "ci_low": 0.009875190978303083,
+            "ci_low": 0.00987519097830307,
             "ci_high": 0.25757300781872583,
             "numerator": 1,
             "denominator": 18
           },
           "precision": {
             "estimate": 0.5142857142857142,
-            "ci_low": 0.3556880459586857,
-            "ci_high": 0.6700576399749025,
+            "ci_low": 0.35568804595868564,
+            "ci_high": 0.6700576399749026,
             "numerator": 18,
             "denominator": 35
           },
@@ -360,15 +360,15 @@
           "non_evaluable_as_error": {
             "sensitivity": {
               "estimate": 0.9,
-              "ci_low": 0.6989663547715129,
-              "ci_high": 0.9721335187862318,
+              "ci_low": 0.6989663547715128,
+              "ci_high": 0.9721335187862319,
               "numerator": 18,
               "denominator": 20
             },
             "specificity": {
               "estimate": 0.05,
-              "ci_low": 0.00888144880079543,
-              "ci_high": 0.23613119344674194,
+              "ci_low": 0.008881448800795375,
+              "ci_high": 0.236131193446742,
               "numerator": 1,
               "denominator": 20
             },
@@ -453,21 +453,21 @@
           "confidence": 0.95,
           "sensitivity": {
             "estimate": 0.05,
-            "ci_low": 0.00888144880079543,
-            "ci_high": 0.23613119344674194,
+            "ci_low": 0.008881448800795375,
+            "ci_high": 0.236131193446742,
             "numerator": 1,
             "denominator": 20
           },
           "specificity": {
             "estimate": 1.0,
-            "ci_low": 0.8241207763533426,
+            "ci_low": 0.8241207763533425,
             "ci_high": 1.0,
             "numerator": 18,
             "denominator": 18
           },
           "precision": {
             "estimate": 1.0,
-            "ci_low": 0.2065493143772375,
+            "ci_low": 0.20654931437723745,
             "ci_high": 1.0,
             "numerator": 1,
             "denominator": 1
@@ -501,22 +501,22 @@
           "non_evaluable_as_error": {
             "sensitivity": {
               "estimate": 0.05,
-              "ci_low": 0.00888144880079543,
-              "ci_high": 0.23613119344674194,
+              "ci_low": 0.008881448800795375,
+              "ci_high": 0.236131193446742,
               "numerator": 1,
               "denominator": 20
             },
             "specificity": {
               "estimate": 0.9,
-              "ci_low": 0.6989663547715129,
-              "ci_high": 0.9721335187862318,
+              "ci_low": 0.6989663547715128,
+              "ci_high": 0.9721335187862319,
               "numerator": 18,
               "denominator": 20
             },
             "precision": {
               "estimate": 0.3333333333333333,
-              "ci_low": 0.06149194472039626,
-              "ci_high": 0.7923403991979521,
+              "ci_low": 0.06149194472039632,
+              "ci_high": 0.7923403991979523,
               "numerator": 1,
               "denominator": 3
             },
@@ -578,8 +578,8 @@
         "p2": 0.9,
         "n2": 20,
         "difference": 0.04999999999999993,
-        "ci_low": -0.1496198028913769,
-        "ci_high": 0.2551956670268035,
+        "ci_low": -0.14961980289137694,
+        "ci_high": 0.25519566702680363,
         "ci_method": "Newcombe (escore híbrido)",
         "fisher_exact_p_two_sided": 1.0,
         "exploratory": true
@@ -591,7 +591,7 @@
         "n2": 18,
         "difference": 0.04444444444444445,
         "ci_low": -0.17006498553798297,
-        "ci_high": 0.2506026900272102,
+        "ci_high": 0.25060269002721025,
         "ci_method": "Newcombe (escore híbrido)",
         "fisher_exact_p_two_sided": 1.0,
         "exploratory": true
@@ -645,8 +645,8 @@
           },
           "precision": {
             "estimate": 0.9444444444444444,
-            "ci_low": 0.7424269921812743,
-            "ci_high": 0.990124809021697,
+            "ci_low": 0.7424269921812742,
+            "ci_high": 0.9901248090216969,
             "numerator": 17,
             "denominator": 18
           },
@@ -693,8 +693,8 @@
             },
             "precision": {
               "estimate": 0.9444444444444444,
-              "ci_low": 0.7424269921812743,
-              "ci_high": 0.990124809021697,
+              "ci_low": 0.7424269921812742,
+              "ci_high": 0.9901248090216969,
               "numerator": 17,
               "denominator": 18
             },
@@ -907,8 +907,8 @@
           "confidence": 0.95,
           "sensitivity": {
             "estimate": 0.9,
-            "ci_low": 0.6989663547715129,
-            "ci_high": 0.9721335187862318,
+            "ci_low": 0.6989663547715128,
+            "ci_high": 0.9721335187862319,
             "numerator": 18,
             "denominator": 20
           },
@@ -955,8 +955,8 @@
           "non_evaluable_as_error": {
             "sensitivity": {
               "estimate": 0.9,
-              "ci_low": 0.6989663547715129,
-              "ci_high": 0.9721335187862318,
+              "ci_low": 0.6989663547715128,
+              "ci_high": 0.9721335187862319,
               "numerator": 18,
               "denominator": 20
             },
@@ -1044,7 +1044,7 @@
           "confidence": 0.95,
           "sensitivity": {
             "estimate": 0.35,
-            "ci_low": 0.18119182410108212,
+            "ci_low": 0.1811918241010821,
             "ci_high": 0.5671457233147637,
             "numerator": 7,
             "denominator": 20
@@ -1058,7 +1058,7 @@
           },
           "precision": {
             "estimate": 1.0,
-            "ci_low": 0.6456695649333127,
+            "ci_low": 0.6456695649333126,
             "ci_high": 1.0,
             "numerator": 7,
             "denominator": 7
@@ -1092,7 +1092,7 @@
           "non_evaluable_as_error": {
             "sensitivity": {
               "estimate": 0.35,
-              "ci_low": 0.18119182410108212,
+              "ci_low": 0.1811918241010821,
               "ci_high": 0.5671457233147637,
               "numerator": 7,
               "denominator": 20
@@ -1106,7 +1106,7 @@
             },
             "precision": {
               "estimate": 1.0,
-              "ci_low": 0.6456695649333127,
+              "ci_low": 0.6456695649333126,
               "ci_high": 1.0,
               "numerator": 7,
               "denominator": 7
@@ -1166,7 +1166,7 @@
         "n2": 20,
         "difference": -0.050000000000000044,
         "ci_low": -0.27243952699840157,
-        "ci_high": 0.17348688617395594,
+        "ci_high": 0.17348688617395602,
         "ci_method": "Newcombe (escore híbrido)",
         "fisher_exact_p_two_sided": 1.0,
         "exploratory": true

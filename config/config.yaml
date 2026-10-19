@@ -273,3 +273,10 @@ dataset_validation:
 
   output:
     root_dir: "experiments/dataset_validation"    # ignorado pelo git (ver .gitignore)
+
+  # Extensão "melanoma × todas as classes" (HAM10000 apenas, sem PH²). Reaproveita as
+  # 20 mel + 20 nv do piloto e sorteia n_per_class de cada: akiec, bcc, bkl, df, vasc.
+  allclasses:
+    n_per_class: 20
+    output_root: "experiments/dataset_validation_allclasses"
+    reuse_results_dir: "experiments/dataset_validation/inference"   # results_<modelo>.json do piloto

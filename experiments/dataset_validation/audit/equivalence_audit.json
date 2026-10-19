@@ -1,0 +1,268 @@
+{
+  "code_fingerprints": {
+    "src/agents/agents.py": "48ade1cc759e4b0677c854b2e6cbcc4ced6e44a92433804a3a81891c4d474760",
+    "src/agents/schemas.py": "b736b49883ef552c755b191e57047d6134cd94167ef3c2327869c6598ae94e26",
+    "src/pipeline/pipeline.py": "91138ab903597a77a6f4a4c00b49e7e839df265c5b6b3653d6748b2b85e1e684",
+    "src/models/model.py": "ffc858dafafd6290981c94ba48c231c276dd74795038b6ebef697fab07df099b",
+    "src/data/dataset.py": "dfcf19fe3bb302e3b3331ddf33c77c9929f03eb48a426352e23aa2c034f9edb2",
+    "src/evaluation/evaluate.py": "ae206c2338f100a54b54b9080767264494f484c897382f9ffeea954ce0438fe9",
+    "scripts/run_pipeline.py": "769e846778a0f15829c6d51c9a2582517a6690daca1293fbae1739b8a87375d5"
+  },
+  "agents_py_commits": [
+    "3fe1e2d Add files via upload"
+  ],
+  "head_commit": "a557ba4538b0ffccb8e49db15aecd6b3a71e0d16",
+  "branch": "exp/dataset_validation",
+  "source_facts": {
+    "agents_use_only_segmented_image": {
+      "image_message_calls_with_seg_image_data": 4,
+      "references_to_state_image_data_in_agents": 0,
+      "interpretation": "As 4 chamadas LLM (ABCD, Menzies, SPCL, sumarizador) recebem APENAS a imagem mascarada; a imagem original (image_data) nunca é enviada."
+    },
+    "lesion_size_interpolated_in_prompts": false,
+    "legacy_mask_application": "pixels fora da lesão tornam-se pretos (original * máscara>128), resolução nativa, JPEG (qualidade padrão do PIL)",
+    "model_mode_segmentation": {
+      "random_resize_range": [
+        [
+          "300",
+          "320"
+        ]
+      ],
+      "target_width": 256,
+      "note": "Modo 'model' (U-Net em runtime) reduz a imagem para ~256 px de largura e usa máscara PREVISTA; modo 'precomputed' mantém a resolução nativa e a máscara de referência."
+    },
+    "interpretation_rule_in_evaluate_py": {
+      "keys": [
+        [
+          "suspeita de melanoma",
+          "1"
+        ],
+        [
+          "lesão indeterminada",
+          "1"
+        ],
+        [
+          "lesão benigna",
+          "0"
+        ]
+      ],
+      "unrecognized_policy": "excluído do cálculo (warning)"
+    },
+    "pipeline_writes_keys": [
+      "real_value"
+    ],
+    "run_pipeline_script_default_segmentation_mode_source": "config segmentation.mode",
+    "build_llm_uses_literal_api_key_strings": true
+  },
+  "ph2_label_audit": {
+    "n_cases": 200,
+    "clinical_counts": {
+      "0": 80,
+      "1": 80,
+      "2": 40
+    },
+    "clinical_x_histological": {
+      "0": {
+        "(vazio)": 80
+      },
+      "1": {
+        "(vazio)": 72,
+        "Dysplastic Nevus": 5,
+        "Blue Nevus": 1,
+        "Intradermal Nevus": 2
+      },
+      "2": {
+        "Melanoma": 26,
+        "(vazio)": 7,
+        "Nodular Melanoma": 2,
+        "Lentigo Maligna": 5
+      }
+    },
+    "histological_nonempty": 41,
+    "legacy_positive": 28,
+    "clinical_melanoma": 40,
+    "melanomas_labelled_negative_by_legacy_rule": [
+      {
+        "name": "IMD061",
+        "histological": ""
+      },
+      {
+        "name": "IMD065",
+        "histological": ""
+      },
+      {
+        "name": "IMD085",
+        "histological": ""
+      },
+      {
+        "name": "IMD091",
+        "histological": ""
+      },
+      {
+        "name": "IMD168",
+        "histological": ""
+      },
+      {
+        "name": "IMD242",
+        "histological": "Lentigo Maligna"
+      },
+      {
+        "name": "IMD404",
+        "histological": "Lentigo Maligna"
+      },
+      {
+        "name": "IMD406",
+        "histological": ""
+      },
+      {
+        "name": "IMD411",
+        "histological": "Lentigo Maligna"
+      },
+      {
+        "name": "IMD413",
+        "histological": "Lentigo Maligna"
+      },
+      {
+        "name": "IMD429",
+        "histological": ""
+      },
+      {
+        "name": "IMD435",
+        "histological": "Lentigo Maligna"
+      }
+    ],
+    "n_melanomas_labelled_negative_by_legacy_rule": 12,
+    "legacy_positive_not_clinical_melanoma": []
+  },
+  "ham10000_pool_composition": {
+    "acquisition_source_x_class": {
+      "rosendahl": {
+        "melanoma": 342,
+        "nevus": 803
+      },
+      "vidir_modern": {
+        "nevus": 1832,
+        "melanoma": 680
+      },
+      "vidir_molemax": {
+        "nevus": 3720,
+        "melanoma": 24
+      },
+      "vienna_dias": {
+        "melanoma": 67,
+        "nevus": 350
+      }
+    },
+    "dx_type_x_class": {
+      "consensus": {
+        "nevus": 503
+      },
+      "follow_up": {
+        "nevus": 3704
+      },
+      "histo": {
+        "melanoma": 1113,
+        "nevus": 2498
+      }
+    }
+  },
+  "isic_composition": {
+    "sources": {
+      "isic2019_dir": {
+        "path": "C:\\Projetos\\Mestrado\\Data\\ISIC_2019_Training_Input",
+        "n_jpg": 25331,
+        "other_files": [
+          "ATTRIBUTION.txt",
+          "LICENSE.txt"
+        ]
+      },
+      "isic2019_attribution_sources": [
+        "BCN_20000 Dataset",
+        "HAM10000 Dataset",
+        "MSK Dataset"
+      ],
+      "isic2018_task1_zip": {
+        "path": "C:\\Projetos\\Mestrado\\Data\\ISIC2018_Task1-2_Training_Input.zip",
+        "n_jpg": 2594
+      },
+      "ground_truth_csv": {
+        "path": null,
+        "present": false
+      },
+      "metadata_csv": {
+        "path": null,
+        "present": false
+      }
+    },
+    "findings": {
+      "ham10000_images_in_isic2019": 10015,
+      "ham10000_images_total": 10015,
+      "isic2019_not_in_ham10000": 15316,
+      "isic2019_total": 25331,
+      "ham10000_share_of_isic2019": 0.39536536259918675,
+      "isic2018_task1_total": 2594,
+      "isic2018_task1_in_ham10000": 0,
+      "isic2018_task1_in_isic2019": 772,
+      "isic2018_task1_not_in_isic2019": 1822,
+      "note": "Rótulos do ISIC 2019 (ground truth/metadata) não estão em disco quando 'present' é falso: composição por classe e por fonte (BCN_20000/MSK) NÃO é verificável localmente."
+    }
+  },
+  "llm_config": {
+    "config_yaml_llm": {
+      "model_name": "gpt-5.4-nano",
+      "temperature": 0
+    },
+    "pilot_models": [
+      "gpt-5.4-nano",
+      "gemini-3.1-flash-lite"
+    ],
+    "pilot_temperature": 0
+  },
+  "legacy_output_compatibility": {
+    "file": "C:\\Projetos\\IFES\\mestrado_ifes\\llm_result_gpt-5.4-nano_20260609.json",
+    "n": 50,
+    "keys": [
+      "diagnosis_abcd",
+      "diagnosis_menzies",
+      "diagnosis_spcl",
+      "final_report",
+      "image_path",
+      "lesion_size",
+      "real_value",
+      "seg_path",
+      "validation"
+    ],
+    "matches_current_pipeline_schema": true,
+    "note": "Compatibilidade de formato NÃO prova mesma versão de prompts/modelo/parâmetros."
+  },
+  "provenance": {
+    "versions": {
+      "python": "3.12.4",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "PIL": "12.3.0",
+      "pandas": "3.0.5",
+      "sklearn": "1.9.0",
+      "yaml": "6.0.3",
+      "matplotlib": "3.11.2",
+      "torch": "2.14.0+cpu",
+      "langchain": "1.4.0",
+      "langchain_core": "1.6.2",
+      "langgraph": "unknown",
+      "langchain_openai": "1.6.1",
+      "langchain_google_genai": "4.4.0"
+    },
+    "git_commit": "a557ba4538b0ffccb8e49db15aecd6b3a71e0d16",
+    "git_branch": "exp/dataset_validation",
+    "git_dirty_paths_in_src_scripts_config": [
+      "M config/config.yaml",
+      "?? scripts/run_dataset_validation.py",
+      "?? scripts/run_segmentation_experiment.py",
+      "?? src/dataset_validation/",
+      "?? src/segmentation/"
+    ],
+    "seed": 42,
+    "created_at": "2026-10-13T01:31:20.912668+00:00"
+  }
+}

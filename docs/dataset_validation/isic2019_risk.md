@@ -21,8 +21,7 @@ literatura, **não** de arquivos locais, e não devem ser citadas como verificad
 ## Perguntas
 
 **O desempenho no HAM10000 ameaça a validade do experimento principal no ISIC 2019?**
-Não é possível afirmar com os dados atuais: (i) não há resultado HAM10000 documentado deste
-pipeline; (ii) o piloto de inferência ainda não foi executado. Estruturalmente o risco é
+Não pelos dados do piloto: sob protocolo controlado o Gemini não mostrou queda no HAM10000 (melanoma × nevo), e o resultado HAM10000 anterior não está documentado. Estruturalmente o risco é
 real porque 39,5 % do ISIC 2019 é HAM10000 e o pipeline foi validado só no PH² (uma fonte,
 rótulo clínico, imagens de alta resolução). O risco é de **validade externa e de
 confundimento por fonte**, não de erro de implementação.
@@ -43,9 +42,11 @@ sinal diagnóstico sem estratificação.
 5. Obter `GroundTruth` e `Metadata` oficiais do ISIC 2019 e registrar a regra mel × nevo
    (MEL × NV) antes de qualquer execução.
 
-**O piloto oferece evidência suficiente para avançar?**
-Hoje **não**: o piloto de inferência não foi executado e, quando for, com 20 por classe os ICs de
-Wilson têm largura da ordem de ±0,2, só distinguindo diferenças grandes (≳0,3). Recomendação:
-**avançar condicionado a** (a) executar o piloto autorizado e (b) fixar de antemão a análise por
-fonte acima. Um resultado PH² ≈ HAM dentro dos ICs não prova equivalência; uma queda nítida no
-HAM exigiria, antes do ISIC 2019, a verificação intra-fonte (item 2).
+**O piloto oferece evidência suficiente para avançar?** (atualizado após a inferência, 2026-10-19)
+Sim, para avançar com condições. Sob protocolo controlado, o Gemini-3.1-flash-lite teve acurácia
+balanceada 0,90 (PH²) × 0,85 (HAM10000), Δ 0,05 [−0,10; 0,20]; nenhuma diferença foi detectável. O
+GPT-5.4-nano não discrimina em nenhum dos dois (≈ 0,5). Ressalvas: n = 20 por classe só exclui
+diferenças grandes; a especificidade no HAM se apoia em nevos de *follow-up* da fonte `vidir_molemax`
+(2/16 erros × 2/4 nas demais fontes); os agentes reportam menos estruturas dermatoscópicas nos
+melanomas do HAM. As análises por fonte acima continuam obrigatórias no ISIC 2019. Detalhes em
+`report.md`.

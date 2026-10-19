@@ -160,7 +160,8 @@ def cmd_infer(cfg, dirs, run_vlm):
 
 def cmd_evaluate(cfg, dirs):
     manifest = _manifest(dirs)
-    ph2_records, _ = load_inputs(cfg)
+    # avaliação não precisa das imagens: só do metadado do PH² (anotações dermatoscópicas)
+    ph2_records = L.parse_ph2_metadata(_need(cfg["datasets"]["ph2"]["metadata_txt"], "PH2_dataset.txt"))
     quality_rows = read_csv(dirs["quality"] / "indicators.csv") if (dirs["quality"] / "indicators.csv").exists() else []
     out, hyp = {}, {}
     prim = cfg["evaluation"]["primary_policy"]

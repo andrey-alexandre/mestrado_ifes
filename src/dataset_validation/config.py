@@ -87,6 +87,11 @@ DEFAULTS: Dict[str, Any] = {
         },
     },
     "output": {"root_dir": "experiments/dataset_validation"},
+    "allclasses": {                     # extensão HAM10000: melanoma × todas as classes
+        "n_per_class": 20,
+        "output_root": "experiments/dataset_validation_allclasses",
+        "reuse_results_dir": "experiments/dataset_validation/inference",   # piloto mel/nv já inferido
+    },
 }
 
 
@@ -128,6 +133,9 @@ def build_config(full: Dict, overrides: Optional[Dict] = None) -> Dict:
     for key in ("image_dir", "isic2018_task1_zip", "ground_truth_csv", "metadata_csv"):
         isic[key] = resolve_path(isic[key])
     cfg["output"]["root_dir"] = resolve_path(cfg["output"]["root_dir"])
+    ac = cfg["allclasses"]
+    ac["output_root"] = resolve_path(ac["output_root"])
+    ac["reuse_results_dir"] = resolve_path(ac["reuse_results_dir"])
     llm = full.get("llm", {}) or {}
     if cfg["inference"]["temperature"] is None:
         cfg["inference"]["temperature"] = llm.get("temperature", 0)
