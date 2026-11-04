@@ -19,26 +19,19 @@ Inventário estrutural (sem amostragem, sem treino, sem chamadas a LLM/VLM, sem 
 ### Critérios de diagnóstico (lado a lado, sem decidir qual é a correta)
 
 - `Histological Diagnosis` não vazio: 41 lesões.
+- `Histological Diagnosis` contendo "melanoma" (melanoma confirmado por texto): 28 lesões.
 - `Clinical Diagnosis == 2`: 40 lesões.
 
-> **Nota de revisão (coordenação, 2026-11-04, verificada manualmente, não recalculada pelo script):**
-> "não vazio" conta qualquer biópsia registrada, não apenas melanoma. Dos 41
-> registros histológicos não vazios, os valores distintos são: `Melanoma`
-> (26), `Nodular Melanoma` (2), `Dysplastic Nevus` (5), `Lentigo Maligna` (5),
-> `Intradermal Nevus` (2), `Blue Nevus` (1). O número de melanoma confirmado
-> por texto histológico é **28** (26+2), não 41 — os outros 13 são biópsias
-> de lesões não melanoma. A comparação metodologicamente relevante é
-> **28 (histológico/melanoma) × 40 (clínico==2)**, não 41×40. Esta nota não
-> altera `src/data_audit/adapters.py`; decidido manter o código como entregue
-> e apenas registrar esta ressalva (decisão do pesquisador, 2026-11-04).
->
-> **Aviso de processo (2026-11-04):** esta nota foi apagada automaticamente
-> na Tarefa 3, porque `scripts/run_dataset_inventory.py` regenera
-> `docs/reconstruction/02_dataset_inventory_report.md` inteiro a cada
-> execução e `report.py` não tem conhecimento desta anotação manual.
-> Reaplicada manualmente após a Tarefa 3. Qualquer execução futura do CLI
-> volta a apagá-la — reaplicar manualmente (ou mover a nota para dentro de
-> `report.py`) após qualquer rerun.
+`Histological Diagnosis` não vazio (41 registros) não é o mesmo que melanoma confirmado: o campo é preenchido para qualquer biópsia registrada, não só para melanoma. Distribuição dos valores distintos encontrados nos registros não vazios:
+
+- `Blue Nevus` (não melanoma): 1
+- `Dysplastic Nevus` (não melanoma): 5
+- `Intradermal Nevus` (não melanoma): 2
+- `Lentigo Maligna` (não melanoma): 5
+- `Melanoma` (melanoma): 26
+- `Nodular Melanoma` (melanoma): 2
+
+Logo, dos 41 registros histológicos não vazios, **28** mencionam melanoma no texto e os demais **13** são biópsias confirmadas de lesões não melanoma. A comparação metodologicamente relevante para avaliar o critério clínico é **melanoma-por-texto × `Clinical Diagnosis == 2`** (28 × 40), não **não-vazio × `Clinical Diagnosis == 2`** (41 × 40).
 
 ## HAM10000
 
@@ -79,7 +72,7 @@ Inventário estrutural (sem amostragem, sem treino, sem chamadas a LLM/VLM, sem 
 - 5 imagem(ns): 5 lesões
 - 6 imagem(ns): 4 lesões
 
-> Nota: hashing sha256 de ~20 mil arquivos (imagens + máscaras) foi executado nesta rodada; pode levar minutos — é esperado, não é falha.
+> Nota: hashing sha256 pulado nesta rodada (`--skip-ham10000-hash`); `image_manifest`/`mask_manifest` foram reaproveitados de um manifesto anterior em disco (hashes reais preservados, não recalculados e não apagados).
 
 ## ISIC2018 Task1
 

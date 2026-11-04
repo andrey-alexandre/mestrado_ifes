@@ -17,6 +17,12 @@ def _render_ph2(summary: dict[str, Any]) -> str:
     if summary["status"] == "ausente":
         return "## PH2\n\n**Status: ausente** — caminho de dados ou de metadados não encontrado.\n"
 
+    criteria = summary["diagnosis_criteria_side_by_side"]
+    non_empty = criteria["histological_diagnosis_non_empty"]
+    melanoma_text = criteria["histological_diagnosis_melanoma_text"]
+    clinical = criteria["clinical_diagnosis_equals_2"]
+    value_counts: dict[str, int] = criteria.get("histological_diagnosis_values", {})
+
     lines = [
         "## PH2",
         "",
@@ -34,12 +40,38 @@ def _render_ph2(summary: dict[str, Any]) -> str:
         "",
         "### Critérios de diagnóstico (lado a lado, sem decidir qual é a correta)",
         "",
-        f"- `Histological Diagnosis` não vazio: "
-        f"{summary['diagnosis_criteria_side_by_side']['histological_diagnosis_non_empty']['count']} lesões.",
-        f"- `Clinical Diagnosis == 2`: "
-        f"{summary['diagnosis_criteria_side_by_side']['clinical_diagnosis_equals_2']['count']} lesões.",
+        f"- `Histological Diagnosis` não vazio: {non_empty['count']} lesões.",
+        f"- `Histological Diagnosis` contendo \"melanoma\" (melanoma confirmado por "
+        f"texto): {melanoma_text['count']} lesões.",
+        f"- `Clinical Diagnosis == 2`: {clinical['count']} lesões.",
         "",
     ]
+
+    if value_counts:
+        non_melanoma_count = non_empty["count"] - melanoma_text["count"]
+        lines.append(
+            f"`Histological Diagnosis` não vazio ({non_empty['count']} registros) não "
+            "é o mesmo que melanoma confirmado: o campo é preenchido para qualquer "
+            "biópsia registrada, não só para melanoma. Distribuição dos valores "
+            "distintos encontrados nos registros não vazios:"
+        )
+        lines.append("")
+        for value, count in sorted(value_counts.items()):
+            marca = "melanoma" if "melanoma" in value.lower() else "não melanoma"
+            lines.append(f"- `{value}` ({marca}): {count}")
+        lines.append("")
+        lines.append(
+            f"Logo, dos {non_empty['count']} registros histológicos não vazios, "
+            f"**{melanoma_text['count']}** mencionam melanoma no texto e os demais "
+            f"**{non_melanoma_count}** são biópsias confirmadas de lesões não "
+            "melanoma. A comparação metodologicamente relevante para avaliar o "
+            "critério clínico é **melanoma-por-texto × `Clinical Diagnosis == 2`** "
+            f"({melanoma_text['count']} × {clinical['count']}), não "
+            f"**não-vazio × `Clinical Diagnosis == 2`** ({non_empty['count']} × "
+            f"{clinical['count']})."
+        )
+        lines.append("")
+
     return "\n".join(lines)
 
 
@@ -82,16 +114,27 @@ def _render_ham10000(summary: dict[str, Any]) -> str:
     for n_images, n_lesions in summary["images_per_lesion_distribution"].items():
         lines.append(f"- {n_images} imagem(ns): {n_lesions} lesões")
     lines.append("")
-    if len(summary["image_manifest"]) > 0:
+    hash_status = summary.get(
+        "hash_status", "hashed" if summary["image_manifest"] else "skipped_no_previous"
+    )
+    if hash_status == "hashed":
         lines.append(
             "> Nota: hashing sha256 de ~20 mil arquivos (imagens + máscaras) foi "
             "executado nesta rodada; pode levar minutos — é esperado, não é falha."
         )
-    else:
+    elif hash_status == "reused_from_previous":
         lines.append(
             "> Nota: hashing sha256 pulado nesta rodada (`--skip-ham10000-hash`); "
-            "`image_manifest`/`mask_manifest` ficam vazios neste relatório, "
-            "reaproveitando o hashing já executado e revisado em rodada anterior."
+            "`image_manifest`/`mask_manifest` foram reaproveitados de um manifesto "
+            "anterior em disco (hashes reais preservados, não recalculados e não "
+            "apagados)."
+        )
+    else:
+        lines.append(
+            "> Nota: hashing sha256 pulado nesta rodada (`--skip-ham10000-hash`) e "
+            "nenhum manifesto anterior com hashes foi encontrado para reaproveitar; "
+            "`image_manifest`/`mask_manifest` ficam vazios neste relatório (ainda não "
+            "houve nenhuma rodada com hashing real)."
         )
     lines.append("")
     return "\n".join(lines)

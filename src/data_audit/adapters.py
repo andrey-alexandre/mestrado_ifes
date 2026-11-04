@@ -45,6 +45,13 @@ def audit_ph2(root_dir: str | Path, metadata_txt: str | Path) -> dict[str, Any]:
 
     hist_positive = [r["Name"] for r in rows if r["Histological Diagnosis"].strip() != ""]
     clinical_positive = [r["Name"] for r in rows if r["Clinical Diagnosis"].strip() == "2"]
+    melanoma_text_positive = [
+        r["Name"] for r in rows if "melanoma" in r["Histological Diagnosis"].strip().lower()
+    ]
+    hist_value_counts = core.category_counts(
+        [r for r in rows if r["Histological Diagnosis"].strip() != ""],
+        "Histological Diagnosis",
+    )
 
     return {
         "dataset": "ph2",
@@ -62,13 +69,25 @@ def audit_ph2(root_dir: str | Path, metadata_txt: str | Path) -> dict[str, Any]:
                 "count": len(hist_positive),
                 "ids": hist_positive,
             },
+            "histological_diagnosis_melanoma_text": {
+                "count": len(melanoma_text_positive),
+                "ids": melanoma_text_positive,
+            },
+            "histological_diagnosis_values": {
+                str(k): v for k, v in sorted(hist_value_counts.items())
+            },
             "clinical_diagnosis_equals_2": {
                 "count": len(clinical_positive),
                 "ids": clinical_positive,
             },
             "note": (
-                "Dois critérios de 'positivo' reportados lado a lado, sem decisão "
-                "de qual é a correta para o protocolo."
+                "Três leituras do critério histológico são reportadas lado a lado: "
+                "'não vazio' (qualquer biópsia registrada, inclui lesões não "
+                "melanoma), 'melanoma confirmado por texto' (subconjunto do "
+                "anterior cujo valor contém a palavra 'melanoma') e "
+                "'Clinical Diagnosis == 2'. A comparação metodologicamente "
+                "relevante para avaliar o critério clínico é melanoma-por-texto "
+                "× Clinical Diagnosis == 2, não não-vazio × Clinical Diagnosis == 2."
             ),
         },
     }
@@ -109,9 +128,18 @@ def audit_ham10000(
     masks_dir: str | Path,
     metadata_csv: str | Path,
     hash_files: bool = True,
+    previous_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """HAM10000: 3-way pairing (metadata x images x masks), dx distribution,
     lesion_id -> dx conflicts, and a sha256 manifest of every image/mask.
+
+    When ``hash_files`` is False, no hashing is done in this call. If
+    ``previous_manifest`` carries non-empty ``image_manifest``/``mask_manifest``
+    from an earlier run, those are reused as-is (``hash_status`` =
+    ``"reused_from_previous"``); otherwise the manifests come back empty
+    (``hash_status`` = ``"skipped_no_previous"``). This avoids a caller
+    silently discarding previously computed hashes just because this run
+    chose to skip hashing.
     """
     images_check = core.check_path_exists(images_dir)
     masks_check = core.check_path_exists(masks_dir)
@@ -162,9 +190,19 @@ def audit_ham10000(
     if hash_files:
         result["image_manifest"] = core.build_file_manifest(image_files, base_dir=images_dir)
         result["mask_manifest"] = core.build_file_manifest(mask_files, base_dir=masks_dir)
+        result["hash_status"] = "hashed"
+    elif (
+        previous_manifest
+        and previous_manifest.get("image_manifest")
+        and previous_manifest.get("mask_manifest")
+    ):
+        result["image_manifest"] = previous_manifest["image_manifest"]
+        result["mask_manifest"] = previous_manifest["mask_manifest"]
+        result["hash_status"] = "reused_from_previous"
     else:
         result["image_manifest"] = []
         result["mask_manifest"] = []
+        result["hash_status"] = "skipped_no_previous"
 
     return result
 

@@ -44,6 +44,26 @@ def _resolve_ph2_path(repo_relative: str) -> Path:
     return p if p.is_absolute() else REPO_ROOT / p
 
 
+def _load_previous_ham10000_manifest(output_dir: Path) -> dict | None:
+    """Load a previously written ham10000_manifest.json if it carries real hashes.
+
+    Returns None (not an empty dict) when the file is missing, unreadable, or
+    has empty image_manifest/mask_manifest — callers must not mistake "no
+    reusable previous hashes" for "reuse an empty manifest".
+    """
+    manifest_path = output_dir / "ham10000_manifest.json"
+    if not manifest_path.is_file():
+        return None
+    try:
+        with open(manifest_path, encoding="utf-8") as f:
+            previous = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+    if previous.get("image_manifest") and previous.get("mask_manifest"):
+        return previous
+    return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -93,11 +113,29 @@ def main() -> None:
     print(f"status={summaries['ph2']['status']}")
 
     print("=== HAM10000 (hashing pode levar minutos) ===")
+    previous_ham10000_manifest = None
+    if args.skip_ham10000_hash:
+        previous_ham10000_manifest = _load_previous_ham10000_manifest(output_dir)
+        if previous_ham10000_manifest is not None:
+            print(
+                "--skip-ham10000-hash: manifesto anterior com hashes reais encontrado "
+                f"em {output_dir / 'ham10000_manifest.json'} "
+                f"({len(previous_ham10000_manifest['image_manifest'])} imagens, "
+                f"{len(previous_ham10000_manifest['mask_manifest'])} máscaras) — "
+                "reaproveitando em vez de apagar."
+            )
+        else:
+            print(
+                "--skip-ham10000-hash: nenhum manifesto anterior com hashes reais em "
+                f"{output_dir / 'ham10000_manifest.json'} — image_manifest/mask_manifest "
+                "ficarão vazios nesta rodada (nada para reaproveitar, não é perda de dados)."
+            )
     summaries["ham10000"] = adapters.audit_ham10000(
         images_dir=config["ham10000"]["images_dir"],
         masks_dir=config["ham10000"]["masks_dir"],
         metadata_csv=config["ham10000"]["metadata_csv"],
         hash_files=not args.skip_ham10000_hash,
+        previous_manifest=previous_ham10000_manifest,
     )
     print(f"status={summaries['ham10000']['status']}")
 
