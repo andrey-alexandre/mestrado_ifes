@@ -104,7 +104,7 @@ def main() -> None:
     print("=== ISIC2018 Task1 ===")
     summaries["isic2018_task1"] = adapters.audit_isic2018_task1(
         images_zip=config["isic2018_task1"]["images_zip"],
-        masks_dir_expected=_resolve_ph2_path(config["isic2018_task1"]["masks_dir_expected"]),
+        masks_zip=config["isic2018_task1"]["masks_zip"],
     )
     print(f"status={summaries['isic2018_task1']['status']}")
 

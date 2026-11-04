@@ -17,8 +17,8 @@ ham10000:
 isic2018_task1:
   # Zip de imagens não extraído (desenvolvimento de segmentação).
   images_zip: "D:/Andrey/Mestrado/ISIC2018_Task1-2_Training_Input.zip"
-  # Caminho esperado para as máscaras de referência; ausente nesta máquina.
-  masks_dir_expected: "data/ISIC2018_Task1_Training_GroundTruth"
+  # Zip de máscaras de referência, também não extraído.
+  masks_zip: "D:/Andrey/Mestrado/ISIC2018_Task1_Training_GroundTruth.zip"
 
 bcn20000:
   # Zip externo não extraído (desenvolvimento de CNN); contém 2 zips de

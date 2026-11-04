@@ -31,6 +31,14 @@ Inventário estrutural (sem amostragem, sem treino, sem chamadas a LLM/VLM, sem 
 > **28 (histológico/melanoma) × 40 (clínico==2)**, não 41×40. Esta nota não
 > altera `src/data_audit/adapters.py`; decidido manter o código como entregue
 > e apenas registrar esta ressalva (decisão do pesquisador, 2026-11-04).
+>
+> **Aviso de processo (2026-11-04):** esta nota foi apagada automaticamente
+> na Tarefa 3, porque `scripts/run_dataset_inventory.py` regenera
+> `docs/reconstruction/02_dataset_inventory_report.md` inteiro a cada
+> execução e `report.py` não tem conhecimento desta anotação manual.
+> Reaplicada manualmente após a Tarefa 3. Qualquer execução futura do CLI
+> volta a apagá-la — reaplicar manualmente (ou mover a nota para dentro de
+> `report.py`) após qualquer rerun.
 
 ## HAM10000
 
@@ -71,21 +79,30 @@ Inventário estrutural (sem amostragem, sem treino, sem chamadas a LLM/VLM, sem 
 - 5 imagem(ns): 5 lesões
 - 6 imagem(ns): 4 lesões
 
-> Nota: hashing sha256 de ~20 mil arquivos (imagens + máscaras) foi executado nesta rodada; pode levar minutos — é esperado, não é falha.
+> Nota: hashing sha256 pulado nesta rodada (`--skip-ham10000-hash`); `image_manifest`/`mask_manifest` ficam vazios neste relatório, reaproveitando o hashing já executado e revisado em rodada anterior.
 
 ## ISIC2018 Task1
 
-**Status: parcial**
+**Status: completo**
 
 - Entradas totais no zip de imagens: 2597
 - Entradas `.jpg` (imagens): 2594
-- Outras entradas no zip:
+- Outras entradas no zip de imagens:
   - `ISIC2018_Task1-2_Training_Input/` (0 bytes)
   - `ISIC2018_Task1-2_Training_Input/ATTRIBUTION.txt` (426 bytes)
   - `ISIC2018_Task1-2_Training_Input/LICENSE.txt` (7048 bytes)
-- Máscaras de referência (`C:\Projetos\IFES\mestrado_ifes\data\ISIC2018_Task1_Training_GroundTruth`): not found
+- Entradas totais no zip de máscaras: 2597
+- Entradas `.png` (máscaras): 2594
+- Outras entradas no zip de máscaras:
+  - `ISIC2018_Task1_Training_GroundTruth/` (0 bytes)
+  - `ISIC2018_Task1_Training_GroundTruth/ATTRIBUTION.txt` (441 bytes)
+  - `ISIC2018_Task1_Training_GroundTruth/LICENSE.txt` (7048 bytes)
 
-> Imagens disponíveis (zip não extraído); máscaras ausentes — pareamento do conjunto de desenvolvimento da segmentação não pode ser validado.
+### Pareamento
+
+- **Imagem × máscara**: 2594 pareados, 0 só no primeiro conjunto, 0 só no segundo.
+
+> Imagens e máscaras presentes; pareamento perfeito (2594 ids em ambos os conjuntos, nenhum só de um lado).
 
 ## BCN20000
 

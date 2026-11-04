@@ -171,42 +171,57 @@ def _count_histogram(counter) -> dict[str, int]:
 
 
 def audit_isic2018_task1(
-    images_zip: str | Path, masks_dir_expected: str | Path
+    images_zip: str | Path, masks_zip: str | Path
 ) -> dict[str, Any]:
-    """ISIC2018 Task1: list the training-input zip's central directory
-    (no extraction) and check the expected ground-truth masks path.
+    """ISIC2018 Task1: list both the training-input zip's and the
+    ground-truth masks zip's central directories (no extraction of
+    either) and pair image ids against mask ids.
     """
-    zip_check = core.check_path_exists(images_zip)
-    masks_check = core.check_path_exists(masks_dir_expected)
+    images_zip_check = core.check_path_exists(images_zip)
+    masks_zip_check = core.check_path_exists(masks_zip)
 
-    if not zip_check["exists"]:
+    if not images_zip_check["exists"] or not masks_zip_check["exists"]:
         return {
             "dataset": "isic2018_task1",
             "status": "ausente",
-            "images_zip": zip_check,
-            "masks": masks_check,
+            "images_zip": images_zip_check,
+            "masks_zip": masks_zip_check,
         }
 
-    entries = core.zip_entry_manifest(images_zip)
-    image_entries = [e for e in entries if e["name"].lower().endswith(".jpg")]
-    other_entries = [e for e in entries if not e["name"].lower().endswith(".jpg")]
+    image_all_entries = core.zip_entry_manifest(images_zip)
+    image_entries = [e for e in image_all_entries if e["name"].lower().endswith(".jpg")]
+    other_image_entries = [e for e in image_all_entries if not e["name"].lower().endswith(".jpg")]
 
-    status = "parcial" if not masks_check["exists"] else "completo"
+    mask_all_entries = core.zip_entry_manifest(masks_zip)
+    mask_entries = [e for e in mask_all_entries if e["name"].lower().endswith(".png")]
+    other_mask_entries = [e for e in mask_all_entries if not e["name"].lower().endswith(".png")]
+
+    image_ids = [Path(e["name"]).stem for e in image_entries]
+    mask_ids = [Path(e["name"]).stem.removesuffix("_segmentation") for e in mask_entries]
+
+    pairing = core.pair_by_id(image_ids, mask_ids)
+    perfect_pairing = not pairing["only_in_a"] and not pairing["only_in_b"]
+    status = "completo" if perfect_pairing else "parcial"
+
     return {
         "dataset": "isic2018_task1",
         "status": status,
-        "images_zip": zip_check,
-        "images_zip_entry_count_total": len(entries),
+        "images_zip": images_zip_check,
+        "images_zip_entry_count_total": len(image_all_entries),
         "images_zip_image_entries": len(image_entries),
-        "images_zip_other_entries": other_entries,
-        "masks": masks_check,
+        "images_zip_other_entries": other_image_entries,
+        "masks_zip": masks_zip_check,
+        "masks_zip_entry_count_total": len(mask_all_entries),
+        "masks_zip_mask_entries": len(mask_entries),
+        "masks_zip_other_entries": other_mask_entries,
+        "pairing_image_vs_mask": pairing,
         "note": (
-            "Imagens disponíveis (zip não extraído); máscaras ausentes — "
-            "pareamento do conjunto de desenvolvimento da segmentação não "
-            "pode ser validado."
-            if not masks_check["exists"]
-            else "Imagens e diretório de máscaras presentes; pareamento não "
-            "implementado nesta tarefa (máscaras seriam extraídas sob demanda)."
+            f"Imagens e máscaras presentes; pareamento perfeito "
+            f"({len(pairing['matched'])} ids em ambos os conjuntos, nenhum só de um lado)."
+            if perfect_pairing
+            else "Imagens e máscaras presentes, mas o pareamento por id não é perfeito "
+            f"({len(pairing['only_in_a'])} id(s) só nas imagens, "
+            f"{len(pairing['only_in_b'])} só nas máscaras)."
         ),
     }
 

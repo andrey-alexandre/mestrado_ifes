@@ -82,17 +82,27 @@ def _render_ham10000(summary: dict[str, Any]) -> str:
     for n_images, n_lesions in summary["images_per_lesion_distribution"].items():
         lines.append(f"- {n_images} imagem(ns): {n_lesions} lesões")
     lines.append("")
-    lines.append(
-        "> Nota: hashing sha256 de ~20 mil arquivos (imagens + máscaras) foi "
-        "executado nesta rodada; pode levar minutos — é esperado, não é falha."
-    )
+    if len(summary["image_manifest"]) > 0:
+        lines.append(
+            "> Nota: hashing sha256 de ~20 mil arquivos (imagens + máscaras) foi "
+            "executado nesta rodada; pode levar minutos — é esperado, não é falha."
+        )
+    else:
+        lines.append(
+            "> Nota: hashing sha256 pulado nesta rodada (`--skip-ham10000-hash`); "
+            "`image_manifest`/`mask_manifest` ficam vazios neste relatório, "
+            "reaproveitando o hashing já executado e revisado em rodada anterior."
+        )
     lines.append("")
     return "\n".join(lines)
 
 
 def _render_isic2018_task1(summary: dict[str, Any]) -> str:
     if summary["status"] == "ausente":
-        return "## ISIC2018 Task1\n\n**Status: ausente** — zip de imagens não encontrado.\n"
+        return (
+            "## ISIC2018 Task1\n\n**Status: ausente** — zip de imagens e/ou zip de "
+            "máscaras não encontrado.\n"
+        )
 
     lines = [
         "## ISIC2018 Task1",
@@ -101,11 +111,19 @@ def _render_isic2018_task1(summary: dict[str, Any]) -> str:
         "",
         f"- Entradas totais no zip de imagens: {summary['images_zip_entry_count_total']}",
         f"- Entradas `.jpg` (imagens): {summary['images_zip_image_entries']}",
-        "- Outras entradas no zip:",
+        "- Outras entradas no zip de imagens:",
     ]
     for e in summary["images_zip_other_entries"]:
         lines.append(f"  - `{e['name']}` ({e['size']} bytes)")
-    lines.append(f"- Máscaras de referência (`{summary['masks']['path']}`): {summary['masks']['reason']}")
+    lines.append(f"- Entradas totais no zip de máscaras: {summary['masks_zip_entry_count_total']}")
+    lines.append(f"- Entradas `.png` (máscaras): {summary['masks_zip_mask_entries']}")
+    lines.append("- Outras entradas no zip de máscaras:")
+    for e in summary["masks_zip_other_entries"]:
+        lines.append(f"  - `{e['name']}` ({e['size']} bytes)")
+    lines.append("")
+    lines.append("### Pareamento")
+    lines.append("")
+    lines.append(_pairing_line("Imagem × máscara", summary["pairing_image_vs_mask"]))
     lines.append("")
     lines.append(f"> {summary['note']}")
     lines.append("")
