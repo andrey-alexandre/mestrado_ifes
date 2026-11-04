@@ -1,0 +1,30 @@
+# ============================================================
+# Inventário/validação estrutural dos datasets do protocolo experimental
+# (Tarefa 2 — não confundir com config/config.yaml, usado pelo pipeline)
+# ============================================================
+
+ph2:
+  # Caminhos relativos à raiz do repositório.
+  root: "PH2"
+  metadata_txt: "PH2_dataset.txt"
+
+ham10000:
+  # Caminhos absolutos nesta máquina (dataset completo, fora do repo).
+  images_dir: "D:/Andrey/Mestrado/dataverse_files/HAM10000"
+  masks_dir: "D:/Andrey/Mestrado/dataverse_files/HAM10000_segmentations_lesion_tschandl/HAM10000_segmentations_lesion_tschandl"
+  metadata_csv: "D:/Andrey/Mestrado/dataverse_files/HAM10000_metadata"
+
+isic2018_task1:
+  # Zip de imagens não extraído (desenvolvimento de segmentação).
+  images_zip: "D:/Andrey/Mestrado/ISIC2018_Task1-2_Training_Input.zip"
+  # Caminho esperado para as máscaras de referência; ausente nesta máquina.
+  masks_dir_expected: "data/ISIC2018_Task1_Training_GroundTruth"
+
+bcn20000:
+  # Zip externo não extraído (desenvolvimento de CNN); contém 2 zips de
+  # imagens grandes + 2 CSVs pequenos, lidos em memória via infolist()/open().
+  outer_zip: "D:/Andrey/Mestrado/BCN20000.zip"
+  train_csv_entry: "bcn_20k_train.csv"
+  test_csv_entry: "bcn_20k_test.csv"
+  train_zip_entry: "BCN_20k_train.zip"
+  test_zip_entry: "BCN_20k_test.zip"
