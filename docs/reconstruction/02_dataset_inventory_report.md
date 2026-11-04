@@ -79,7 +79,7 @@ Inventário estrutural (sem amostragem, sem treino, sem chamadas a LLM/VLM, sem 
 - 5 imagem(ns): 5 lesões
 - 6 imagem(ns): 4 lesões
 
-> Nota: hashing sha256 pulado nesta rodada (`--skip-ham10000-hash`); `image_manifest`/`mask_manifest` ficam vazios neste relatório, reaproveitando o hashing já executado e revisado em rodada anterior.
+> Nota: hashing sha256 de ~20 mil arquivos (imagens + máscaras) foi executado nesta rodada; pode levar minutos — é esperado, não é falha.
 
 ## ISIC2018 Task1
 

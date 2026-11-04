@@ -25,12 +25,17 @@ def audit_ph2(root_dir: str | Path, metadata_txt: str | Path) -> dict[str, Any]:
     lesion_dirs = sorted(p.name for p in root.iterdir() if p.is_dir())
 
     image_ids, mask_ids, roi_ids = [], [], []
+    image_paths, mask_paths = [], []
     for lesion_id in lesion_dirs:
         lesion_path = root / lesion_id
-        if (lesion_path / f"{lesion_id}_Dermoscopic_Image" / f"{lesion_id}.bmp").is_file():
+        image_file = lesion_path / f"{lesion_id}_Dermoscopic_Image" / f"{lesion_id}.bmp"
+        if image_file.is_file():
             image_ids.append(lesion_id)
-        if (lesion_path / f"{lesion_id}_lesion" / f"{lesion_id}_lesion.bmp").is_file():
+            image_paths.append(image_file)
+        mask_file = lesion_path / f"{lesion_id}_lesion" / f"{lesion_id}_lesion.bmp"
+        if mask_file.is_file():
             mask_ids.append(lesion_id)
+            mask_paths.append(mask_file)
         roi_dir = lesion_path / f"{lesion_id}_roi"
         if roi_dir.is_dir() and any(roi_dir.glob("*.bmp")):
             roi_ids.append(lesion_id)
@@ -50,6 +55,8 @@ def audit_ph2(root_dir: str | Path, metadata_txt: str | Path) -> dict[str, Any]:
         "pairing_mask_vs_metadata": core.pair_by_id(mask_ids, metadata_ids),
         "pairing_roi_vs_metadata": core.pair_by_id(roi_ids, metadata_ids),
         "pairing_image_vs_mask": core.pair_by_id(image_ids, mask_ids),
+        "image_manifest": core.build_file_manifest(image_paths, base_dir=root),
+        "mask_manifest": core.build_file_manifest(mask_paths, base_dir=root),
         "diagnosis_criteria_side_by_side": {
             "histological_diagnosis_non_empty": {
                 "count": len(hist_positive),
