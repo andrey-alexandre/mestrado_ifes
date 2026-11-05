@@ -216,20 +216,19 @@ def _image_to_bytes(image: Image.Image, fmt: str = "PNG", **save_kwargs: Any) ->
     return buf.getvalue()
 
 
-def generate_controlled_variants() -> dict[str, bytes]:
-    """Build one synthetic base image plus a fixed set of named, encoded
-    byte-variants of it, covering both kinds of transformation this task
-    cares about: genuine reprocessing (identical copy, JPEG recompression,
-    50% resize, small 5%-border crop) and structural changes (90-degree
-    rotation, horizontal mirror, large 30%-border crop).
+def generate_variants_of_image(base: Image.Image) -> dict[str, bytes]:
+    """Build a fixed set of named, encoded byte-variants of ``base``,
+    covering both kinds of transformation these tasks care about: genuine
+    reprocessing (identical copy, JPEG recompression, 50% resize, small
+    5%-border crop) and structural changes (90-degree rotation, horizontal
+    mirror, large 30%-border crop).
 
-    Used by both the characterization tests
-    (``tests/data_audit/test_visual_duplicates.py``) and the generated
-    report (``scripts/run_visual_duplicate_audit.py``) so the measured
-    Hamming distances shown in the report come from the exact same code
-    path the tests assert on, instead of being copied/invented numbers.
+    Takes an arbitrary PIL image so the same fixed variant set can be
+    applied both to the synthetic base image (task 7's characterization
+    tests/report) and to real sampled dataset images (task 8's pHash
+    validation, ``scripts/run_visual_duplicate_pilot.py``), without
+    duplicating the transform logic in two places.
     """
-    base = _make_synthetic_base_image()
     width, height = base.size
     small_margin_w, small_margin_h = int(width * 0.05), int(height * 0.05)
     large_left, large_top = int(width * 0.3), int(height * 0.3)
@@ -254,6 +253,18 @@ def generate_controlled_variants() -> dict[str, bytes]:
             base.crop((large_left, large_top, large_right, large_bottom)), "PNG"
         ),
     }
+
+
+def generate_controlled_variants() -> dict[str, bytes]:
+    """``generate_variants_of_image`` applied to the synthetic base image.
+
+    Used by both the characterization tests
+    (``tests/data_audit/test_visual_duplicates.py``) and the generated
+    report (``scripts/run_visual_duplicate_audit.py``) so the measured
+    Hamming distances shown in the report come from the exact same code
+    path the tests assert on, instead of being copied/invented numbers.
+    """
+    return generate_variants_of_image(_make_synthetic_base_image())
 
 
 def measure_controlled_variant_distances() -> list[dict[str, Any]]:

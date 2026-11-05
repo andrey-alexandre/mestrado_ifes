@@ -27,5 +27,10 @@ pandas
 numpy
 scikit-learn
 
+# Verificação geométrica de candidatos a duplicata visual (Tarefa 8 da
+# reconstrução) — ORB + RANSAC via cv2; única exceção de dependência nova
+# desta tarefa (ver docs/reconstruction/05_visual_duplicate_pilot_report.md).
+opencv-python-headless
+
 # Configuração
 pyyaml
