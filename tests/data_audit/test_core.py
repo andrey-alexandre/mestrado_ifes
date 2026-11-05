@@ -133,3 +133,42 @@ def test_parse_csv_text_returns_row_dicts():
 def test_parse_csv_text_pipe_delimiter():
     rows = core.parse_csv_text("id|val\n1|foo\n", delimiter="|")
     assert rows == [{"id": "1", "val": "foo"}]
+
+
+def test_sha256_zip_entries_hashes_each_entry(tmp_path):
+    zip_path = tmp_path / "bundle.zip"
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.writestr("a.jpg", b"AAA")
+        zf.writestr("b.jpg", b"BBBB")
+
+    result = core.sha256_zip_entries(zip_path, ["a.jpg", "b.jpg"])
+    by_path = {m["path"]: m for m in result["manifest"]}
+
+    assert result["unreadable"] == []
+    assert by_path["a.jpg"]["size"] == 3
+    assert by_path["a.jpg"]["sha256"] == hashlib.sha256(b"AAA").hexdigest()
+    assert by_path["b.jpg"]["sha256"] == hashlib.sha256(b"BBBB").hexdigest()
+
+
+def test_sha256_zip_entries_skips_unreadable_and_continues(tmp_path):
+    zip_path = tmp_path / "bundle.zip"
+    good_content = b"GOOD-IMAGE-BYTES"
+    bad_content = b"BAD-IMAGE-BYTES-XXXX"
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_STORED) as zf:
+        zf.writestr("good.jpg", good_content)
+        zf.writestr("bad.jpg", bad_content)
+
+    # Flip one byte of bad.jpg's stored (uncompressed) data to break its
+    # CRC-32 without touching good.jpg's entry, simulating a corrupted entry.
+    raw = bytearray(zip_path.read_bytes())
+    idx = raw.find(bad_content)
+    assert idx != -1
+    raw[idx] ^= 0xFF
+    zip_path.write_bytes(bytes(raw))
+
+    result = core.sha256_zip_entries(zip_path, ["good.jpg", "bad.jpg"])
+
+    assert [m["path"] for m in result["manifest"]] == ["good.jpg"]
+    assert result["manifest"][0]["sha256"] == hashlib.sha256(good_content).hexdigest()
+    assert len(result["unreadable"]) == 1
+    assert result["unreadable"][0]["path"] == "bad.jpg"

@@ -116,6 +116,33 @@ def zip_entry_manifest(
         return [{"name": i.filename, "size": i.file_size} for i in infos]
 
 
+def sha256_zip_entries(
+    zip_path: str | Path, entry_names: Iterable[str]
+) -> dict[str, Any]:
+    """Hash a set of zip entries' bytes directly, without extracting to disk.
+
+    Each entry is read fully into memory (``zf.read(name)``) and hashed.
+    Reading a given zip's entries happens through a single open handle so a
+    corrupted/unreadable entry does not require reopening the zip.
+
+    Entries that fail to read (bad CRC, truncated/encrypted data, etc.) are
+    recorded in ``"unreadable"`` and do not abort the remaining entries.
+    """
+    manifest: list[dict[str, Any]] = []
+    unreadable: list[dict[str, Any]] = []
+    with zipfile.ZipFile(zip_path) as zf:
+        for name in entry_names:
+            try:
+                data = zf.read(name)
+            except (zipfile.BadZipFile, RuntimeError, OSError) as exc:
+                unreadable.append({"path": name, "error": str(exc)})
+                continue
+            manifest.append(
+                {"path": name, "size": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+            )
+    return {"manifest": manifest, "unreadable": unreadable}
+
+
 def read_zip_entry_text(
     zip_path: str | Path, entry_name: str, encoding: str = "utf-8"
 ) -> str:

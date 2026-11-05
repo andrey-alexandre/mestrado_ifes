@@ -1,9 +1,12 @@
-"""Cross-dataset overlap/duplicate detection (task 4 of the reconstruction).
+"""Cross-dataset overlap/duplicate detection (task 4 of the reconstruction;
+extended in task 6 with content-hash comparisons for ISIC2018 Task1 and
+BCN20000 against HAM10000).
 
 Read-only: reads the JSON manifests already written by
-``scripts/run_dataset_inventory.py`` under ``experiments/data_audit/`` and
-compares them for overlap. Does not read any raw dataset file, does not
-extract any zip, does not hash anything itself.
+``scripts/run_dataset_inventory.py`` and ``scripts/run_content_hash_audit.py``
+under ``experiments/data_audit/`` and compares them for overlap. Does not
+read any raw dataset file, does not extract any zip, does not hash anything
+itself.
 
 This is DETECTION AND REPORTING ONLY. Finding an overlap here does not
 authorize removing any lesion/image from any dataset — that is a separate
@@ -38,8 +41,12 @@ NOT_VERIFIABLE_PAIRS = [
             "Esquemas de identificador incompatíveis: PH2 usa `IMDxxx`, "
             "ISIC2018 Task1 usa `ISIC_xxxxxxx` — não há campo em comum para "
             "comparação por id. Comparação por conteúdo (hash) não foi feita "
-            "porque exigiria extrair o zip grande do ISIC2018 Task1 para obter "
-            "hashes por arquivo, o que esta tarefa não autoriza."
+            "nesta tarefa por não ser um dos dois pares prioritários "
+            "(ISIC2018 Task1 x HAM10000 e BCN20000 x HAM10000); o manifesto "
+            "de conteúdo do ISIC2018 Task1 já existe "
+            "(`isic2018_task1_content_manifest.json`, gerado na Tarefa 6 sem "
+            "extrair o zip) e pode ser reaproveitado para este par numa "
+            "tarefa futura, caso priorizado."
         ),
     },
     {
@@ -47,34 +54,36 @@ NOT_VERIFIABLE_PAIRS = [
         "reason": (
             "Esquemas de identificador incompatíveis: PH2 usa `IMDxxx`, "
             "BCN20000 usa `BCN_xxx`/`BCNxxx` — não há campo em comum. "
-            "Além disso, as imagens do BCN20000 nunca foram extraídas/"
-            "hasheadas (decisão da Tarefa 2/3: zips internos não abertos), "
-            "então comparação por conteúdo também não é possível com os "
-            "manifestos atuais."
+            "Comparação por conteúdo (hash) não foi feita nesta tarefa por "
+            "não ser um dos dois pares prioritários; o manifesto de conteúdo "
+            "do BCN20000 já existe (`bcn20000_content_manifest.json`, gerado "
+            "na Tarefa 6) e pode ser reaproveitado para este par numa tarefa "
+            "futura, caso priorizado."
         ),
     },
     {
         "pair": "ISIC2018 Task1 x BCN20000",
         "reason": (
             "Esquemas de identificador incompatíveis: ISIC2018 Task1 usa "
-            "`ISIC_xxxxxxx`, BCN20000 usa `BCN_xxx`/`BCNxxx`. As imagens do "
-            "BCN20000 nunca foram extraídas/hasheadas, então comparação por "
-            "conteúdo também não é possível com os manifestos atuais."
-        ),
-    },
-    {
-        "pair": "BCN20000 x HAM10000",
-        "reason": (
-            "As imagens do BCN20000 nunca foram extraídas/hasheadas "
-            "(decisão da Tarefa 2/3: zips internos `BCN_20k_train.zip`/"
-            "`BCN_20k_test.zip` não abertos), então nem comparação por "
-            "conteúdo (hash) nem por id de imagem são possíveis com os "
-            "manifestos atuais. O `lesion_id` do BCN20000 (`BCN_xxx`) também "
-            "não é comparável ao `lesion_id` do HAM10000 (`HAM_xxx`) — "
-            "formatos de fontes diferentes, sem relação conhecida."
+            "`ISIC_xxxxxxx`, BCN20000 usa `BCN_xxx`/`BCNxxx`. Comparação por "
+            "conteúdo (hash) não foi feita nesta tarefa por não ser um dos "
+            "dois pares prioritários; os manifestos de conteúdo de ambos já "
+            "existem (gerados na Tarefa 6) e podem ser reaproveitados para "
+            "este par numa tarefa futura, caso priorizado."
         ),
     },
 ]
+
+CONTENT_HASH_LIMITATION_NOTE = (
+    "**Limitação do SHA-256 nesta comparação**: SHA-256 só detecta arquivos "
+    "byte-idênticos. Duas imagens da mesma lesão distribuídas com resolução, "
+    "recorte, compressão (ex.: JPEG com qualidade diferente) ou formato de "
+    "arquivo diferentes produzem hashes diferentes mesmo sendo clinicamente "
+    "'a mesma imagem' — isso não é uma limitação desta implementação, é uma "
+    "propriedade do hashing criptográfico, e é a motivação da próxima tarefa "
+    "(detecção de candidatos a duplicata visual/perceptual, fora do escopo "
+    "desta)."
+)
 
 
 def _load_manifest(name: str) -> dict[str, Any]:
@@ -143,8 +152,22 @@ def _run_isic2018_vs_ham10000(
     return result
 
 
+def _run_content_vs_ham10000(
+    content_manifest: dict[str, Any], ham10000: dict[str, Any], note: str
+) -> dict[str, Any]:
+    if ham10000.get("status") == "ausente":
+        return {"skipped": True, "reason": "o manifesto do HAM10000 está ausente."}
+
+    ham_combined = ham10000["image_manifest"] + ham10000["mask_manifest"]
+    result = overlap.compare_by_hash(content_manifest, ham_combined)
+    result["note"] = note
+    return result
+
+
 def main() -> None:
     manifests = {name: _load_manifest(name) for name in ("ph2", "ham10000", "isic2018_task1", "bcn20000")}
+    isic_content = _load_manifest("isic2018_task1_content")
+    bcn_content = _load_manifest("bcn20000_content")
 
     print("=== PH2 x HAM10000 (por conteúdo / sha256) ===")
     ph2_vs_ham = _run_ph2_vs_ham10000(manifests["ph2"], manifests["ham10000"])
@@ -156,18 +179,81 @@ def main() -> None:
     )
     print(f"matched_ids={len(isic_vs_ham.get('id_overlap', {}).get('matched', []))}")
 
+    print("=== ISIC2018 Task1 x HAM10000 (por conteúdo / sha256) ===")
+    isic_content_vs_ham = _run_content_vs_ham10000(
+        isic_content["manifest"],
+        manifests["ham10000"],
+        note=(
+            "Comparação por conteúdo (sha256) entre as imagens do ISIC2018 "
+            "Task1 hasheadas diretamente do zip (sem extração) e o "
+            "manifesto imagem+máscara do HAM10000. Esta é uma checagem "
+            "ADICIONAL à comparação por identificador ISIC_xxxxxxx já "
+            "existente acima — id e conteúdo são checagens diferentes: ids "
+            "iguais não implicam bytes iguais, e vice-versa."
+        ),
+    )
+    print(f"duplicate_count={isic_content_vs_ham.get('duplicate_count', 'n/a')}")
+
+    print("=== BCN20000 x HAM10000 (por conteúdo / sha256) ===")
+    bcn_combined_content = bcn_content["train"]["manifest"] + bcn_content["test"]["manifest"]
+    bcn_vs_ham = _run_content_vs_ham10000(
+        bcn_combined_content,
+        manifests["ham10000"],
+        note=(
+            "Comparação por conteúdo (sha256) entre as imagens do BCN20000 "
+            "(splits treino+teste, materializados em D: e hasheados "
+            "diretamente dos zips internos, sem extrair imagens "
+            "individuais) e o manifesto imagem+máscara do HAM10000."
+        ),
+    )
+    print(f"duplicate_count={bcn_vs_ham.get('duplicate_count', 'n/a')}")
+
     print("=== Pares não verificáveis nesta tarefa ===")
     for item in NOT_VERIFIABLE_PAIRS:
         print(f"- {item['pair']}: não verificável")
 
-    report_text = _render_report(ph2_vs_ham, isic_vs_ham)
+    report_text = _render_report(ph2_vs_ham, isic_vs_ham, isic_content_vs_ham, bcn_vs_ham)
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(REPORT_PATH, "w", encoding="utf-8") as f:
         f.write(report_text)
     print(f"relatório gravado: {REPORT_PATH}")
 
 
-def _render_report(ph2_vs_ham: dict[str, Any], isic_vs_ham: dict[str, Any]) -> str:
+def _render_content_hash_section(title: str, result: dict[str, Any], label_a: str, label_b: str) -> list[str]:
+    lines = [f"## {title}", ""]
+    if result.get("skipped"):
+        lines.append(f"**Não executado**: {result['reason']}")
+        lines.append("")
+        return lines
+
+    lines.append(result["note"])
+    lines.append("")
+    count = result["duplicate_count"]
+    if count == 0:
+        lines.append(
+            f"**Resultado: nenhum arquivo byte-idêntico encontrado entre {label_a} e {label_b}.**"
+        )
+    else:
+        lines.append(
+            f"**Resultado: {count} hash(es) sha256 idêntico(s) encontrado(s) "
+            "entre os dois datasets — candidato a sobreposição confirmada, "
+            "requer decisão do pesquisador/planejamento sobre exclusão.**"
+        )
+        lines.append("")
+        for sha256, sides in result["duplicates"].items():
+            lines.append(f"- `{sha256}`:")
+            lines.append(f"  - {label_a}: {sides['paths_a']}")
+            lines.append(f"  - {label_b}: {sides['paths_b']}")
+    lines.append("")
+    return lines
+
+
+def _render_report(
+    ph2_vs_ham: dict[str, Any],
+    isic_vs_ham: dict[str, Any],
+    isic_content_vs_ham: dict[str, Any],
+    bcn_vs_ham: dict[str, Any],
+) -> str:
     from datetime import date
 
     lines = [
@@ -236,6 +322,21 @@ def _render_report(ph2_vs_ham: dict[str, Any], isic_vs_ham: dict[str, Any]) -> s
                 lines.append(f"- {isic_vs_ham['lesion_level_note']}")
                 lines.append(f"- mapeamento image_id -> lesion_id: {isic_vs_ham['image_id_to_lesion_id']}")
         lines.append("")
+
+    lines += _render_content_hash_section(
+        "ISIC2018 Task1 x HAM10000 (comparação por conteúdo, sha256)",
+        isic_content_vs_ham,
+        label_a="ISIC2018 Task1",
+        label_b="HAM10000",
+    )
+    lines += _render_content_hash_section(
+        "BCN20000 x HAM10000 (comparação por conteúdo, sha256)",
+        bcn_vs_ham,
+        label_a="BCN20000",
+        label_b="HAM10000",
+    )
+    lines.append(CONTENT_HASH_LIMITATION_NOTE)
+    lines.append("")
 
     lines.append("## Pares não verificáveis nesta tarefa")
     lines.append("")
