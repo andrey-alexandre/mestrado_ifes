@@ -44,3 +44,6 @@ opencv-python-headless
 
 # Configuração
 pyyaml
+
+# Testes (usado em toda a suíte tests/, desde a Tarefa 2 da reconstrução)
+pytest
