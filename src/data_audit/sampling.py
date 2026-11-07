@@ -199,6 +199,137 @@ def sample_lesions(
     return {"seed": seed, "sampled_rows": sampled_rows}
 
 
+def read_sample_manifest(manifest_csv: str | Path) -> list[dict[str, Any]]:
+    """Read a ``sample_manifest.csv`` produced by ``scripts/run_ham10000_sampling.py``
+    (columns: ``lesion_id``, ``image_id``, ``dx``, ``binary_target``).
+
+    Pure file read, same ``core.parse_csv_text`` path as the rest of this
+    module -- no sampling logic here.
+    """
+    with open(manifest_csv, encoding="utf-8") as f:
+        return core.parse_csv_text(f.read())
+
+
+def verify_lesion_and_image_uniqueness(
+    manifest_rows: Sequence[Mapping[str, Any]], expected_n: int
+) -> dict[str, Any]:
+    """Check criteria (a) and (b) from the researcher's 4-point verification:
+    exactly ``expected_n`` distinct ``lesion_id`` values, and exactly one row
+    (one image) per lesion -- i.e. no ``lesion_id`` or ``image_id`` repeated.
+
+    Does not raise; reports the real counts found so a caller can decide
+    pass/fail explicitly rather than trusting an assumption.
+    """
+    lesion_ids = [r["lesion_id"] for r in manifest_rows]
+    image_ids = [r["image_id"] for r in manifest_rows]
+    n_rows = len(manifest_rows)
+    n_distinct_lesions = len(set(lesion_ids))
+    n_distinct_images = len(set(image_ids))
+
+    duplicate_lesion_ids = sorted(
+        {lid for lid in lesion_ids if lesion_ids.count(lid) > 1}
+    )
+    duplicate_image_ids = sorted(
+        {iid for iid in image_ids if image_ids.count(iid) > 1}
+    )
+
+    return {
+        "n_rows": n_rows,
+        "n_distinct_lesion_ids": n_distinct_lesions,
+        "expected_n": expected_n,
+        "lesion_count_matches_expected": n_distinct_lesions == expected_n,
+        "one_image_per_lesion": n_rows == n_distinct_lesions,
+        "n_distinct_image_ids": n_distinct_images,
+        "no_duplicate_image_ids": n_distinct_images == n_rows,
+        "duplicate_lesion_ids": duplicate_lesion_ids,
+        "duplicate_image_ids": duplicate_image_ids,
+        "ok": (
+            n_distinct_lesions == expected_n
+            and n_rows == n_distinct_lesions
+            and n_distinct_images == n_rows
+        ),
+    }
+
+
+def verify_quota_reproducibility(
+    manifest_rows: Sequence[Mapping[str, Any]],
+    metadata_rows: Sequence[Mapping[str, Any]],
+    target_n: int,
+    excluded_lesion_ids: Sequence[str] = (),
+) -> dict[str, Any]:
+    """Check criterion (c): recompute the expected per-category quotas from
+    the real metadata population (same path the original sampling run used:
+    ``check_lesion_population`` -> ``build_lesion_table`` -> (optional)
+    ``apply_exclusions`` -> ``compute_quotas_largest_remainder``) and compare
+    against the actual per-``dx`` counts found in the manifest.
+
+    Reuses the exact same functions the sampling run itself used -- this is
+    not a re-implementation, it is literally the same calculation replayed
+    against the same inputs, so a mismatch means the manifest does not match
+    what this population/target/exclusion/seed combination would produce.
+    Does not attempt to recompute WHICH lesions/images were drawn (that
+    depends on the seed, not checked here) -- only the category counts.
+    """
+    population_check = check_lesion_population(metadata_rows)
+    lesion_table = build_lesion_table(metadata_rows)
+    if excluded_lesion_ids:
+        lesion_table = apply_exclusions(lesion_table, excluded_lesion_ids)["filtered_lesion_table"]
+
+    counts_by_category = {
+        cat: sum(1 for v in lesion_table.values() if v["dx"] == cat)
+        for cat in ELIGIBLE_DX_CATEGORIES
+    }
+    expected_quotas = compute_quotas_largest_remainder(counts_by_category, target_n)
+
+    actual_counts: dict[str, int] = {}
+    for row in manifest_rows:
+        actual_counts[row["dx"]] = actual_counts.get(row["dx"], 0) + 1
+
+    mismatches = {
+        cat: {"expected": expected_quotas["final_quotas"].get(cat, 0), "actual": actual_counts.get(cat, 0)}
+        for cat in ELIGIBLE_DX_CATEGORIES
+        if expected_quotas["final_quotas"].get(cat, 0) != actual_counts.get(cat, 0)
+    }
+
+    return {
+        "population_check_ok": population_check["ok"],
+        "expected_quotas": expected_quotas["final_quotas"],
+        "actual_counts_by_category": actual_counts,
+        "mismatches": mismatches,
+        "ok": population_check["ok"] and not mismatches,
+    }
+
+
+def verify_mask_correspondence(
+    manifest_rows: Sequence[Mapping[str, Any]], masks_dir: str | Path
+) -> dict[str, Any]:
+    """Check criterion (d): every ``image_id`` in the manifest has a
+    corresponding ground-truth mask file at
+    ``masks_dir / f"{image_id}_segmentation.png"`` -- required to render
+    condition S1 (original image + reference-mask contour). Does not assume
+    task 2's whole-population pairing result still holds for this specific
+    sampled subset; checks each file directly.
+    """
+    masks_dir = Path(masks_dir)
+    missing: list[str] = []
+    present: list[str] = []
+    for row in manifest_rows:
+        image_id = row["image_id"]
+        mask_path = masks_dir / f"{image_id}_segmentation.png"
+        if mask_path.is_file():
+            present.append(image_id)
+        else:
+            missing.append(image_id)
+
+    return {
+        "n_checked": len(manifest_rows),
+        "n_with_mask": len(present),
+        "n_missing_mask": len(missing),
+        "missing_image_ids": sorted(missing),
+        "ok": not missing,
+    }
+
+
 def build_sampling_summary_markdown(
     *,
     metadata_csv: str,
@@ -307,6 +438,89 @@ def build_sampling_summary_markdown(
         "",
         "Esta execução é de preparação/teste da infraestrutura, não o congelamento "
         "da amostra definitiva do protocolo experimental.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def build_verification_report_markdown(
+    *,
+    manifest_path: str,
+    uniqueness: Mapping[str, Any],
+    quotas: Mapping[str, Any],
+    masks: Mapping[str, Any],
+    overall_ok: bool,
+) -> str:
+    """Render the Markdown report for ``scripts/verify_sample_manifest.py``.
+
+    Pure string formatting, same convention as
+    :func:`build_sampling_summary_markdown` -- no verification logic here,
+    no file I/O. This function only describes a TEMPLATE; its real content
+    only exists once the researcher actually runs the verification script
+    against a real manifest.
+    """
+    lines = [
+        "# Verificação do Manifesto de Amostra — HAM10000",
+        "",
+        "**Isto é verificação, não congelamento.** Este relatório só confirma ou "
+        "reprova os 4 critérios abaixo contra um `sample_manifest.csv` já gerado "
+        "por `scripts/run_ham10000_sampling.py`. Não decide nem executa o "
+        "congelamento da amostra definitiva do protocolo.",
+        "",
+        f"- Manifesto verificado: `{manifest_path}`",
+        "",
+        "## Resultado geral",
+        "",
+        f"**{'TODOS OS 4 CRITÉRIOS PASSARAM' if overall_ok else 'AO MENOS UM CRITÉRIO NÃO PASSOU — ver detalhes abaixo'}**",
+        "",
+        "## 1. Exatamente 3.000 `lesion_id` distintos",
+        "",
+        f"- Linhas no manifesto: {uniqueness['n_rows']}",
+        f"- `lesion_id` distintos: {uniqueness['n_distinct_lesion_ids']} (esperado: {uniqueness['expected_n']})",
+        f"- Critério atendido: {uniqueness['lesion_count_matches_expected']}",
+        "",
+        "## 2. Uma imagem por lesão",
+        "",
+        f"- Uma linha por `lesion_id` distinto: {uniqueness['one_image_per_lesion']}",
+        f"- `image_id` distintos: {uniqueness['n_distinct_image_ids']} (sem duplicata: "
+        f"{uniqueness['no_duplicate_image_ids']})",
+        f"- `lesion_id` duplicados: {uniqueness['duplicate_lesion_ids']}",
+        f"- `image_id` duplicados: {uniqueness['duplicate_image_ids']}",
+        "",
+        "## 3. Cotas por categoria reproduzíveis",
+        "",
+        "Cotas recomputadas da população real de metadados (mesma lógica/funções "
+        "da amostragem original: `check_lesion_population` -> `build_lesion_table` "
+        "-> (exclusões, se houver) -> `compute_quotas_largest_remainder`), "
+        "comparadas contra a contagem real por `dx` no manifesto.",
+        "",
+        f"- Checagem de integridade da população (`lesion_id`/`dx`) ok: {quotas['population_check_ok']}",
+        "",
+        "| Categoria | Cota esperada | Contagem real no manifesto |",
+        "|---|---|---|",
+    ]
+    for cat in sorted(quotas["expected_quotas"].keys()):
+        lines.append(
+            f"| `{cat}` | {quotas['expected_quotas'][cat]} | "
+            f"{quotas['actual_counts_by_category'].get(cat, 0)} |"
+        )
+    lines += [
+        "",
+        f"- Divergências encontradas: {quotas['mismatches'] if quotas['mismatches'] else 'nenhuma'}",
+        f"- Critério atendido: {quotas['ok']}",
+        "",
+        "## 4. Correspondência de máscara para a condição S1",
+        "",
+        f"- Imagens verificadas: {masks['n_checked']}",
+        f"- Com máscara correspondente: {masks['n_with_mask']}",
+        f"- Sem máscara (faltando): {masks['n_missing_mask']}",
+        f"- `image_id` sem máscara: {masks['missing_image_ids']}",
+        f"- Critério atendido: {masks['ok']}",
+        "",
+        "## Aviso",
+        "",
+        "Este script verifica um manifesto já gerado; não altera o manifesto, "
+        "não decide exclusão, e não congela a amostra definitiva do protocolo.",
         "",
     ]
     return "\n".join(lines)
