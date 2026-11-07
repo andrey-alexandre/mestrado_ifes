@@ -17,7 +17,13 @@ langgraph
 # Embeddings
 sentence-transformers
 
-# Deep Learning (segmentação U-Net)
+# Deep Learning (segmentação U-Net + baseline CNN EfficientNetV2-S)
+# ATENÇÃO: `pip install -r requirements.txt` puro costuma puxar a build
+# CPU-only do torch/torchvision em muitas máquinas, mesmo com GPU NVIDIA
+# disponível. Para instalar a build com suporte a CUDA, use o índice
+# oficial do PyTorch em vez desta linha, ex. (ajuste cu121 para a versão
+# de CUDA instalada — ver https://pytorch.org/get-started/locally/):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 torch
 torchvision
 Pillow
@@ -26,6 +32,10 @@ Pillow
 pandas
 numpy
 scikit-learn
+
+# DCT para pHash (Tarefa 8 da reconstrução, src/data_audit/phash.py) —
+# importado diretamente (scipy.fft.dctn), não deixar implícito/transitivo.
+scipy
 
 # Verificação geométrica de candidatos a duplicata visual (Tarefa 8 da
 # reconstrução) — ORB + RANSAC via cv2; única exceção de dependência nova
