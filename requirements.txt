@@ -18,12 +18,17 @@ langgraph
 sentence-transformers
 
 # Deep Learning (segmentação U-Net + baseline CNN EfficientNetV2-S)
-# ATENÇÃO: `pip install -r requirements.txt` puro costuma puxar a build
-# CPU-only do torch/torchvision em muitas máquinas, mesmo com GPU NVIDIA
-# disponível. Para instalar a build com suporte a CUDA, use o índice
-# oficial do PyTorch em vez desta linha, ex. (ajuste cu121 para a versão
-# de CUDA instalada — ver https://pytorch.org/get-started/locally/):
+# GPU NVIDIA (Linux/Windows): `pip install -r requirements.txt` puro
+# costuma puxar a build CPU-only do torch/torchvision. Para instalar com
+# suporte a CUDA, use o índice oficial do PyTorch em vez desta linha, ex.
+# (ajuste cu121 para a versão de CUDA instalada — ver
+# https://pytorch.org/get-started/locally/):
 #   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# Mac Apple Silicon (M1/M2/M3/M4): NÃO use a linha acima — os wheels
+# padrão do PyPI para macOS já incluem suporte ao backend MPS (GPU via
+# Metal); `pip install -r requirements.txt` normal já basta.
+# scripts/train_bcn20000_efficientnet.py detecta automaticamente
+# cuda > mps > cpu, nessa ordem, sem configuração adicional.
 torch
 torchvision
 Pillow
