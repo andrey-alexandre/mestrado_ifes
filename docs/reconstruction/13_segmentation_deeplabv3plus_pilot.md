@@ -181,10 +181,15 @@ congelado (`experiments/segmentation/isic2018_task1_folds.json`, seed
 documentada em `src/segmentation/folds.py:5-18`); este piloto não
 regenera o arquivo.
 
-- `--device {cpu,cuda,mps}`: seleção explícita, sem fallback silencioso —
-  se o dispositivo pedido não estiver disponível, levanta `RuntimeError`
-  nomeando o que foi pedido e o que está disponível
-  (`_resolve_device`, linhas ~62-80).
+- `--device {cpu,cuda,mps}`: se omitido, auto-detecta `cuda > mps > cpu`
+  (`_best_available_device`, mesma convenção de
+  `scripts/train_bcn20000_efficientnet.py`) — **correção de 2026-11-08**:
+  a versão original exigia `--device mps` explícito em toda execução, e
+  uma execução real do pesquisador no Mac sem essa flag usou CPU em
+  silêncio mesmo com MPS disponível. Se um valor explícito for passado e
+  não estiver disponível, continua levantando `RuntimeError` nomeando o
+  que foi pedido e o que está disponível (`_resolve_device`) — só o
+  *default quando omitido* mudou, não a validação de pedido explícito.
 - Fold externo (`--external-fold`, default 0) nunca é usado em nenhuma
   amostra deste piloto. Dos 4 folds de desenvolvimento restantes, o
   último (por índice) é usado como "validação interna" (só para a

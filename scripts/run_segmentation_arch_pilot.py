@@ -37,6 +37,16 @@ final external evaluation of segmentation.
 STATUS: implementada, aguardando execucao do pesquisador. Not run by the
 assistant/fork that wrote it.
 
+``--device`` default (fix 2026-11-08): if omitted, auto-detects
+cuda > mps > cpu (``_best_available_device``, same convention as
+``scripts/train_bcn20000_efficientnet.py``) instead of always defaulting to
+"cpu" -- a prior version of this script required ``--device mps`` to be
+passed explicitly on every invocation, and a researcher run on a Mac with
+no ``--device`` flag silently used CPU even though MPS was available. An
+explicit ``--device`` value is still validated strictly by
+``_resolve_device``: requesting an unavailable device remains a hard error,
+never a silent fallback -- only the *default when omitted* changed.
+
 Usage:
     python scripts/run_segmentation_arch_pilot.py
     python scripts/run_segmentation_arch_pilot.py --architecture deeplabv3plus --device mps
@@ -93,10 +103,32 @@ MECHANICAL_CHECKS = (
 )
 
 
+def _best_available_device() -> str:
+    """Auto-detects cuda > mps > cpu, in that preference order -- same
+    convention already used by ``scripts/train_bcn20000_efficientnet.py``
+    (``_best_available_device``). Used ONLY to compute the ``--device``
+    argparse default (evaluated once, at parser-construction time) so that
+    simply omitting ``--device`` does not silently mean "cpu" on a machine
+    that actually has a GPU backend. An explicit ``--device`` value passed
+    on the command line is still validated strictly by :func:`_resolve_device`
+    below -- requesting an unavailable device remains a hard error, never a
+    silent fallback."""
+    import torch
+
+    if torch.cuda.is_available():
+        return "cuda"
+    if getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 def _resolve_device(requested: str):
-    """Explicit device resolution -- never a silent 'best available'
-    fallback. Raises RuntimeError naming the requested device and what is
-    actually available if the request cannot be honored."""
+    """Explicit device resolution for whatever value ``--device`` ends up
+    with (either the user's explicit choice, or the auto-detected default
+    from :func:`_best_available_device` -- see that function's docstring).
+    Never a silent 'best available' fallback AT THIS POINT: raises
+    RuntimeError naming the requested device and what is actually available
+    if the request (explicit or defaulted) cannot be honored."""
     import torch
 
     available = ["cpu"]
@@ -502,8 +534,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--architecture", choices=["unet", "deeplabv3plus", "both"], default="both")
     parser.add_argument(
-        "--device", choices=["cpu", "cuda", "mps"], default="cpu",
-        help="Selecao EXPLICITA. Se indisponivel, levanta erro -- nunca cai silenciosamente para cpu.",
+        "--device", choices=["cpu", "cuda", "mps"], default=_best_available_device(),
+        help="Se omitido, auto-detecta cuda > mps > cpu (mesma convencao de "
+        "scripts/train_bcn20000_efficientnet.py). Se passado explicitamente e "
+        "o dispositivo nao estiver disponivel, levanta erro -- nunca cai "
+        "silenciosamente para cpu.",
     )
     parser.add_argument(
         "--images-zip", default=DEFAULT_IMAGES_ZIP,
