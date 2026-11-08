@@ -4,14 +4,16 @@ import logging
 from pathlib import Path
 from typing import Dict, Optional
 
-logger = logging.getLogger(__name__)
+from src.evaluation.case_status import (
+    AUSENTE,
+    INDETERMINADO,
+    NAO_RECONHECIDO,
+    NEGATIVO,
+    POSITIVO,
+    classify_case_status,
+)
 
-# Mapeamento do campo 'diagnostico' do SummaryAnswer para label binário
-_DIAGNOSTICO_TO_LABEL = {
-    "suspeita de melanoma": 1,
-    "lesão indeterminada": 1,  # conservador: tratar como positivo
-    "lesão benigna": 0,
-}
+logger = logging.getLogger(__name__)
 
 
 def load_results(results_path: str) -> Dict:
@@ -73,78 +75,117 @@ def print_results(result_dict: Dict, verbose: bool = False) -> None:
         logger.info(sep)
 
 
-def compute_metrics(result_dict: Dict) -> Optional[Dict]:
-    """Calcula métricas de acurácia comparando o diagnóstico final com o rótulo real.
+def _safe_div(numerator: float, denominator: float) -> Optional[float]:
+    return (numerator / denominator) if denominator > 0 else None
 
-    Mapeia o campo 'validation.diagnostico' para uma predição binária:
-    - "Suspeita de Melanoma" ou "Lesão Indeterminada" → 1
-    - "Lesão Benigna" → 0
+
+def compute_metrics(result_dict: Dict) -> Optional[Dict]:
+    """Calcula métricas comparando o diagnóstico final com o rótulo real.
+
+    Correção de 2026-11-08 (etapa 6): o mapeamento antigo tratava
+    silenciosamente "Lesão Indeterminada" como positivo. Isso foi removido.
+    Cada caso é classificado por
+    :func:`src.evaluation.case_status.classify_case_status` em um de cinco
+    status explícitos (positivo/negativo/indeterminado/ausente/
+    nao_reconhecido) e os quatro indicadores abaixo seguem a tabela
+    aprovada pelo pesquisador (ver também
+    ``src.evaluation.stage6_metrics``, que implementa a mesma regra para
+    múltiplos sistemas/condições pareados por lesão):
+
+      - As 5 métricas binárias (acurácia, precisão, sensibilidade,
+        especificidade, F1) usam SÓ casos positivo/negativo —
+        indeterminado nunca entra na matriz de confusão.
+      - Cobertura binária = (positivo+negativo) / total com rótulo.
+      - Taxa de saída válida = (positivo+negativo+indeterminado) / total
+        com rótulo — indeterminado conta aqui, é uma saída válida.
+      - Acurácia sobre o total = acertos / total com rótulo, onde
+        indeterminado/ausente/nao_reconhecido contam como erro.
+
+    Qualquer métrica sem denominador (ex. zero decisões binárias, zero
+    positivos reais) volta como ``None`` — nunca 0.0.
 
     Args:
         result_dict: Dicionário de resultados (saída de load_results).
 
     Returns:
-        Dicionário com métricas (acurácia, VP, VN, FP, FN) ou None se
-        não houver rótulos reais disponíveis.
+        Dicionário com os indicadores, ou None se não houver nenhum caso
+        com rótulo real disponível.
     """
-    y_true = []
-    y_pred = []
+    n_total = 0
+    n_positivo = n_negativo = n_indeterminado = n_ausente = n_nao_reconhecido = 0
+    tp = tn = fp = fn = 0
 
     for path, event in result_dict.items():
         real_value = event.get("real_value", -1)
         if real_value == -1:
-            continue  # rótulo ausente
+            continue  # rótulo ausente -- não entra em nenhum denominador
 
-        validation = event.get("validation")
-        if not validation:
-            continue
+        n_total += 1
+        status = classify_case_status(event)
+        if status == POSITIVO:
+            n_positivo += 1
+        elif status == NEGATIVO:
+            n_negativo += 1
+        elif status == INDETERMINADO:
+            n_indeterminado += 1
+        elif status == AUSENTE:
+            n_ausente += 1
+        elif status == NAO_RECONHECIDO:
+            n_nao_reconhecido += 1
+            logger.warning("Diagnóstico não reconhecido em %s", path)
 
-        diagnostico_str = (
-            validation.get("diagnostico", "").lower()
-            if isinstance(validation, dict)
-            else str(validation).lower()
-        )
+        if status in (POSITIVO, NEGATIVO):
+            pred = 1 if status == POSITIVO else 0
+            if real_value == 1 and pred == 1:
+                tp += 1
+            elif real_value == 0 and pred == 0:
+                tn += 1
+            elif real_value == 0 and pred == 1:
+                fp += 1
+            elif real_value == 1 and pred == 0:
+                fn += 1
 
-        # Encontrar a categoria mais próxima pelo prefixo
-        pred = -1
-        for key, label in _DIAGNOSTICO_TO_LABEL.items():
-            if key in diagnostico_str:
-                pred = label
-                break
-
-        if pred == -1:
-            logger.warning("Diagnóstico não reconhecido: '%s' em %s", diagnostico_str, path)
-            continue
-
-        y_true.append(real_value)
-        y_pred.append(pred)
-
-    if not y_true:
-        logger.warning("Nenhum par (real, predito) disponível para calcular métricas.")
+    if n_total == 0:
+        logger.warning("Nenhum caso com rótulo real disponível para calcular métricas.")
         return None
 
-    n = len(y_true)
-    tp = sum(1 for r, p in zip(y_true, y_pred) if r == 1 and p == 1)
-    tn = sum(1 for r, p in zip(y_true, y_pred) if r == 0 and p == 0)
-    fp = sum(1 for r, p in zip(y_true, y_pred) if r == 0 and p == 1)
-    fn = sum(1 for r, p in zip(y_true, y_pred) if r == 1 and p == 0)
-
-    accuracy = (tp + tn) / n if n > 0 else 0.0
-    sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0  # recall para melanoma
-    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+    n_binary = tp + tn + fp + fn
+    accuracy = _safe_div(tp + tn, n_binary)
+    precision = _safe_div(tp, tp + fp)
+    sensitivity = _safe_div(tp, tp + fn)  # recall para melanoma
+    specificity = _safe_div(tn, tn + fp)
+    f1 = (
+        _safe_div(2 * precision * sensitivity, precision + sensitivity)
+        if precision is not None and sensitivity is not None
+        else None
+    )
 
     metrics = {
-        "n_samples": n,
-        "accuracy": round(accuracy, 4),
-        "sensitivity": round(sensitivity, 4),
-        "specificity": round(specificity, 4),
+        "n_total": n_total,
+        "n_binary": n_binary,
+        "n_positivo": n_positivo,
+        "n_negativo": n_negativo,
+        "n_indeterminado": n_indeterminado,
+        "n_ausente": n_ausente,
+        "n_nao_reconhecido": n_nao_reconhecido,
+        "accuracy": accuracy,
+        "precision": precision,
+        "sensitivity": sensitivity,
+        "specificity": specificity,
+        "f1": f1,
+        "coverage_binary": _safe_div(n_positivo + n_negativo, n_total),
+        "valid_output_rate": _safe_div(n_positivo + n_negativo + n_indeterminado, n_total),
+        "accuracy_over_total": _safe_div(tp + tn, n_total),
         "true_positives": tp,
         "true_negatives": tn,
         "false_positives": fp,
         "false_negatives": fn,
     }
 
-    logger.info("Métricas de avaliação (%d amostras):", n)
+    logger.info(
+        "Métricas de avaliação (%d casos com rótulo, %d com decisão binária):",
+        n_total, n_binary,
+    )
     for k, v in metrics.items():
         logger.info("  %s: %s", k, v)
 
