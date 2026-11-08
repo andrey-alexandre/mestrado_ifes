@@ -83,10 +83,15 @@ def test_same_replica_reused_across_two_systems_not_resampled_independently():
 
     # Mesma replica (mesmo n_total, mesma composicao) -> os dois sistemas
     # veem o MESMO numero de casos binarios e a MESMA contagem de reais
-    # positivos/negativos (so a predicao muda, nao a amostra).
+    # positivos (tp+fn) e reais negativos (tn+fp) dentro do subconjunto
+    # binario -- so a predicao muda, nao a amostra. (Corrigido 2026-11-08:
+    # a versao original comparava tp1+fn1 (reais positivos do sistema 1)
+    # com tn2+fp2 (reais NEGATIVOS do sistema 2) -- grandezas diferentes
+    # por definicao, nao uma comparacao valida da invariante pretendida.)
     assert ind_1.n_total == ind_2.n_total == len(replica)
     assert ind_1.binary_metrics.n_binary == ind_2.binary_metrics.n_binary
-    assert ind_1.binary_metrics.tp + ind_1.binary_metrics.fn == ind_2.binary_metrics.tn + ind_2.binary_metrics.fp
+    assert ind_1.binary_metrics.tp + ind_1.binary_metrics.fn == ind_2.binary_metrics.tp + ind_2.binary_metrics.fn
+    assert ind_1.binary_metrics.tn + ind_1.binary_metrics.fp == ind_2.binary_metrics.tn + ind_2.binary_metrics.fp
     # Sistema 1 acerta tudo -> accuracy 1.0; sistema 2 erra tudo -> accuracy 0.0.
     assert ind_1.binary_metrics.accuracy == 1.0
     assert ind_2.binary_metrics.accuracy == 0.0
