@@ -115,15 +115,37 @@ especificação completa linha a linha):
   `iou < 0.65` (corte estrito), senão preserva o valor do IoU
   (`iou == 0.65` preserva).
 - **HD95 simétrico** (`hd95_symmetric`) — contorno via erosão binária
-  (`scipy.ndimage.binary_erosion`, `border_value=1` — escolha deliberada
-  documentada no código: uma máscara totalmente preenchida fica sem
-  contorno, pois os pixels fora da imagem são tratados como tendo o mesmo
-  valor da borda da máscara); distâncias direcionais via
+  (`scipy.ndimage.binary_erosion`); distâncias direcionais via
   `scipy.ndimage.distance_transform_edt`; HD95 = máximo dos dois
   percentis 95 (A→B e B→A). Retorna `None` (indefinido) se qualquer uma
   das máscaras não tiver pixels de contorno — nunca convertido para
   `0.0`. `pixel_spacing` multiplica o resultado final (variante em
   unidade física).
+- **Mudança de convenção do contorno (`_contour`, correção 2026-11-08)**:
+  achado real, não hipotético — no resultado real do piloto comparativo
+  (`experiments/segmentation/segmentation_arch_pilot_results.json`, commit
+  `f2e4415`), as 3 imagens de validação interna do DeepLabV3+ têm
+  Dice/IoU que satisfazem exatamente a identidade `dice = 2*iou/(1+iou)`,
+  que só vale quando a predição binarizada cobre 100% do quadro — isso
+  confirmou que a máscara predita (após só 2 passos de treino com init
+  aleatória) saturou o quadro inteiro. Com a convenção antiga
+  (`border_value=1` — exterior tratado como igual ao valor da própria
+  máscara), uma máscara totalmente cheia ficava sem contorno, então o
+  HD95 saiu `None` para esses casos nas duas arquiteturas — comportamento
+  correto da função antiga, mas o pesquisador decidiu mudar a convenção
+  para a avaliação final: **`border_value=0`** — o exterior da imagem
+  passa a ser tratado como fundo. Com isso, uma máscara totalmente cheia
+  passa a ter contorno (a borda do quadro), entrando no cálculo do HD95;
+  uma máscara vazia continua sem contorno sob qualquer `border_value`
+  (erosão de um array totalmente falso continua totalmente falso) — esse
+  caso é inalterado.
+- **Diagnóstico de saturação** (`pred_positive_pixels`/`ref_positive_pixels`,
+  correção 2026-11-08): `compute_image_metrics` agora sempre registra a
+  contagem de pixels positivos da predição binarizada e da referência
+  (`None` nos status de erro, mesmo padrão dos demais campos) — permite
+  confirmar objetivamente, em qualquer execução futura, se uma predição
+  saturou o quadro, sem precisar inferir isso manualmente pela identidade
+  matemática do Dice/IoU como foi feito para encontrar este caso.
 - **Variante normalizada pela diagonal** (correção 2026-11-08): calculada
   em `compute_image_metrics` (não em `hd95_symmetric`), como
   `hd95_normalizado_diagonal = hd95 / sqrt(h**2 + w**2)`, com `h, w` da
@@ -217,7 +239,11 @@ regenera o arquivo.
   Thresholded Jaccard (abaixo/igual/acima de 0.65), restauração antes de
   binarizar (prova que o resultado difere de
   binarizar-antes-de-redimensionar), `aggregate_metrics` separando status
-  e HD95 (e seu normalizado) indefinido.
+  e HD95 (e seu normalizado) indefinido; **(correção 2026-11-08)** máscara
+  cheia não tocando a referência → HD95 agora definido (não `None`) sob a
+  convenção `border_value=0`, com `pred_positive_pixels == pred.size`
+  confirmado; predição vazia (teste estendido, não duplicado) → HD95
+  continua `None` e `pred_positive_pixels == 0`, comportamento inalterado.
 - `test_model_factory.py`: roteamento correto, `ValueError` para nome
   desconhecido.
 - `test_deeplabv3plus_model.py`: forward `(1,3,256,256)→(1,1,256,256)`;

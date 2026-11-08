@@ -78,10 +78,39 @@ def test_empty_prediction_valid_reference():
     assert result["status"] == "ok"
     assert result["dice"] == 0.0
     assert result["iou"] == 0.0
-    assert result["hd95"] is None  # undefined -- never 0.0
-    assert result["hd95_normalizado_diagonal"] is None  # undefined follows hd95 -- never 0.0
+    # Empty prediction has no contour under ANY border_value choice (an
+    # all-False mask erodes to all-False regardless) -- unaffected by the
+    # border_value=0 convention change (2026-11-08): still undefined, never 0.0.
+    assert result["hd95"] is None
+    assert result["hd95_normalizado_diagonal"] is None
     assert result["is_isic_failure"] is True
     assert result["thresholded_jaccard"] == 0.0
+    assert result["pred_positive_pixels"] == 0
+    assert result["ref_positive_pixels"] == int(ref.sum())
+
+
+# ──────────────────────────────────────────────
+# Mascara cheia (saturada) -- convencao de contorno border_value=0
+# ──────────────────────────────────────────────
+
+
+def test_full_prediction_mask_now_has_defined_hd95():
+    # Reference is a square NOT touching the border, so its own contour is
+    # unaffected by the border_value change -- only the fully-True
+    # prediction's contour behavior is under test here.
+    ref = _square_mask((20, 20), (4, 12, 4, 12))
+    pred_prob = np.ones((20, 20), dtype=np.float32)  # saturates the whole frame when binarized
+    result = compute_image_metrics(pred_prob, ref, threshold=0.5)
+    assert result["status"] == "ok"
+    assert result["pred_positive_pixels"] == pred_prob.size == 400
+    assert result["ref_positive_pixels"] == int(ref.sum())
+    # Under the OLD border_value=1 convention this would have been None
+    # (fully-filled mask treated as having no contour). Under the NEW
+    # border_value=0 convention (exterior = background), the fully-True
+    # mask's border ring IS a contour, so HD95 is now a defined float.
+    assert result["hd95"] is not None
+    assert isinstance(result["hd95"], float)
+    assert result["hd95_normalizado_diagonal"] is not None
 
 
 # ──────────────────────────────────────────────

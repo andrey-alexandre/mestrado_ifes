@@ -517,14 +517,16 @@ def _render_report_md(report: dict[str, Any]) -> str:
         )
         lines.append("")
         lines.append(
-            "| image_id | status | dimensões originais | dice | iou | thresholded_jaccard | hd95 | hd95_norm_diag | falha_isic |"
+            "| image_id | status | dimensões originais | dice | iou | thresholded_jaccard | hd95 | "
+            "hd95_norm_diag | falha_isic | pred_pos_px | ref_pos_px |"
         )
-        lines.append("|---|---|---|---|---|---|---|---|---|")
+        lines.append("|---|---|---|---|---|---|---|---|---|---|---|")
         for pr in res["metricas_demo"]["per_image"]:
             lines.append(
                 f"| `{pr.get('image_id')}` | {pr['status']} | {pr.get('original_shape')} | "
                 f"{pr.get('dice')} | {pr.get('iou')} | {pr.get('thresholded_jaccard')} | "
-                f"{pr.get('hd95')} | {pr.get('hd95_normalizado_diagonal')} | {pr.get('is_isic_failure')} |"
+                f"{pr.get('hd95')} | {pr.get('hd95_normalizado_diagonal')} | {pr.get('is_isic_failure')} | "
+                f"{pr.get('pred_positive_pixels')} | {pr.get('ref_positive_pixels')} |"
             )
         lines.append("")
     return "\n".join(lines)

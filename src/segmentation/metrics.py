@@ -102,16 +102,26 @@ def is_isic_failure(iou: float) -> bool:
 def _contour(mask: np.ndarray) -> np.ndarray:
     """Boundary pixels of a binary mask: mask AND NOT erosion(mask).
 
-    ``border_value=1`` is a deliberate choice (not scipy's default): pixels
-    outside the image are treated as matching the mask's own fill value at
-    the border, so a mask that is fully True over the whole frame has NO
-    contour (there is no visible boundary within the field of view) --
-    matching this module's "fully filled mask has no well-defined contour"
-    rule. A fully False mask has no contour under any border_value choice
-    (erosion of an all-False array is all False regardless).
+    Convention (changed 2026-11-08, researcher decision after a real pilot
+    finding -- see ``docs/reconstruction/13_segmentation_deeplabv3plus_pilot.md``
+    section 6): ``border_value=0`` -- the exterior of the image is treated
+    as BACKGROUND, not as matching the mask's own fill value. Consequences:
+      - A fully-True mask now HAS a contour (the frame's border ring,
+        since every border pixel has an outside "background" neighbor) --
+        it is no longer treated as "no well-defined boundary". This makes
+        HD95 computable for a saturated prediction, which previously came
+        out ``None`` under the old ``border_value=1`` convention.
+      - A fully-False mask still has NO contour under any border_value
+        choice (erosion of an all-False array is all-False regardless) --
+        this case is unaffected by the change.
+    This was changed because a real pilot result showed a model's
+    prediction had saturated the whole frame (confirmed independently via
+    the ``dice == 2*iou/(1+iou)`` identity, which only holds when
+    ``pred ∪ ref`` covers every pixel) and the researcher wants that
+    scenario to produce a defined HD95, not a silent ``None``.
     """
     mask_bool = np.asarray(mask, dtype=bool)
-    eroded = ndimage.binary_erosion(mask_bool, border_value=1)
+    eroded = ndimage.binary_erosion(mask_bool, border_value=0)
     return mask_bool & ~eroded
 
 
@@ -165,6 +175,8 @@ def _none_result(status: str, erro: str | None = None) -> dict[str, Any]:
         "hd95": None,
         "hd95_normalizado_diagonal": None,
         "is_isic_failure": None,
+        "pred_positive_pixels": None,
+        "ref_positive_pixels": None,
     }
     if erro is not None:
         result["erro"] = erro
@@ -188,6 +200,15 @@ def compute_image_metrics(
     from ``ref_mask_original_res.shape``) -- ``None`` whenever ``hd95`` is
     ``None`` (same "never convert undefined to zero" rule), and ``None``
     for every non-``"ok"`` status, same as the other metric fields.
+
+    Also always includes ``pred_positive_pixels``/``ref_positive_pixels``
+    (raw positive-pixel counts of the binarized prediction and the
+    reference, ``None`` for non-``"ok"`` statuses) -- a diagnostic added
+    after a real pilot run whose Dice/IoU satisfied the
+    ``dice == 2*iou/(1+iou)`` identity, which only holds when the
+    prediction has saturated the whole frame; these counts let any future
+    run confirm frame saturation directly, without re-deriving it from
+    that identity by hand.
     """
     try:
         pred_prob = np.asarray(pred_prob_original_res)
@@ -221,6 +242,8 @@ def compute_image_metrics(
             "hd95": hd95,
             "hd95_normalizado_diagonal": hd95_normalizado_diagonal,
             "is_isic_failure": failure,
+            "pred_positive_pixels": int(pred_binary.sum()),
+            "ref_positive_pixels": int(ref_mask.sum()),
         }
     except Exception as exc:  # noqa: BLE001 - must report, not propagate
         return _none_result("falha_processamento", erro=f"{type(exc).__name__}: {exc}")

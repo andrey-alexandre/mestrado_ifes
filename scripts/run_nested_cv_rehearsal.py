@@ -1,0 +1,650 @@
+"""Executor + mechanical REHEARSAL of the nested cross-validation protocol
+(stage 4, segmentation) -- one external fold, real training (not mocked).
+
+Implements the researcher-approved protocol (quoted verbatim, not reopened
+here): "A execucao cientifica tera cinco folds externos e quatro internos
+por rodada externa. Hiperparametros, checkpoint e limiar serao escolhidos
+somente nos dados internos. Em cada rodada, o retreino nos quatro folds de
+desenvolvimento usara a mediana das melhores epocas internas, sem early
+stopping no fold externo. O limiar sera escolhido pelo Dice medio das
+predicoes internas na grade de 0,30 a 0,70, em passos de 0,05; em empate,
+use o valor mais proximo de 0,5 e sinalize se ainda houver empate
+simetrico." Pure selection logic lives in ``src/segmentation/nested_cv.py``
+(unit-tested separately); this script is the real-training orchestrator.
+
+SCOPE: this is a REHEARSAL of exactly ONE external round (fixed
+--external-fold, default 0), run independently per architecture (U-Net and
+DeepLabV3+ each run the same logic -- NO comparison or selection between
+them here, that is a later decision gated on this rehearsal passing). It
+does NOT run the full 5 external rounds, does NOT select a final
+architecture/configuration, does NOT decide a narrowed final grid. Epoch
+counts here (``--max-epochs``, default 2) are a REHEARSAL value, not the
+real training budget.
+
+Per architecture, the flow is:
+  1. Load the external fold's ids -- NEVER used before step 6.
+  2. 4 internal rounds (each of the 4 development folds as internal
+     validation in turn, the other 3 as internal training): train a fresh
+     (randomly initialized) model for up to --max-epochs epochs; after
+     each epoch, evaluate Dice on the round's internal-validation set AT
+     TRAINING RESOLUTION (256x256, fixed monitoring threshold 0.5) -- a
+     deliberate, documented simplification for cheap per-epoch monitoring
+     (the metrics that are actually reported in this rehearsal -- the
+     threshold-grid search in step 4 and the external evaluation in step
+     6 -- always use the full original-resolution pipeline). Track the
+     best epoch (strict improvement; ties keep the FIRST epoch).
+  3. chosen_epochs = median of the 4 rounds' best epochs (round-half-up,
+     see src/segmentation/nested_cv.py).
+  4. Using each round's best-epoch checkpoint, compute per-image Dice at
+     the ORIGINAL resolution (restore -> binarize) for every threshold in
+     the 0.30-0.70 grid, pooled across the 4 rounds; select the threshold
+     (ties -> closest to 0.5; residual symmetric tie -> flagged, never
+     silently resolved).
+  5. Retrain: a NEW model (reinitialized), trained on the union of the 4
+     development folds (never the external fold) for EXACTLY
+     chosen_epochs epochs, no early stopping.
+  6. External evaluation: the retrained model, run ONCE on the external
+     fold, with the chosen threshold, through the full metrics pipeline
+     (restore -> binarize -> compute_image_metrics -> aggregate_metrics).
+
+HAM10000 is never read or referenced here.
+
+STATUS: implementada, aguardando execucao do pesquisador. Not run by the
+assistant/fork that wrote it.
+
+Usage:
+    python scripts/run_nested_cv_rehearsal.py --device mps
+    python scripts/run_nested_cv_rehearsal.py --architecture unet --max-epochs 2 \\
+        --max-images-per-fold 20 --device mps
+    python scripts/run_nested_cv_rehearsal.py \\
+        --images-zip /Volumes/Andrey/Mestrado/ISIC2018_Task1-2_Training_Input.zip \\
+        --masks-zip /Volumes/Andrey/Mestrado/ISIC2018_Task1_Training_GroundTruth.zip \\
+        --device mps
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(SCRIPTS_DIR))
+
+from src.segmentation import folds as folds_mod  # noqa: E402
+from src.segmentation import nested_cv  # noqa: E402
+from src.segmentation.isic2018_dataset import (  # noqa: E402
+    ISIC2018Task1Dataset,
+    load_original_mask,
+    verify_image_mask_correspondence,
+)
+from src.segmentation.metrics import (  # noqa: E402
+    aggregate_metrics,
+    compute_image_metrics,
+    dice_per_image,
+    restore_probability_to_original_resolution,
+)
+from src.segmentation.model_factory import ARCHITECTURES, build_segmentation_model  # noqa: E402
+
+# Reused, not duplicated -- same bootstrap/device logic already validated
+# in the architecture-comparison pilot.
+from run_segmentation_arch_pilot import (  # noqa: E402
+    _best_available_device,
+    _ensure_folds,
+    _resolve_device,
+)
+
+DEFAULT_IMAGES_ZIP = "D:/Andrey/Mestrado/ISIC2018_Task1-2_Training_Input.zip"
+DEFAULT_MASKS_ZIP = "D:/Andrey/Mestrado/ISIC2018_Task1_Training_GroundTruth.zip"
+DEFAULT_OUTPUT_DIR = str(REPO_ROOT / "experiments" / "segmentation")
+DEFAULT_FOLDS_PATH = str(REPO_ROOT / "experiments" / "segmentation" / "isic2018_task1_folds.json")
+DEFAULT_EXTERNAL_FOLD = 0
+DEFAULT_MAX_EPOCHS = 2  # REHEARSAL value, not the real training budget
+DEFAULT_MONITOR_THRESHOLD = 0.5
+DEFAULT_LR = 1e-4
+DEFAULT_TRAIN_SEED = 42  # model init / shuffling seed -- distinct from the folds-assignment seed
+
+
+def _filter_folds_data_to_matched(folds_data: dict[str, Any], matched_ids: set[str]) -> dict[str, Any]:
+    filtered = {k: v for k, v in folds_data["image_to_fold"].items() if k in matched_ids}
+    return {**folds_data, "image_to_fold": filtered}
+
+
+def _truncate_folds_data(folds_data: dict[str, Any], max_per_fold: int | None) -> dict[str, Any]:
+    """Caps each fold to its first ``max_per_fold`` ids (sorted,
+    deterministic) -- applied consistently BEFORE any phase (external,
+    internal rounds, retrain) is built, so the cap is respected everywhere,
+    not just in training. ``None`` means no cap (use the full fold)."""
+    if max_per_fold is None:
+        return folds_data
+    ids_by_fold: dict[int, list[str]] = {}
+    for image_id, fold in folds_data["image_to_fold"].items():
+        ids_by_fold.setdefault(fold, []).append(image_id)
+    truncated: dict[str, int] = {}
+    for fold, ids in ids_by_fold.items():
+        for image_id in sorted(ids)[:max_per_fold]:
+            truncated[image_id] = fold
+    return {**folds_data, "image_to_fold": truncated}
+
+
+def _train_one_epoch(model, loader, optimizer, criterion, device) -> None:
+    model.train()
+    for images, masks, _ids in loader:
+        images = images.to(device)
+        masks = masks.to(device)
+        optimizer.zero_grad()
+        logits = model(images)
+        loss = criterion(logits, masks)
+        loss.backward()
+        optimizer.step()
+
+
+def _monitor_dice(model, dataset: ISIC2018Task1Dataset, device, threshold: float) -> float:
+    """Mean Dice at TRAINING resolution (256x256), using the dataset's own
+    resized mask as reference -- a deliberate, documented simplification
+    for cheap per-epoch monitoring (see module docstring, step 2). NOT the
+    metric that is actually reported anywhere in this rehearsal's output."""
+    model.eval()
+    dices = []
+    with torch.no_grad():
+        for idx in range(len(dataset)):
+            image_tensor, mask_tensor, _id = dataset[idx]
+            logits = model(image_tensor.unsqueeze(0).to(device))
+            prob = torch.sigmoid(logits).squeeze(0).squeeze(0).cpu().numpy()
+            pred_binary = prob > threshold
+            ref_binary = mask_tensor.squeeze(0).numpy().astype(bool)
+            dices.append(dice_per_image(pred_binary, ref_binary))
+    return float(np.mean(dices)) if dices else 0.0
+
+
+def _run_internal_round(
+    architecture: str,
+    round_spec: dict[str, Any],
+    images_zip: str,
+    masks_zip: str,
+    device,
+    max_epochs: int,
+    lr: float,
+    monitor_threshold: float,
+    seed: int,
+    output_dir: Path,
+) -> dict[str, Any]:
+    train_ids = round_spec["train_ids"]
+    val_ids = round_spec["val_ids"]
+    val_fold = round_spec["internal_val_fold"]
+
+    if not train_ids or not val_ids:
+        raise ValueError(
+            f"Rodada interna (val_fold={val_fold}) com treino/validacao vazios -- "
+            "verifique --images-zip/--masks-zip/--folds-path/--max-images-per-fold."
+        )
+
+    torch.manual_seed(seed)
+    model = build_segmentation_model(architecture, img_ch=3, output_ch=1)
+    model.to(device)
+    criterion = torch.nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+
+    dataset_train = ISIC2018Task1Dataset(train_ids, images_zip, masks_zip)
+    dataset_val = ISIC2018Task1Dataset(val_ids, images_zip, masks_zip)
+    loader = DataLoader(dataset_train, batch_size=min(4, len(train_ids)), shuffle=True, num_workers=0)
+
+    best_dice = -1.0
+    best_epoch = None
+    best_state = None
+    epoch_history = []
+
+    t0 = time.time()
+    for epoch in range(1, max_epochs + 1):
+        _train_one_epoch(model, loader, optimizer, criterion, device)
+        monitor_dice = _monitor_dice(model, dataset_val, device, monitor_threshold)
+        epoch_history.append({"epoch": epoch, "monitor_dice": monitor_dice})
+        if monitor_dice > best_dice:  # strict -- ties keep the FIRST epoch (documented rule)
+            best_dice = monitor_dice
+            best_epoch = epoch
+            best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
+    training_time_s = time.time() - t0
+
+    ckpt_path = output_dir / f"nested_cv_round_{architecture}_valfold{val_fold}.pt"
+    torch.save(
+        {"model_state_dict": best_state, "architecture": architecture, "best_epoch": best_epoch},
+        ckpt_path,
+    )
+
+    return {
+        "internal_val_fold": val_fold,
+        "train_folds": round_spec["train_folds"],
+        "train_ids": train_ids,
+        "val_ids": val_ids,
+        "epoch_history": epoch_history,
+        "best_epoch": best_epoch,
+        "best_epoch_monitor_dice": best_dice,
+        "training_time_s": training_time_s,
+        "checkpoint_path": str(ckpt_path),
+    }
+
+
+def _collect_threshold_dice(
+    model, val_ids: list[str], images_zip: str, masks_zip: str, device
+) -> tuple[dict[float, list[float]], int]:
+    """Per-image Dice at the ORIGINAL resolution for every threshold in
+    ``nested_cv.THRESHOLD_GRID``, for the given (already best-epoch)
+    model, over ``val_ids``. Images whose original reference mask is
+    empty are skipped (same validity rule as
+    ``compute_image_metrics``'s ``"referencia_invalida"`` status) and
+    counted separately -- never silently included as if valid."""
+    model.eval()
+    dataset_val = ISIC2018Task1Dataset(val_ids, images_zip, masks_zip)
+    dice_by_threshold: dict[float, list[float]] = {t: [] for t in nested_cv.THRESHOLD_GRID}
+    n_skipped_invalid_reference = 0
+
+    with torch.no_grad():
+        for idx, image_id in enumerate(val_ids):
+            image_tensor, _mask_256, _id = dataset_val[idx]
+            logits = model(image_tensor.unsqueeze(0).to(device))
+            prob_256 = torch.sigmoid(logits).squeeze(0).squeeze(0).cpu().numpy()
+            ref_mask_original = load_original_mask(masks_zip, image_id)
+            if not ref_mask_original.any():
+                n_skipped_invalid_reference += 1
+                continue
+            prob_original = restore_probability_to_original_resolution(prob_256, ref_mask_original.shape)
+            for t in nested_cv.THRESHOLD_GRID:
+                pred_binary = prob_original > t
+                dice_by_threshold[t].append(dice_per_image(pred_binary, ref_mask_original))
+
+    return dice_by_threshold, n_skipped_invalid_reference
+
+
+def _retrain_final(
+    architecture: str,
+    retrain_ids: list[str],
+    images_zip: str,
+    masks_zip: str,
+    device,
+    chosen_epochs: int,
+    lr: float,
+    seed: int,
+    output_dir: Path,
+):
+    if not retrain_ids:
+        raise ValueError("Conjunto de retreino vazio -- verifique a configuracao dos folds.")
+
+    torch.manual_seed(seed)
+    model = build_segmentation_model(architecture, img_ch=3, output_ch=1)
+    model.to(device)
+    criterion = torch.nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+
+    dataset_train = ISIC2018Task1Dataset(retrain_ids, images_zip, masks_zip)
+    loader = DataLoader(dataset_train, batch_size=min(4, len(retrain_ids)), shuffle=True, num_workers=0)
+
+    t0 = time.time()
+    for _epoch in range(1, chosen_epochs + 1):
+        _train_one_epoch(model, loader, optimizer, criterion, device)
+    training_time_s = time.time() - t0
+
+    ckpt_path = output_dir / f"nested_cv_retrain_{architecture}.pt"
+    torch.save(
+        {"model_state_dict": model.state_dict(), "architecture": architecture, "epochs": chosen_epochs},
+        ckpt_path,
+    )
+    return model, training_time_s, str(ckpt_path)
+
+
+def _run_external_evaluation(
+    model, external_ids: list[str], images_zip: str, masks_zip: str, device, chosen_threshold: float
+) -> dict[str, Any]:
+    model.eval()
+    dataset_ext = ISIC2018Task1Dataset(external_ids, images_zip, masks_zip)
+    per_image = []
+
+    t0 = time.time()
+    with torch.no_grad():
+        for idx, image_id in enumerate(external_ids):
+            image_tensor, _mask_256, _id = dataset_ext[idx]
+            logits = model(image_tensor.unsqueeze(0).to(device))
+            prob_256 = torch.sigmoid(logits).squeeze(0).squeeze(0).cpu().numpy()
+            ref_mask_original = load_original_mask(masks_zip, image_id)
+            prob_original = restore_probability_to_original_resolution(prob_256, ref_mask_original.shape)
+            result = compute_image_metrics(prob_original, ref_mask_original, threshold=chosen_threshold)
+            result["image_id"] = image_id
+            result["original_shape"] = list(ref_mask_original.shape)
+            per_image.append(result)
+    evaluation_time_s = time.time() - t0
+
+    return {
+        "chosen_threshold": chosen_threshold,
+        "per_image": per_image,
+        "aggregate": aggregate_metrics(per_image),
+        "evaluation_time_s": evaluation_time_s,
+    }
+
+
+def run_rehearsal_for_architecture(
+    architecture: str, folds_data: dict[str, Any], images_zip: str, masks_zip: str, device, args, output_dir: Path
+) -> dict[str, Any]:
+    external_ids = nested_cv.build_external_fold_ids(folds_data, args.external_fold)
+    internal_rounds_spec = nested_cv.build_internal_rounds(folds_data, args.external_fold)
+    retrain_ids = nested_cv.build_retrain_ids(folds_data, args.external_fold)
+
+    round_results = []
+    combined_dice_by_threshold: dict[float, list[float]] = {t: [] for t in nested_cv.THRESHOLD_GRID}
+    total_skipped_invalid_ref = 0
+
+    for i, round_spec in enumerate(internal_rounds_spec):
+        print(f"      [rodada interna {i + 1}/4] val_fold={round_spec['internal_val_fold']} ...")
+        round_result = _run_internal_round(
+            architecture, round_spec, images_zip, masks_zip, device,
+            max_epochs=args.max_epochs, lr=args.lr, monitor_threshold=args.monitor_threshold,
+            seed=args.train_seed + i, output_dir=output_dir,
+        )
+        round_results.append(round_result)
+        print(
+            f"      [rodada interna {i + 1}/4] melhor epoca={round_result['best_epoch']} "
+            f"dice_monitor={round_result['best_epoch_monitor_dice']:.4f} "
+            f"tempo={round_result['training_time_s']:.1f}s"
+        )
+
+        best_model = build_segmentation_model(architecture, img_ch=3, output_ch=1)
+        ckpt = torch.load(round_result["checkpoint_path"], map_location="cpu")
+        best_model.load_state_dict(ckpt["model_state_dict"])
+        best_model.to(device)
+
+        dice_by_threshold, n_skipped = _collect_threshold_dice(
+            best_model, round_spec["val_ids"], images_zip, masks_zip, device
+        )
+        total_skipped_invalid_ref += n_skipped
+        for t, values in dice_by_threshold.items():
+            combined_dice_by_threshold[t].extend(values)
+
+    chosen_epochs = nested_cv.select_epochs_via_median([r["best_epoch"] for r in round_results])
+    threshold_selection = nested_cv.select_threshold_from_internal_dice(combined_dice_by_threshold)
+    print(
+        f"      chosen_epochs={chosen_epochs} chosen_threshold={threshold_selection['chosen_threshold']} "
+        f"empate={threshold_selection['empate']} empate_simetrico={threshold_selection['empate_simetrico']}"
+    )
+
+    print(f"      [retreino] {len(retrain_ids)} imagens, {chosen_epochs} epocas, sem early stopping...")
+    retrained_model, retrain_time_s, retrain_ckpt_path = _retrain_final(
+        architecture, retrain_ids, images_zip, masks_zip, device,
+        chosen_epochs=chosen_epochs, lr=args.lr, seed=args.train_seed + 100, output_dir=output_dir,
+    )
+    print(f"      [retreino] concluido em {retrain_time_s:.1f}s")
+
+    print(f"      [avaliacao externa] {len(external_ids)} imagens, limiar={threshold_selection['chosen_threshold']}...")
+    external_eval = _run_external_evaluation(
+        retrained_model, external_ids, images_zip, masks_zip, device,
+        chosen_threshold=threshold_selection["chosen_threshold"],
+    )
+    agg = external_eval["aggregate"]
+    print(
+        f"      [avaliacao externa] dice_medio={agg['mean_dice']} iou_medio={agg['mean_iou']} "
+        f"falha_isic={agg['isic_failure_rate']} tempo={external_eval['evaluation_time_s']:.1f}s"
+    )
+
+    return {
+        "architecture": architecture,
+        "external_fold": args.external_fold,
+        "external_fold_ids": external_ids,
+        "internal_rounds": round_results,
+        "n_skipped_invalid_reference_in_threshold_search": total_skipped_invalid_ref,
+        "chosen_epochs": chosen_epochs,
+        "threshold_selection": threshold_selection,
+        "retrain_ids": retrain_ids,
+        "retrain_time_s": retrain_time_s,
+        "retrain_checkpoint_path": retrain_ckpt_path,
+        "external_evaluation": external_eval,
+    }
+
+
+def run_rehearsal(args: argparse.Namespace) -> None:
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.max_epochs < 1:
+        raise ValueError(f"--max-epochs deve ser >= 1, recebido {args.max_epochs}")
+
+    print("=== ENSAIO: executor da validacao cruzada aninhada (UMA rodada externa) ===")
+    print(
+        "LEMBRETE: isto NAO e a execucao cientifica completa (5 rodadas externas), "
+        "NAO seleciona arquitetura/configuracao definitiva. HAM10000 nao e tocado."
+    )
+    device = _resolve_device(args.device)
+    print(f"dispositivo solicitado={args.device} efetivo={device}")
+
+    print("[fold] verificando correspondencia imagem<->mascara...")
+    correspondence = verify_image_mask_correspondence(args.images_zip, args.masks_zip)
+    print(
+        f"      imagens={correspondence['n_images']} mascaras={correspondence['n_masks']} "
+        f"pareadas={correspondence['n_matched']}"
+    )
+
+    folds_data = _ensure_folds(args.images_zip, args.folds_path, folds_mod.N_FOLDS, args.seed)
+    matched_ids = set(folds_data["image_to_fold"].keys()) - set(correspondence["only_in_images"])
+    folds_data = _filter_folds_data_to_matched(folds_data, matched_ids)
+    folds_data = _truncate_folds_data(folds_data, args.max_images_per_fold)
+
+    if not (0 <= args.external_fold < folds_data["n_folds"]):
+        raise ValueError(
+            f"--external-fold deve estar entre 0 e {folds_data['n_folds'] - 1}, recebido {args.external_fold}"
+        )
+
+    architectures = ARCHITECTURES if args.architecture == "both" else (args.architecture,)
+
+    report: dict[str, Any] = {
+        "device_requested": args.device,
+        "device_effective": str(device),
+        "external_fold": args.external_fold,
+        "max_epochs_rehearsal": args.max_epochs,
+        "monitor_threshold": args.monitor_threshold,
+        "train_seed": args.train_seed,
+        "lr": args.lr,
+        "max_images_per_fold": args.max_images_per_fold,
+        "folds_file": str(args.folds_path),
+        "fold_grouping_key": "image:{image_id} (sem lesion_id -- ver src/segmentation/folds.py)",
+        "threshold_grid": list(nested_cv.THRESHOLD_GRID),
+        "image_mask_correspondence": {
+            k: v for k, v in correspondence.items() if k not in ("only_in_images", "only_in_masks")
+        },
+        "architectures": {},
+        "ham10000_touched": False,
+        "aviso": (
+            "ENSAIO MECANICO de uma unica rodada externa, com treino real (nao "
+            f"mockado) por ate {args.max_epochs} epocas de rehearsal -- NAO e a "
+            "execucao cientifica completa (5 rodadas externas), NAO seleciona "
+            "arquitetura ou configuracao definitiva, NAO decide a grade "
+            "restrita final. HAM10000 nao foi tocado."
+        ),
+    }
+
+    for arch in architectures:
+        print(f"\n--- arquitetura: {arch} ---")
+        report["architectures"][arch] = run_rehearsal_for_architecture(
+            arch, folds_data, args.images_zip, args.masks_zip, device, args, output_dir
+        )
+
+    results_json_path = output_dir / "nested_cv_rehearsal_results.json"
+    report_md_path = output_dir / "nested_cv_rehearsal_report.md"
+    log_path = output_dir / "nested_cv_rehearsal.log"
+
+    with open(results_json_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+
+    with open(report_md_path, "w", encoding="utf-8") as f:
+        f.write(_render_report_md(report))
+
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+    print(f"\nresultados (json) gravados: {results_json_path}")
+    print(f"relatorio (md) gravado: {report_md_path}")
+    print(f"log gravado: {log_path}")
+    print(
+        "\nLEMBRETE FINAL: ensaio mecanico de uma rodada externa, nao a execucao "
+        "cientifica completa. HAM10000 nao foi tocado nesta execucao."
+    )
+
+
+def _render_report_md(report: dict[str, Any]) -> str:
+    lines = [
+        "# Ensaio — executor da validação cruzada aninhada (uma rodada externa)",
+        "",
+        f"**{report['aviso']}**",
+        "",
+        f"- Dispositivo solicitado: `{report['device_requested']}` / efetivo: `{report['device_effective']}`",
+        f"- Fold externo: {report['external_fold']}",
+        f"- Épocas de ensaio (máximo por rodada interna): {report['max_epochs_rehearsal']}",
+        f"- Threshold de monitoramento (época a época, resolução de treino): {report['monitor_threshold']}",
+        f"- Grade de limiar (resolução original): {report['threshold_grid']}",
+        f"- Seed de treino: {report['train_seed']} / lr: {report['lr']}",
+        f"- Limite de imagens por fold: {report['max_images_per_fold']}",
+        f"- Arquivo de folds: `{report['folds_file']}`",
+        f"- Chave de agrupamento dos folds: {report['fold_grouping_key']}",
+        f"- HAM10000 tocado: {report['ham10000_touched']}",
+        "",
+    ]
+    corr = report["image_mask_correspondence"]
+    lines += [
+        "## Correspondência imagem↔máscara",
+        "",
+        f"- Imagens: {corr['n_images']} / Máscaras: {corr['n_masks']} / Pareadas: {corr['n_matched']} "
+        f"/ Correspondência perfeita: {corr['ok']}",
+        "",
+    ]
+
+    for arch, res in report["architectures"].items():
+        lines.append(f"## Arquitetura: `{arch}`")
+        lines.append("")
+        lines.append(f"- Fold externo (NUNCA usado antes da avaliação final): {res['external_fold_ids']}")
+        lines.append(
+            f"- Imagens ignoradas por referência inválida na busca de limiar: "
+            f"{res['n_skipped_invalid_reference_in_threshold_search']}"
+        )
+        lines.append("")
+        lines.append("### Rodadas internas")
+        lines.append("")
+        lines.append("| val_fold | train_folds | n_treino | n_val | melhor_época | dice_monitor | tempo(s) |")
+        lines.append("|---|---|---|---|---|---|---|")
+        for r in res["internal_rounds"]:
+            lines.append(
+                f"| {r['internal_val_fold']} | {r['train_folds']} | {len(r['train_ids'])} | "
+                f"{len(r['val_ids'])} | {r['best_epoch']} | {r['best_epoch_monitor_dice']:.4f} | "
+                f"{r['training_time_s']:.1f} |"
+            )
+        lines.append("")
+        lines.append(f"- IDs de treino/val por rodada (rastreabilidade completa):")
+        for r in res["internal_rounds"]:
+            lines.append(f"  - val_fold {r['internal_val_fold']}: val_ids={r['val_ids']}")
+            lines.append(f"    train_ids={r['train_ids']}")
+        lines.append("")
+        lines.append(f"- **chosen_epochs** (mediana das melhores épocas, round-half-up): {res['chosen_epochs']}")
+        lines.append("")
+        ts = res["threshold_selection"]
+        lines.append("### Seleção de limiar")
+        lines.append("")
+        lines.append(f"- Médias de Dice por limiar: {ts['mean_dice_by_threshold']}")
+        lines.append(f"- Limiar escolhido: {ts['chosen_threshold']}")
+        lines.append(f"- Empate: {ts['empate']} (limiares empatados: {ts['tied_thresholds']})")
+        lines.append(f"- **Empate simétrico residual**: {ts['empate_simetrico']}")
+        lines.append("")
+        lines.append(f"### Retreino (4 folds de desenvolvimento, {res['chosen_epochs']} épocas, sem early stopping)")
+        lines.append("")
+        lines.append(f"- IDs de retreino: {res['retrain_ids']}")
+        lines.append(f"- Tempo de retreino: {res['retrain_time_s']:.1f}s")
+        lines.append(f"- Checkpoint: `{res['retrain_checkpoint_path']}`")
+        lines.append("")
+        ext = res["external_evaluation"]
+        agg = ext["aggregate"]
+        lines.append("### Avaliação externa (única, com o limiar escolhido)")
+        lines.append("")
+        lines.append(f"- Tempo de avaliação: {ext['evaluation_time_s']:.1f}s")
+        lines.append(f"- Casos: total={agg['n_total']} ok={agg['n_ok']} por status={agg['counts_by_status']}")
+        lines.append(f"- Dice médio: {agg['mean_dice']}")
+        lines.append(f"- IoU médio: {agg['mean_iou']}")
+        lines.append(f"- Thresholded Jaccard médio: {agg['mean_thresholded_jaccard']}")
+        lines.append(f"- Taxa de falha ISIC: {agg['isic_failure_rate']}")
+        lines.append(
+            f"- HD95 mediana (finitos): {agg['hd95_median_finite']} / indefinidos: {agg['hd95_n_undefined']}"
+        )
+        lines.append(
+            f"- HD95 normalizado pela diagonal, mediana (finitos): "
+            f"{agg['hd95_normalizado_diagonal_median_finite']}"
+        )
+        lines.append("")
+        lines.append(
+            "| image_id | status | dim. original | dice | iou | hd95 | hd95_norm_diag | "
+            "pred_pos_px | ref_pos_px |"
+        )
+        lines.append("|---|---|---|---|---|---|---|---|---|")
+        for pr in ext["per_image"]:
+            lines.append(
+                f"| `{pr.get('image_id')}` | {pr['status']} | {pr.get('original_shape')} | "
+                f"{pr.get('dice')} | {pr.get('iou')} | {pr.get('hd95')} | "
+                f"{pr.get('hd95_normalizado_diagonal')} | {pr.get('pred_positive_pixels')} | "
+                f"{pr.get('ref_positive_pixels')} |"
+            )
+        lines.append("")
+    return "\n".join(lines)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--architecture", choices=["unet", "deeplabv3plus", "both"], default="both")
+    parser.add_argument(
+        "--device", choices=["cpu", "cuda", "mps"], default=_best_available_device(),
+        help="Se omitido, auto-detecta cuda > mps > cpu. Se passado explicitamente e "
+        "o dispositivo nao estiver disponivel, levanta erro -- nunca cai silenciosamente para cpu.",
+    )
+    parser.add_argument(
+        "--images-zip", default=DEFAULT_IMAGES_ZIP,
+        help="Caminho do zip de imagens. Default e do Windows do pesquisador -- no Mac, passe o caminho real.",
+    )
+    parser.add_argument(
+        "--masks-zip", default=DEFAULT_MASKS_ZIP,
+        help="Caminho do zip de mascaras. Default e do Windows do pesquisador -- no Mac, passe o caminho real.",
+    )
+    parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--folds-path", default=DEFAULT_FOLDS_PATH)
+    parser.add_argument(
+        "--seed", type=int, default=folds_mod.DEFAULT_SEED,
+        help="Seed dos 5 folds fixos -- so usada se o arquivo de folds ainda nao existir "
+        "(bootstrap). NAO regenera um arquivo de folds ja existente.",
+    )
+    parser.add_argument(
+        "--train-seed", type=int, default=DEFAULT_TRAIN_SEED,
+        help="Seed de inicializacao de modelo / embaralhamento do treino (distinta da seed dos folds).",
+    )
+    parser.add_argument(
+        "--external-fold", type=int, default=DEFAULT_EXTERNAL_FOLD,
+        help="Indice do fold (0-4) tratado como fold externo -- usado SO na avaliacao final (passo 6).",
+    )
+    parser.add_argument(
+        "--max-epochs", type=int, default=DEFAULT_MAX_EPOCHS,
+        help="Numero MAXIMO de epocas por rodada interna (e do retreino, via mediana). "
+        "Valor de ENSAIO -- NAO e o orcamento de treino definitivo.",
+    )
+    parser.add_argument(
+        "--monitor-threshold", type=float, default=DEFAULT_MONITOR_THRESHOLD,
+        help="Threshold FIXO usado so no monitoramento epoca-a-epoca (resolucao de treino, 256x256) -- "
+        "NAO e o limiar escolhido por validacao (esse vem da busca na grade, resolucao original).",
+    )
+    parser.add_argument("--lr", type=float, default=DEFAULT_LR)
+    parser.add_argument(
+        "--max-images-per-fold", type=int, default=None,
+        help="Limite opcional de imagens por fold (amostra determinística, ordem alfabética) "
+        "para uma versao mais rapida do ensaio. Default: sem limite (fold completo).",
+    )
+    args = parser.parse_args()
+    run_rehearsal(args)
+
+
+if __name__ == "__main__":
+    main()
