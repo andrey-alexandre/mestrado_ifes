@@ -212,6 +212,8 @@ def _run_internal_round(
     monitor_threshold: float,
     seed: int,
     output_dir: Path,
+    external_fold: int,
+    checkpoint_prefix: str = "nested_cv_round",
 ) -> dict[str, Any]:
     train_ids = round_spec["train_ids"]
     val_ids = round_spec["val_ids"]
@@ -269,7 +271,18 @@ def _run_internal_round(
             break  # stop IMMEDIATELY -- never keep training past the stop decision
     training_time_s = time.time() - t0
 
-    ckpt_path = output_dir / f"nested_cv_round_{architecture}_valfold{val_fold}.pt"
+    # Namespaced by external_fold too (fix 2026-11-08): val_fold is an index
+    # among the DEVELOPMENT folds, which repeats across different external
+    # rounds (e.g. external_fold=2 and external_fold=3 can both have a
+    # val_fold=0 internal round) -- without external_fold in the filename,
+    # two different external rounds would overwrite each other's checkpoint.
+    # checkpoint_prefix additionally separates the discardable single-round
+    # PROBE's checkpoint ("nested_cv_probe_round") from a real round's
+    # ("nested_cv_round") -- same architecture/external_fold/val_fold values
+    # are plausible for both (e.g. probing external_fold=0 after already
+    # running the real external_fold=0), so without a distinct prefix the
+    # probe could silently overwrite a real round's checkpoint, or vice versa.
+    ckpt_path = output_dir / f"{checkpoint_prefix}_{architecture}_extfold{external_fold}_valfold{val_fold}.pt"
     torch.save(
         {"model_state_dict": best_state, "architecture": architecture, "best_epoch": best_epoch},
         ckpt_path,
@@ -333,6 +346,7 @@ def _retrain_final(
     lr: float,
     seed: int,
     output_dir: Path,
+    external_fold: int,
 ):
     if not retrain_ids:
         raise ValueError("Conjunto de retreino vazio -- verifique a configuracao dos folds.")
@@ -354,7 +368,9 @@ def _retrain_final(
         _train_one_epoch(model, loader, optimizer, criterion, device)
     training_time_s = time.time() - t0
 
-    ckpt_path = output_dir / f"nested_cv_retrain_{architecture}.pt"
+    # Namespaced by external_fold too (fix 2026-11-08) -- otherwise the
+    # retrain checkpoint of one external round overwrites another's.
+    ckpt_path = output_dir / f"nested_cv_retrain_{architecture}_extfold{external_fold}.pt"
     torch.save(
         {"model_state_dict": model.state_dict(), "architecture": architecture, "epochs": chosen_epochs},
         ckpt_path,
@@ -409,6 +425,7 @@ def run_rehearsal_for_architecture(
             max_epochs=args.max_epochs, patience=args.patience, lr=args.lr,
             monitor_threshold=args.monitor_threshold,
             seed=args.train_seed + i, output_dir=output_dir,
+            external_fold=args.external_fold,
         )
         round_results.append(round_result)
         print(
@@ -442,6 +459,7 @@ def run_rehearsal_for_architecture(
     retrained_model, retrain_time_s, retrain_ckpt_path = _retrain_final(
         architecture, retrain_ids, images_zip, masks_zip, device,
         chosen_epochs=chosen_epochs, lr=args.lr, seed=args.train_seed + 100, output_dir=output_dir,
+        external_fold=args.external_fold,
     )
     print(f"      [retreino] concluido em {retrain_time_s:.1f}s")
 
@@ -538,9 +556,13 @@ def run_rehearsal(args: argparse.Namespace) -> None:
             arch, folds_data, args.images_zip, args.masks_zip, device, args, output_dir
         )
 
-    results_json_path = output_dir / "nested_cv_rehearsal_results.json"
-    report_md_path = output_dir / "nested_cv_rehearsal_report.md"
-    log_path = output_dir / "nested_cv_rehearsal.log"
+    # Namespaced by external_fold (fix 2026-11-08): the researcher runs one
+    # external round at a time (0, 1, 2, ...) -- fixed filenames would make
+    # each new run overwrite the previous external round's report.
+    ef = args.external_fold
+    results_json_path = output_dir / f"nested_cv_rehearsal_externalfold{ef}_results.json"
+    report_md_path = output_dir / f"nested_cv_rehearsal_externalfold{ef}_report.md"
+    log_path = output_dir / f"nested_cv_rehearsal_externalfold{ef}.log"
 
     with open(results_json_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2, default=str)
@@ -629,6 +651,7 @@ def run_single_round_probe(args: argparse.Namespace) -> None:
             arch, round_spec, args.images_zip, args.masks_zip, device,
             max_epochs=args.max_epochs, patience=args.patience, lr=args.lr,
             monitor_threshold=args.monitor_threshold, seed=args.train_seed, output_dir=output_dir,
+            external_fold=args.external_fold, checkpoint_prefix="nested_cv_probe_round",
         )
         n_epochs_run = len(round_result["epoch_history"])
         round_result["n_epochs_run"] = n_epochs_run
