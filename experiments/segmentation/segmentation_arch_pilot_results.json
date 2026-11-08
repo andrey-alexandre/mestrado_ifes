@@ -1,0 +1,240 @@
+{
+  "device_requested": "mps",
+  "device_effective": "mps",
+  "target_size": 256,
+  "demo_threshold": 0.5,
+  "init_policy": "Ambas arquiteturas usam inicializacao aleatoria neste piloto (weights=None, sem download) -- decisao do piloto, nao decide a politica de pre-treinamento do experimento definitivo.",
+  "external_fold": 0,
+  "external_fold_n_images": 519,
+  "internal_val_fold": 4,
+  "train_piloto_folds": [
+    1,
+    2,
+    3
+  ],
+  "n_train_piloto_total": 1557,
+  "n_train_piloto_amostra": 12,
+  "n_val_interna_total": 518,
+  "n_val_interna_amostra": 3,
+  "folds_file": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/isic2018_task1_folds.json",
+  "fold_grouping_key": "image:{image_id} (sem lesion_id -- ver src/segmentation/folds.py)",
+  "image_mask_correspondence": {
+    "n_images": 2594,
+    "n_masks": 2594,
+    "n_matched": 2594,
+    "n_only_in_images": 0,
+    "n_only_in_masks": 0,
+    "ok": true
+  },
+  "architectures": {
+    "unet": {
+      "leitura_alinhamento": {
+        "status": "PASSOU",
+        "image_id": "ISIC_0000000",
+        "image_shape": [
+          3,
+          256,
+          256
+        ],
+        "mask_shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "atualizacao_peso": {
+        "status": "PASSOU",
+        "parametro_monitorado": "enc1.block.0.weight"
+      },
+      "checkpoint_save_reload": {
+        "status": "PASSOU",
+        "path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/pilot_checkpoint_unet.pt"
+      },
+      "mascara_predita": {
+        "status": "PASSOU",
+        "shape": [
+          1,
+          1,
+          256,
+          256
+        ]
+      },
+      "metricas_demo": {
+        "threshold_demo": 0.5,
+        "per_image": [
+          {
+            "status": "ok",
+            "dice": 0.0,
+            "iou": 0.0,
+            "thresholded_jaccard": 0.0,
+            "hd95": null,
+            "hd95_normalizado_diagonal": null,
+            "is_isic_failure": true,
+            "image_id": "ISIC_0000009",
+            "original_shape": [
+              767,
+              1022
+            ]
+          },
+          {
+            "status": "ok",
+            "dice": 0.0,
+            "iou": 0.0,
+            "thresholded_jaccard": 0.0,
+            "hd95": null,
+            "hd95_normalizado_diagonal": null,
+            "is_isic_failure": true,
+            "image_id": "ISIC_0000012",
+            "original_shape": [
+              767,
+              1022
+            ]
+          },
+          {
+            "status": "ok",
+            "dice": 0.0,
+            "iou": 0.0,
+            "thresholded_jaccard": 0.0,
+            "hd95": null,
+            "hd95_normalizado_diagonal": null,
+            "is_isic_failure": true,
+            "image_id": "ISIC_0000015",
+            "original_shape": [
+              767,
+              1022
+            ]
+          }
+        ],
+        "aggregate": {
+          "n_total": 3,
+          "counts_by_status": {
+            "ok": 3
+          },
+          "n_ok": 3,
+          "mean_dice": 0.0,
+          "mean_iou": 0.0,
+          "isic_failure_rate": 1.0,
+          "mean_thresholded_jaccard": 0.0,
+          "hd95_median_finite": null,
+          "hd95_normalizado_diagonal_median_finite": null,
+          "hd95_n_undefined": 3
+        }
+      },
+      "tempo_execucao_s": 3.3401951789855957,
+      "n_imagens_treino_piloto": 12,
+      "n_imagens_validacao_interna_metricas": 3,
+      "medicao_tempo_epoca": {
+        "n_imagens": 12,
+        "tempo_s": 0.4191889762878418,
+        "tempo_por_imagem_s": 0.03493241469065348,
+        "aviso": "Isto e so medicao de tempo (1 epoca sobre a amostra de piloto, nao o dataset inteiro) para planejar a execucao aninhada real -- nao e treino real nem selecao de limiar/arquitetura."
+      }
+    },
+    "deeplabv3plus": {
+      "leitura_alinhamento": {
+        "status": "PASSOU",
+        "image_id": "ISIC_0000000",
+        "image_shape": [
+          3,
+          256,
+          256
+        ],
+        "mask_shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "atualizacao_peso": {
+        "status": "PASSOU",
+        "parametro_monitorado": "stem.0.weight"
+      },
+      "checkpoint_save_reload": {
+        "status": "PASSOU",
+        "path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/pilot_checkpoint_deeplabv3plus.pt"
+      },
+      "mascara_predita": {
+        "status": "PASSOU",
+        "shape": [
+          1,
+          1,
+          256,
+          256
+        ]
+      },
+      "metricas_demo": {
+        "threshold_demo": 0.5,
+        "per_image": [
+          {
+            "status": "ok",
+            "dice": 0.37580471713946495,
+            "iou": 0.2313790226490482,
+            "thresholded_jaccard": 0.0,
+            "hd95": null,
+            "hd95_normalizado_diagonal": null,
+            "is_isic_failure": true,
+            "image_id": "ISIC_0000009",
+            "original_shape": [
+              767,
+              1022
+            ]
+          },
+          {
+            "status": "ok",
+            "dice": 0.09582179468493417,
+            "iou": 0.0503218629524643,
+            "thresholded_jaccard": 0.0,
+            "hd95": null,
+            "hd95_normalizado_diagonal": null,
+            "is_isic_failure": true,
+            "image_id": "ISIC_0000012",
+            "original_shape": [
+              767,
+              1022
+            ]
+          },
+          {
+            "status": "ok",
+            "dice": 0.37099319925810087,
+            "iou": 0.2277419585290493,
+            "thresholded_jaccard": 0.0,
+            "hd95": null,
+            "hd95_normalizado_diagonal": null,
+            "is_isic_failure": true,
+            "image_id": "ISIC_0000015",
+            "original_shape": [
+              767,
+              1022
+            ]
+          }
+        ],
+        "aggregate": {
+          "n_total": 3,
+          "counts_by_status": {
+            "ok": 3
+          },
+          "n_ok": 3,
+          "mean_dice": 0.2808732370275,
+          "mean_iou": 0.16981428137685395,
+          "isic_failure_rate": 1.0,
+          "mean_thresholded_jaccard": 0.0,
+          "hd95_median_finite": null,
+          "hd95_normalizado_diagonal_median_finite": null,
+          "hd95_n_undefined": 3
+        }
+      },
+      "tempo_execucao_s": 3.6580281257629395,
+      "n_imagens_treino_piloto": 12,
+      "n_imagens_validacao_interna_metricas": 3,
+      "medicao_tempo_epoca": {
+        "n_imagens": 12,
+        "tempo_s": 0.27822017669677734,
+        "tempo_por_imagem_s": 0.023185014724731445,
+        "aviso": "Isto e so medicao de tempo (1 epoca sobre a amostra de piloto, nao o dataset inteiro) para planejar a execucao aninhada real -- nao e treino real nem selecao de limiar/arquitetura."
+      }
+    }
+  },
+  "ham10000_touched": false,
+  "aviso": "Verificacao tecnica mecanica -- NAO treina um modelo real, NAO roda validacao cruzada aninhada, NAO seleciona arquitetura/limiar/metrica final. HAM10000 nao foi tocado.",
+  "status_geral": "TODAS AS VERIFICACOES MECANICAS PASSARAM"
+}
