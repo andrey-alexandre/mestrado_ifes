@@ -35,6 +35,37 @@ import numpy as np
 THRESHOLD_GRID: tuple[float, ...] = tuple(round(0.30 + i * 0.05, 2) for i in range(9))
 
 
+def early_stopping_check(
+    epoch: int, max_epochs: int, epochs_without_improvement: int, patience: int
+) -> str | None:
+    """Decides whether an internal round should stop AFTER the given
+    epoch, and why -- pure function, no I/O, so the stopping RULE is
+    testable independently of real training.
+
+    Researcher decision (2026-11-08, consolidation doc section 5, fixed
+    BEFORE any new execution so the rule could not be adjusted after
+    seeing results): a round stops when 5 consecutive epochs pass without
+    a strict improvement of the internal monitoring Dice ("paciencia
+    esgotada"), or when it reaches ``max_epochs`` without that happening
+    ("teto atingido") -- ``max_epochs`` is an operational ceiling, NEVER a
+    claim of convergence, even if the Dice was still improving when the
+    ceiling was hit.
+
+    Returns:
+        ``"paciencia_esgotada"`` if ``epochs_without_improvement >= patience``.
+        ``"teto_atingido"`` if ``epoch >= max_epochs`` (checked only after
+            the patience condition, so a round that exhausts patience
+            exactly on its last possible epoch is still reported as
+            ``"paciencia_esgotada"``, not ``"teto_atingido"``).
+        ``None`` if the round should keep training.
+    """
+    if epochs_without_improvement >= patience:
+        return "paciencia_esgotada"
+    if epoch >= max_epochs:
+        return "teto_atingido"
+    return None
+
+
 def select_epochs_via_median(best_epochs: list[int]) -> int:
     """Median of the best-epoch values (one per internal fold), rounded to
     an integer epoch count.

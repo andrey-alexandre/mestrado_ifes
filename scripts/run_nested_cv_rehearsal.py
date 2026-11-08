@@ -17,22 +17,35 @@ SCOPE: this is a REHEARSAL of exactly ONE external round (fixed
 DeepLabV3+ each run the same logic -- NO comparison or selection between
 them here, that is a later decision gated on this rehearsal passing). It
 does NOT run the full 5 external rounds, does NOT select a final
-architecture/configuration, does NOT decide a narrowed final grid. Epoch
-counts here (``--max-epochs``, default 2) are a REHEARSAL value, not the
-real training budget.
+architecture/configuration, does NOT decide a narrowed final grid.
+``--max-epochs`` (default 20) is an OPERATIONAL CEILING fixed by the
+researcher before any new execution -- NOT an estimate of the optimal
+epoch -- with real early stopping (``--patience``, default 5) governing
+when a round actually stops; see "PROBE MODE" below and
+docs/reconstruction/14_segmentation_nested_cv_consolidation.md section 5.
 
 Per architecture, the flow is:
   1. Load the external fold's ids -- NEVER used before step 6.
   2. 4 internal rounds (each of the 4 development folds as internal
      validation in turn, the other 3 as internal training): train a fresh
-     (randomly initialized) model for up to --max-epochs epochs; after
-     each epoch, evaluate Dice on the round's internal-validation set AT
-     TRAINING RESOLUTION (256x256, fixed monitoring threshold 0.5) -- a
-     deliberate, documented simplification for cheap per-epoch monitoring
-     (the metrics that are actually reported in this rehearsal -- the
-     threshold-grid search in step 4 and the external evaluation in step
-     6 -- always use the full original-resolution pipeline). Track the
-     best epoch (strict improvement; ties keep the FIRST epoch).
+     (randomly initialized) model for up to --max-epochs epochs (default
+     20 -- an OPERATIONAL CEILING, not an estimate of the optimal epoch:
+     the first rehearsal with --max-epochs 2 showed the best epoch was
+     ALWAYS epoch 2 in all 8 internal rounds, i.e. 2 was never a real
+     peak -- see docs/reconstruction/14_segmentation_nested_cv_consolidation.md
+     section 5), with EARLY STOPPING after --patience (default 5)
+     consecutive epochs without a strict improvement of the Dice of
+     monitoring. After each epoch, evaluate Dice on the round's
+     internal-validation set AT TRAINING RESOLUTION (256x256, fixed
+     monitoring threshold 0.5) -- a deliberate, documented simplification
+     for cheap per-epoch monitoring (the metrics that are actually
+     reported in this rehearsal -- the threshold-grid search in step 4
+     and the external evaluation in step 6 -- always use the full
+     original-resolution pipeline). Track the best epoch (strict
+     improvement; ties keep the FIRST epoch). Each round records
+     ``stopped_reason``: ``"paciencia_esgotada"`` (patience exhausted) or
+     ``"teto_atingido"`` (reached --max-epochs without patience firing --
+     NEVER interpreted as convergence, even if Dice was still improving).
   3. chosen_epochs = median of the 4 rounds' best epochs (round-half-up,
      see src/segmentation/nested_cv.py).
   4. Using each round's best-epoch checkpoint, compute per-image Dice at
@@ -47,6 +60,18 @@ Per architecture, the flow is:
      fold, with the chosen threshold, through the full metrics pipeline
      (restore -> binarize -> compute_image_metrics -> aggregate_metrics).
 
+PROBE MODE (--probe-single-round, added 2026-11-08): runs ONLY ONE
+internal round (--probe-round-index, default 0, an index among the 4
+development folds, NOT the raw fold index) per selected architecture --
+NO threshold search, NO retrain, NO external evaluation. A DISCARDABLE
+probe to validate the early-stopping rule and measure time/epoch before
+committing to the full 5x4 rounds -- its report says so explicitly and it
+must never be reused as if it were one of the real nested-CV rounds (its
+checkpoint/results live in separate, distinctly-named output files from
+the real rehearsal's). Reuses ``_run_internal_round`` (same early
+stopping), ``nested_cv.build_internal_rounds``, and the same
+device/folds-bootstrap logic -- not duplicated.
+
 HAM10000 is never read or referenced here.
 
 STATUS: implementada, aguardando execucao do pesquisador. Not run by the
@@ -54,12 +79,15 @@ assistant/fork that wrote it.
 
 Usage:
     python scripts/run_nested_cv_rehearsal.py --device mps
-    python scripts/run_nested_cv_rehearsal.py --architecture unet --max-epochs 2 \\
+    python scripts/run_nested_cv_rehearsal.py --architecture unet --max-epochs 20 --patience 5 \\
         --max-images-per-fold 20 --device mps
     python scripts/run_nested_cv_rehearsal.py \\
         --images-zip /Volumes/Andrey/Mestrado/ISIC2018_Task1-2_Training_Input.zip \\
         --masks-zip /Volumes/Andrey/Mestrado/ISIC2018_Task1_Training_GroundTruth.zip \\
         --device mps
+
+    # Sondagem descartavel de uma unica rodada, antes da execucao completa:
+    python scripts/run_nested_cv_rehearsal.py --probe-single-round --probe-round-index 0 --device mps
 """
 from __future__ import annotations
 
@@ -107,7 +135,14 @@ DEFAULT_MASKS_ZIP = "D:/Andrey/Mestrado/ISIC2018_Task1_Training_GroundTruth.zip"
 DEFAULT_OUTPUT_DIR = str(REPO_ROOT / "experiments" / "segmentation")
 DEFAULT_FOLDS_PATH = str(REPO_ROOT / "experiments" / "segmentation" / "isic2018_task1_folds.json")
 DEFAULT_EXTERNAL_FOLD = 0
-DEFAULT_MAX_EPOCHS = 2  # REHEARSAL value, not the real training budget
+# Researcher decision 2026-11-08 (docs/reconstruction/14_segmentation_nested_cv_consolidation.md,
+# section 5): the first rehearsal used --max-epochs 2, and the best epoch
+# was ALWAYS epoch 2 in all 8 internal rounds -- i.e. 2 was never a real
+# peak, only the rehearsal's artificial ceiling. 20 is an OPERATIONAL
+# CEILING fixed before any new execution (so the rule could not be tuned
+# after seeing results), not an estimate of the optimal epoch.
+DEFAULT_MAX_EPOCHS = 20
+DEFAULT_PATIENCE = 5  # consecutive epochs without improvement before stopping
 DEFAULT_MONITOR_THRESHOLD = 0.5
 DEFAULT_LR = 1e-4
 DEFAULT_TRAIN_SEED = 42  # model init / shuffling seed -- distinct from the folds-assignment seed
@@ -172,6 +207,7 @@ def _run_internal_round(
     masks_zip: str,
     device,
     max_epochs: int,
+    patience: int,
     lr: float,
     monitor_threshold: float,
     seed: int,
@@ -212,6 +248,8 @@ def _run_internal_round(
     best_epoch = None
     best_state = None
     epoch_history = []
+    epochs_without_improvement = 0
+    stopped_reason = None
 
     t0 = time.time()
     for epoch in range(1, max_epochs + 1):
@@ -222,6 +260,13 @@ def _run_internal_round(
             best_dice = monitor_dice
             best_epoch = epoch
             best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
+            epochs_without_improvement = 0
+        else:
+            epochs_without_improvement += 1
+
+        stopped_reason = nested_cv.early_stopping_check(epoch, max_epochs, epochs_without_improvement, patience)
+        if stopped_reason is not None:
+            break  # stop IMMEDIATELY -- never keep training past the stop decision
     training_time_s = time.time() - t0
 
     ckpt_path = output_dir / f"nested_cv_round_{architecture}_valfold{val_fold}.pt"
@@ -238,6 +283,10 @@ def _run_internal_round(
         "epoch_history": epoch_history,
         "best_epoch": best_epoch,
         "best_epoch_monitor_dice": best_dice,
+        # "teto_atingido" never means convergence -- only that the Dice
+        # curve was still improving (or at least not failing patience)
+        # when the operational ceiling was hit.
+        "stopped_reason": stopped_reason,
         "training_time_s": training_time_s,
         "checkpoint_path": str(ckpt_path),
     }
@@ -357,13 +406,16 @@ def run_rehearsal_for_architecture(
         print(f"      [rodada interna {i + 1}/4] val_fold={round_spec['internal_val_fold']} ...")
         round_result = _run_internal_round(
             architecture, round_spec, images_zip, masks_zip, device,
-            max_epochs=args.max_epochs, lr=args.lr, monitor_threshold=args.monitor_threshold,
+            max_epochs=args.max_epochs, patience=args.patience, lr=args.lr,
+            monitor_threshold=args.monitor_threshold,
             seed=args.train_seed + i, output_dir=output_dir,
         )
         round_results.append(round_result)
         print(
             f"      [rodada interna {i + 1}/4] melhor epoca={round_result['best_epoch']} "
             f"dice_monitor={round_result['best_epoch_monitor_dice']:.4f} "
+            f"motivo_parada={round_result['stopped_reason']} "
+            f"epocas_rodadas={len(round_result['epoch_history'])} "
             f"tempo={round_result['training_time_s']:.1f}s"
         )
 
@@ -458,6 +510,7 @@ def run_rehearsal(args: argparse.Namespace) -> None:
         "device_effective": str(device),
         "external_fold": args.external_fold,
         "max_epochs_rehearsal": args.max_epochs,
+        "patience": args.patience,
         "monitor_threshold": args.monitor_threshold,
         "train_seed": args.train_seed,
         "lr": args.lr,
@@ -507,6 +560,145 @@ def run_rehearsal(args: argparse.Namespace) -> None:
     )
 
 
+def run_single_round_probe(args: argparse.Namespace) -> None:
+    """DISCARDABLE probe: trains exactly ONE internal round (with the same
+    real training + early stopping as the full rehearsal), no threshold
+    search, no retrain, no external evaluation. Writes to separate,
+    distinctly-named output files -- never mixed with the real
+    rehearsal's. See module docstring, "PROBE MODE"."""
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.max_epochs < 1:
+        raise ValueError(f"--max-epochs deve ser >= 1, recebido {args.max_epochs}")
+
+    print("=== SONDAGEM DE RODADA UNICA (DESCARTAVEL) ===")
+    print(
+        "AVISO: isto NAO e uma das rodadas reais da validacao aninhada -- serve "
+        "so para validar a regra de parada e medir tempo antes da execucao "
+        "completa (5x4 rodadas). HAM10000 nao e tocado."
+    )
+    device = _resolve_device(args.device)
+    print(f"dispositivo solicitado={args.device} efetivo={device}")
+
+    correspondence = verify_image_mask_correspondence(args.images_zip, args.masks_zip)
+    folds_data = _ensure_folds(args.images_zip, args.folds_path, folds_mod.N_FOLDS, args.seed)
+    matched_ids = set(folds_data["image_to_fold"].keys()) - set(correspondence["only_in_images"])
+    folds_data = _filter_folds_data_to_matched(folds_data, matched_ids)
+    folds_data = _truncate_folds_data(folds_data, args.max_images_per_fold)
+
+    if not (0 <= args.external_fold < folds_data["n_folds"]):
+        raise ValueError(
+            f"--external-fold deve estar entre 0 e {folds_data['n_folds'] - 1}, recebido {args.external_fold}"
+        )
+
+    internal_rounds_spec = nested_cv.build_internal_rounds(folds_data, args.external_fold)
+    if not (0 <= args.probe_round_index < len(internal_rounds_spec)):
+        raise ValueError(
+            f"--probe-round-index deve estar entre 0 e {len(internal_rounds_spec) - 1} "
+            f"(indice entre os {len(internal_rounds_spec)} folds de desenvolvimento), "
+            f"recebido {args.probe_round_index}"
+        )
+    round_spec = internal_rounds_spec[args.probe_round_index]
+
+    architectures = ARCHITECTURES if args.architecture == "both" else (args.architecture,)
+
+    report: dict[str, Any] = {
+        "aviso": (
+            "SONDAGEM DESCARTAVEL -- nao e uma das rodadas reais da validacao "
+            "aninhada; serve so para validar a regra de parada e medir tempo "
+            "antes da execucao completa (5x4 rodadas). NAO rodou busca de "
+            "limiar, retreino ou avaliacao externa."
+        ),
+        "device_requested": args.device,
+        "device_effective": str(device),
+        "external_fold": args.external_fold,
+        "probe_round_index": args.probe_round_index,
+        "internal_val_fold": round_spec["internal_val_fold"],
+        "max_epochs": args.max_epochs,
+        "patience": args.patience,
+        "monitor_threshold": args.monitor_threshold,
+        "lr": args.lr,
+        "ham10000_touched": False,
+        "architectures": {},
+    }
+
+    for arch in architectures:
+        print(f"\n--- arquitetura: {arch} (sondagem, val_fold={round_spec['internal_val_fold']}) ---")
+        round_result = _run_internal_round(
+            arch, round_spec, args.images_zip, args.masks_zip, device,
+            max_epochs=args.max_epochs, patience=args.patience, lr=args.lr,
+            monitor_threshold=args.monitor_threshold, seed=args.train_seed, output_dir=output_dir,
+        )
+        n_epochs_run = len(round_result["epoch_history"])
+        round_result["n_epochs_run"] = n_epochs_run
+        round_result["mean_time_per_epoch_s"] = (
+            round_result["training_time_s"] / n_epochs_run if n_epochs_run else None
+        )
+        print(
+            f"      melhor_epoca={round_result['best_epoch']} motivo_parada={round_result['stopped_reason']} "
+            f"epocas_rodadas={n_epochs_run} tempo_total={round_result['training_time_s']:.1f}s "
+            f"tempo_medio_epoca={round_result['mean_time_per_epoch_s']:.1f}s"
+        )
+        report["architectures"][arch] = round_result
+
+    results_json_path = output_dir / "nested_cv_single_round_probe_results.json"
+    report_md_path = output_dir / "nested_cv_single_round_probe_report.md"
+    log_path = output_dir / "nested_cv_single_round_probe.log"
+
+    with open(results_json_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+
+    with open(report_md_path, "w", encoding="utf-8") as f:
+        f.write(_render_probe_report_md(report))
+
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+    print(f"\nresultados (json) gravados: {results_json_path}")
+    print(f"relatorio (md) gravado: {report_md_path}")
+    print(f"log gravado: {log_path}")
+    print(
+        "\nLEMBRETE: sondagem descartavel -- NAO reaproveitar como se fosse uma "
+        "rodada real da validacao aninhada."
+    )
+
+
+def _render_probe_report_md(report: dict[str, Any]) -> str:
+    lines = [
+        "# Sondagem de rodada única (descartável)",
+        "",
+        f"**{report['aviso']}**",
+        "",
+        f"- Dispositivo solicitado: `{report['device_requested']}` / efetivo: `{report['device_effective']}`",
+        f"- Fold externo: {report['external_fold']} (não usado nesta sondagem)",
+        f"- Índice da rodada de sondagem: {report['probe_round_index']} "
+        f"(fold de validação interna: {report['internal_val_fold']})",
+        f"- max_epochs: {report['max_epochs']} / patience: {report['patience']}",
+        f"- Threshold de monitoramento: {report['monitor_threshold']} / lr: {report['lr']}",
+        f"- HAM10000 tocado: {report['ham10000_touched']}",
+        "",
+    ]
+    for arch, res in report["architectures"].items():
+        lines.append(f"## Arquitetura: `{arch}`")
+        lines.append("")
+        lines.append(f"- Melhor época: {res['best_epoch']} (Dice monitor: {res['best_epoch_monitor_dice']:.4f})")
+        lines.append(f"- **Motivo da parada**: {res['stopped_reason']}")
+        lines.append(f"- Épocas efetivamente rodadas: {res['n_epochs_run']} de até {report['max_epochs']}")
+        lines.append(
+            f"- Tempo total: {res['training_time_s']:.1f}s / "
+            f"tempo médio por época: {res['mean_time_per_epoch_s']:.1f}s"
+        )
+        lines.append(f"- Checkpoint: `{res['checkpoint_path']}`")
+        lines.append("")
+        lines.append("| época | dice_monitor |")
+        lines.append("|---|---|")
+        for e in res["epoch_history"]:
+            lines.append(f"| {e['epoch']} | {e['monitor_dice']:.4f} |")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def _render_report_md(report: dict[str, Any]) -> str:
     lines = [
         "# Ensaio — executor da validação cruzada aninhada (uma rodada externa)",
@@ -515,7 +707,8 @@ def _render_report_md(report: dict[str, Any]) -> str:
         "",
         f"- Dispositivo solicitado: `{report['device_requested']}` / efetivo: `{report['device_effective']}`",
         f"- Fold externo: {report['external_fold']}",
-        f"- Épocas de ensaio (máximo por rodada interna): {report['max_epochs_rehearsal']}",
+        f"- Teto operacional de épocas por rodada interna: {report['max_epochs_rehearsal']} "
+        f"(early stopping com paciência={report['patience']} -- teto NÃO é estimativa de convergência)",
         f"- Threshold de monitoramento (época a época, resolução de treino): {report['monitor_threshold']}",
         f"- Grade de limiar (resolução original): {report['threshold_grid']}",
         f"- Seed de treino: {report['train_seed']} / lr: {report['lr']}",
@@ -545,12 +738,16 @@ def _render_report_md(report: dict[str, Any]) -> str:
         lines.append("")
         lines.append("### Rodadas internas")
         lines.append("")
-        lines.append("| val_fold | train_folds | n_treino | n_val | melhor_época | dice_monitor | tempo(s) |")
-        lines.append("|---|---|---|---|---|---|---|")
+        lines.append(
+            "| val_fold | train_folds | n_treino | n_val | épocas_rodadas | melhor_época | "
+            "dice_monitor | motivo_parada | tempo(s) |"
+        )
+        lines.append("|---|---|---|---|---|---|---|---|---|")
         for r in res["internal_rounds"]:
             lines.append(
                 f"| {r['internal_val_fold']} | {r['train_folds']} | {len(r['train_ids'])} | "
-                f"{len(r['val_ids'])} | {r['best_epoch']} | {r['best_epoch_monitor_dice']:.4f} | "
+                f"{len(r['val_ids'])} | {len(r['epoch_history'])} | {r['best_epoch']} | "
+                f"{r['best_epoch_monitor_dice']:.4f} | {r['stopped_reason']} | "
                 f"{r['training_time_s']:.1f} |"
             )
         lines.append("")
@@ -642,8 +839,15 @@ def main() -> None:
     )
     parser.add_argument(
         "--max-epochs", type=int, default=DEFAULT_MAX_EPOCHS,
-        help="Numero MAXIMO de epocas por rodada interna (e do retreino, via mediana). "
-        "Valor de ENSAIO -- NAO e o orcamento de treino definitivo.",
+        help="Teto OPERACIONAL de epocas por rodada interna (e do retreino, via mediana) -- "
+        "NAO e uma estimativa da epoca otima (ver docs/reconstruction/"
+        "14_segmentation_nested_cv_consolidation.md secao 5). Early stopping "
+        "(--patience) normalmente para antes disso.",
+    )
+    parser.add_argument(
+        "--patience", type=int, default=DEFAULT_PATIENCE,
+        help="Numero de epocas consecutivas sem melhora estrita do Dice de monitoramento "
+        "antes de interromper a rodada interna (early stopping). Retreino final nao usa isso.",
     )
     parser.add_argument(
         "--monitor-threshold", type=float, default=DEFAULT_MONITOR_THRESHOLD,
@@ -656,8 +860,21 @@ def main() -> None:
         help="Limite opcional de imagens por fold (amostra determinística, ordem alfabética) "
         "para uma versao mais rapida do ensaio. Default: sem limite (fold completo).",
     )
+    parser.add_argument(
+        "--probe-single-round", action="store_true", default=False,
+        help="Sondagem DESCARTAVEL: roda so UMA rodada interna (--probe-round-index), sem busca "
+        "de limiar, retreino ou avaliacao externa. Nao e uma rodada real da validacao aninhada.",
+    )
+    parser.add_argument(
+        "--probe-round-index", type=int, default=0,
+        help="Indice (0-3) da rodada interna a sondar, entre os 4 folds de desenvolvimento -- "
+        "NAO e o indice bruto do fold. So usado com --probe-single-round.",
+    )
     args = parser.parse_args()
-    run_rehearsal(args)
+    if args.probe_single_round:
+        run_single_round_probe(args)
+    else:
+        run_rehearsal(args)
 
 
 if __name__ == "__main__":

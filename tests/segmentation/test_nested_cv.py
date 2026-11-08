@@ -20,9 +20,35 @@ from src.segmentation.nested_cv import (  # noqa: E402
     build_external_fold_ids,
     build_internal_rounds,
     build_retrain_ids,
+    early_stopping_check,
     select_epochs_via_median,
     select_threshold_from_internal_dice,
 )
+
+
+# ──────────────────────────────────────────────
+# early_stopping_check
+# ──────────────────────────────────────────────
+
+
+def test_early_stopping_continues_when_neither_condition_met():
+    assert early_stopping_check(epoch=3, max_epochs=20, epochs_without_improvement=1, patience=5) is None
+
+
+def test_early_stopping_fires_on_patience_exhausted():
+    assert early_stopping_check(epoch=6, max_epochs=20, epochs_without_improvement=5, patience=5) == "paciencia_esgotada"
+
+
+def test_early_stopping_fires_on_ceiling_reached():
+    assert early_stopping_check(epoch=20, max_epochs=20, epochs_without_improvement=2, patience=5) == "teto_atingido"
+
+
+def test_early_stopping_patience_takes_precedence_over_ceiling():
+    # Both conditions true simultaneously -- patience is checked first, so
+    # this must be reported as "paciencia_esgotada", never "teto_atingido"
+    # (a round that happens to exhaust patience on its last possible epoch
+    # did NOT converge just because it also hit the ceiling).
+    assert early_stopping_check(epoch=20, max_epochs=20, epochs_without_improvement=5, patience=5) == "paciencia_esgotada"
 
 
 # ──────────────────────────────────────────────
