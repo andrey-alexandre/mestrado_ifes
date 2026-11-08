@@ -1,5 +1,11 @@
 """Entry point CLI para execução do pipeline de inferência.
 
+A36 (2026-11-08): a construção do índice RAG deixou de ser incondicional --
+ver docstring de _resolve_retriever() e
+docs/reconstruction/11_multiagent_flow_documentation.md. O grafo ativo não
+usa mais o retriever (nó 'critical_review' removido). Passe --build-rag
+para reproduzir o caminho histórico.
+
 Uso:
     # ISIC + segmentação via U-Net (padrão)
     python scripts/run_train.py
@@ -10,6 +16,9 @@ Uso:
     # Overrides pontuais
     python scripts/run_train.py --max-images 20 --model-name gpt-4o-mini
     python scripts/run_train.py --config config/config.yaml --output-dir results/
+
+    # Caminho histórico: reconstrói o RAG antes de iniciar (não usado pelo grafo ativo)
+    python scripts/run_train.py --build-rag
 """
 import argparse
 import logging
@@ -111,6 +120,18 @@ def parse_args():
         help="Seed para reprodutibilidade do shuffle. Sobrescreve pipeline.random_seed.",
     )
     parser.add_argument(
+        "--build-rag",
+        action="store_true",
+        help=(
+            "Reconstrói o índice RAG (embeddings + FAISS, a partir de "
+            "medical_texts.txt já extraído) antes de montar o grafo. NÃO é "
+            "necessário no fluxo oficial atual (A36: o grafo ativo não registra "
+            "mais o nó que consumia o retriever). Use apenas para reproduzir o "
+            "caminho histórico. Sem esta flag, build_graph() recebe "
+            "retriever=None e nenhum recurso de RAG é construído."
+        ),
+    )
+    parser.add_argument(
         "--balanced",
         action="store_true",
         default=None,
@@ -121,6 +142,41 @@ def parse_args():
         ),
     )
     return parser.parse_args()
+
+
+def _resolve_retriever(build_rag_flag: bool, cfg: dict):
+    """Resolve o retriever RAG para o grafo oficial.
+
+    A36 (2026-11-08): o grafo ativo (src.agents.agents.build_graph) não
+    registra mais o nó 'critical_review', único consumidor do retriever --
+    ver docs/reconstruction/11_multiagent_flow_documentation.md. Por isso a
+    construção do índice RAG deixou de ser incondicional e passou a ser
+    opt-in via --build-rag, exclusivamente para reproduzir o caminho
+    histórico que ainda passava um retriever real para build_graph().
+
+    Sem --build-rag (caminho oficial): retorna None sem importar, construir
+    ou abrir nenhum recurso de RAG (sem embeddings, sem índice FAISS, sem
+    credenciais desse componente).
+
+    Com --build-rag (caminho histórico, preservado): assume que
+    medical_texts.txt já foi extraído (este script, diferente de
+    run_pipeline.py, nunca fez a extração de PDFs) e constrói o índice
+    FAISS real, exatamente como antes da remoção do A36.
+    """
+    if not build_rag_flag:
+        logger.info(
+            "RAG não construído (A36: o grafo ativo não usa mais o retriever; "
+            "use --build-rag para reproduzir o caminho histórico)."
+        )
+        return None
+
+    logger.info("=== Construção do RAG (caminho histórico, --build-rag) ===")
+    return build_rag(
+        medical_texts_path=cfg["paths"]["medical_texts"],
+        embedding_model=cfg["rag"]["embedding_model"],
+        chunk_size=cfg["rag"]["chunk_size"],
+        chunk_overlap=cfg["rag"]["chunk_overlap"],
+    )
 
 
 def main():
@@ -188,13 +244,8 @@ def main():
         balanced=cfg["pipeline"].get("balanced", False),
     )
 
-    # 2. Construir RAG
-    retriever = build_rag(
-        medical_texts_path=cfg["paths"]["medical_texts"],
-        embedding_model=cfg["rag"]["embedding_model"],
-        chunk_size=cfg["rag"]["chunk_size"],
-        chunk_overlap=cfg["rag"]["chunk_overlap"],
-    )
+    # 2. Resolver RAG (A36: opt-in via --build-rag, ver _resolve_retriever)
+    retriever = _resolve_retriever(args.build_rag, cfg)
 
     # 3. Carregar modelo de segmentação (apenas no modo "model")
     seg_model = None
