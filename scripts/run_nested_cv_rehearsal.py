@@ -195,7 +195,18 @@ def _run_internal_round(
 
     dataset_train = ISIC2018Task1Dataset(train_ids, images_zip, masks_zip)
     dataset_val = ISIC2018Task1Dataset(val_ids, images_zip, masks_zip)
-    loader = DataLoader(dataset_train, batch_size=min(4, len(train_ids)), shuffle=True, num_workers=0)
+    # drop_last=True: DeepLabV3+'s ASPP pooling branch (AdaptiveAvgPool2d(1)
+    # -> BatchNorm2d) collapses the spatial dims to 1x1, so a batch of size 1
+    # leaves BatchNorm2d exactly one value per channel over (N,H,W) in train
+    # mode -- torch raises "Expected more than 1 value per channel when
+    # training". A trailing partial batch of size 1 (whenever len(train_ids)
+    # is not a multiple of the batch size) was triggering this for real on
+    # the 4th internal round. batch_size=min(4, len(train_ids)) still
+    # guarantees at least one batch survives dropping the remainder, since
+    # batch_size never exceeds len(train_ids).
+    loader = DataLoader(
+        dataset_train, batch_size=min(4, len(train_ids)), shuffle=True, num_workers=0, drop_last=True,
+    )
 
     best_dice = -1.0
     best_epoch = None
@@ -284,7 +295,10 @@ def _retrain_final(
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     dataset_train = ISIC2018Task1Dataset(retrain_ids, images_zip, masks_zip)
-    loader = DataLoader(dataset_train, batch_size=min(4, len(retrain_ids)), shuffle=True, num_workers=0)
+    # drop_last=True -- same BatchNorm/batch-size-1 reason as _run_internal_round.
+    loader = DataLoader(
+        dataset_train, batch_size=min(4, len(retrain_ids)), shuffle=True, num_workers=0, drop_last=True,
+    )
 
     t0 = time.time()
     for _epoch in range(1, chosen_epochs + 1):

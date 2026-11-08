@@ -194,7 +194,17 @@ def run_pilot_for_architecture(
     except Exception as exc:  # noqa: BLE001 - pilot must report, not crash
         results["leitura_alinhamento"] = {"status": f"FALHOU: {exc}"}
 
-    loader = DataLoader(dataset_train, batch_size=min(4, len(train_ids)), shuffle=False, num_workers=0)
+    # drop_last=True: DeepLabV3+'s ASPP pooling branch (AdaptiveAvgPool2d(1)
+    # -> BatchNorm2d) collapses to a 1x1 spatial map, so a trailing batch of
+    # size 1 makes BatchNorm2d see exactly one value per channel in train
+    # mode and crash ("Expected more than 1 value per channel when
+    # training"). This pilot's small default sample (12 images, batch 4)
+    # happened to divide evenly so it never triggered here, but the same
+    # DataLoader pattern did trigger it for real in
+    # scripts/run_nested_cv_rehearsal.py once folds weren't a multiple of 4.
+    loader = DataLoader(
+        dataset_train, batch_size=min(4, len(train_ids)), shuffle=False, num_workers=0, drop_last=True,
+    )
     model = build_segmentation_model(architecture, img_ch=3, output_ch=1)
     model.to(device)
     criterion = torch.nn.BCEWithLogitsLoss()
