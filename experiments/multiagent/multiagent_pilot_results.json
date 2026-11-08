@@ -1,0 +1,124 @@
+{
+  "scenarios": [
+    {
+      "scenario": "caminho_normal",
+      "call_log": [
+        "diagnostic_abcd",
+        "diagnostic_menzies",
+        "diagnostic_spcl",
+        "summary"
+      ],
+      "error": null,
+      "ok": true,
+      "final_state_keys": [
+        "diagnosis_abcd",
+        "diagnosis_menzies",
+        "diagnosis_spcl",
+        "image_data",
+        "image_path",
+        "lesion_size",
+        "seg_image_data",
+        "seg_path",
+        "status_abcd",
+        "status_menzies",
+        "status_spcl",
+        "validation"
+      ],
+      "final_report_present": false,
+      "validation_present": true,
+      "summary_was_invoked": true,
+      "summary_prompt_marker_count": 3,
+      "diagnostic_coverage": true,
+      "pareceres_recebidos": 3,
+      "pareceres_esperados": 3,
+      "agentes_ausentes": [],
+      "consolidacao_parcial": false,
+      "status_final": "determinado",
+      "n_calls_per_agent": {
+        "diagnostic_abcd": 1,
+        "diagnostic_spcl": 1,
+        "diagnostic_menzies": 1,
+        "summary": 1
+      },
+      "final_diagnostico_field": "Lesão Benigna"
+    },
+    {
+      "scenario": "agente_lanca_excecao",
+      "call_log": [
+        "diagnostic_abcd",
+        "diagnostic_menzies",
+        "diagnostic_spcl"
+      ],
+      "error": "RuntimeError: falha simulada de API",
+      "ok": false,
+      "n_calls_per_agent": {
+        "diagnostic_abcd": 1,
+        "diagnostic_spcl": 1,
+        "diagnostic_menzies": 1
+      },
+      "final_diagnostico_field": "None"
+    },
+    {
+      "scenario": "agente_fora_do_schema",
+      "call_log": [
+        "diagnostic_abcd",
+        "diagnostic_menzies",
+        "diagnostic_spcl"
+      ],
+      "error": "ValidationError: 4 validation errors for GraphState\ndiagnosis_menzies.str\n  Input should be a valid string [type=string_type, input_value={'campo_inesperado': 'valor'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type\ndiagnosis_menzies.MenziesDiagnosticAnswer.positivas\n  Field required [type=missing, input_value={'campo_inesperado': 'valor'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\ndiagnosis_menzies.MenziesDiagnosticAnswer.negativas\n  Field required [type=missing, input_value={'campo_inesperado': 'valor'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\ndiagnosis_menzies.MenziesDiagnosticAnswer.explicacao\n  Field required [type=missing, input_value={'campo_inesperado': 'valor'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "ok": false,
+      "n_calls_per_agent": {
+        "diagnostic_abcd": 1,
+        "diagnostic_spcl": 1,
+        "diagnostic_menzies": 1
+      },
+      "final_diagnostico_field": "None"
+    },
+    {
+      "scenario": "agente_nao_responde",
+      "call_log": [
+        "diagnostic_abcd",
+        "diagnostic_menzies",
+        "diagnostic_spcl",
+        "summary"
+      ],
+      "error": null,
+      "ok": true,
+      "final_state_keys": [
+        "diagnosis_abcd",
+        "diagnosis_menzies",
+        "diagnosis_spcl",
+        "image_data",
+        "image_path",
+        "lesion_size",
+        "seg_image_data",
+        "seg_path",
+        "status_abcd",
+        "status_menzies",
+        "status_spcl",
+        "validation"
+      ],
+      "final_report_present": false,
+      "validation_present": true,
+      "summary_was_invoked": true,
+      "summary_prompt_marker_count": 2,
+      "diagnostic_coverage": true,
+      "pareceres_recebidos": 2,
+      "pareceres_esperados": 3,
+      "agentes_ausentes": [
+        "diagnostic_spcl"
+      ],
+      "consolidacao_parcial": true,
+      "status_final": "determinado",
+      "n_calls_per_agent": {
+        "diagnostic_abcd": 1,
+        "diagnostic_spcl": 1,
+        "diagnostic_menzies": 1,
+        "summary": 1
+      },
+      "final_diagnostico_field": "Lesão Benigna"
+    }
+  ],
+  "divergences_found": [],
+  "critical_review_ever_in_final_state": false
+}

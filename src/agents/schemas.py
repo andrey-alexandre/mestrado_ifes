@@ -77,6 +77,22 @@ class SummaryAnswer(BaseModel):
     )
 
 
+class AgentStatus(BaseModel):
+    """Status observado da resposta de um agente diagnóstico (A05 - correção
+    2026-11-08: registra a ausência de um parecer sem classificar a causa
+    automaticamente como recusa, falha técnica ou diagnóstico indeterminado).
+    """
+
+    status: str = Field(description="'ok' ou 'sem_resposta'.")
+    causa: Optional[str] = Field(
+        default=None,
+        description=(
+            "Motivo da ausência, quando conhecido. 'desconhecida' quando a "
+            "causa real não está disponível no momento da observação."
+        ),
+    )
+
+
 class GraphState(BaseModel):
     """Estado compartilhado entre os nós do grafo LangGraph."""
 
@@ -89,5 +105,15 @@ class GraphState(BaseModel):
     diagnosis_abcd: Optional[Union[str, ABCDDiagnosticAnswer]] = None
     diagnosis_menzies: Optional[Union[str, MenziesDiagnosticAnswer]] = None
     diagnosis_spcl: Optional[Union[str, SPCLDiagnosticAnswer]] = None
+    # Status por agente (A05 - correção): populado pelo próprio agente em
+    # analyze_lesion, não por um wrapper externo. Campos separados por
+    # agente (em vez de um único dict compartilhado) porque os três nós
+    # diagnósticos rodam em paralelo (fan-out de "segmentation") e o
+    # LangGraph exige um reducer explícito para múltiplas escritas
+    # concorrentes na mesma chave de estado -- campos distintos evitam essa
+    # exigência sem alterar o paralelismo existente.
+    status_abcd: Optional[AgentStatus] = None
+    status_menzies: Optional[AgentStatus] = None
+    status_spcl: Optional[AgentStatus] = None
     validation: Optional[Union[str, SummaryAnswer]] = None
     final_report: Optional[str] = None

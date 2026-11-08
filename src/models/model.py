@@ -11,16 +11,33 @@ import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms as T
 
-from Image_Segmentation.code.network import U_Net, R2U_Net, AttU_Net, R2AttU_Net
-
 logger = logging.getLogger(__name__)
 
-MODEL_CLASSES = {
-    "U_Net": U_Net,
-    "R2U_Net": R2U_Net,
-    "AttU_Net": AttU_Net,
-    "R2AttU_Net": R2AttU_Net,
-}
+# Image_Segmentation.code.network (external, unvendored package -- see
+# docs/reconstruction/01_inspection_report.md) is imported lazily, inside
+# load_segmentation_model, not at module load time. Reason: this module is
+# imported transitively by src/agents/agents.py for every code path,
+# including ones that never touch U-Net inference (e.g. the "precomputed"
+# segmentation mode, or scripts/run_multiagent_flow_pilot.py's mocked
+# pilot). A top-level import made simply `import src.agents.agents`
+# fail with ModuleNotFoundError on any machine without that external
+# package installed, even when the U-Net model-mode was never going to be
+# used. Confirmed broken this way by a real run on 2026-11-08.
+MODEL_CLASSES: dict | None = None
+
+
+def _load_model_classes() -> dict:
+    global MODEL_CLASSES
+    if MODEL_CLASSES is None:
+        from Image_Segmentation.code.network import U_Net, R2U_Net, AttU_Net, R2AttU_Net
+
+        MODEL_CLASSES = {
+            "U_Net": U_Net,
+            "R2U_Net": R2U_Net,
+            "AttU_Net": AttU_Net,
+            "R2AttU_Net": R2AttU_Net,
+        }
+    return MODEL_CLASSES
 
 
 def load_segmentation_model(
@@ -42,11 +59,12 @@ def load_segmentation_model(
     Returns:
         Loaded PyTorch model set to eval mode.
     """
-    model_cls = MODEL_CLASSES.get(model_name)
+    model_classes = _load_model_classes()
+    model_cls = model_classes.get(model_name)
     if model_cls is None:
         raise ValueError(
             f"Unknown model name: '{model_name}'. "
-            f"Choose from: {list(MODEL_CLASSES.keys())}"
+            f"Choose from: {list(model_classes.keys())}"
         )
 
     model = model_cls(img_ch=img_ch, output_ch=output_ch)

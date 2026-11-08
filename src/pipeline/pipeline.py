@@ -66,7 +66,10 @@ def run_pipeline(
 
         # Serializar objetos Pydantic para dict (necessário para json.dump)
         # Quando model_name == "llava:13b", os campos já são strings
-        for field in ["diagnosis_abcd", "diagnosis_menzies", "diagnosis_spcl", "validation"]:
+        for field in [
+            "diagnosis_abcd", "diagnosis_menzies", "diagnosis_spcl", "validation",
+            "status_abcd", "status_menzies", "status_spcl",
+        ]:
             val = result_dict[path].get(field)
             if val is not None and hasattr(val, "model_dump"):
                 result_dict[path][field] = val.model_dump()

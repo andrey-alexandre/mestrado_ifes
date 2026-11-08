@@ -15,6 +15,7 @@ from langgraph.graph import StateGraph, START, END
 
 from src.agents.schemas import (
     ABCDDiagnosticAnswer,
+    AgentStatus,
     MenziesDiagnosticAnswer,
     SPCLDiagnosticAnswer,
     SummaryAnswer,
@@ -265,7 +266,12 @@ class ABCDDiagnosticAgent:
 
         messages = [_image_message(state.seg_image_data, text_prompt)]
         output = _invoke(self.llm, self.output_format, messages, self.model_name)
-        return {"diagnosis_abcd": output}
+        if output is None:
+            return {
+                "diagnosis_abcd": output,
+                "status_abcd": AgentStatus(status="sem_resposta", causa="desconhecida"),
+            }
+        return {"diagnosis_abcd": output, "status_abcd": AgentStatus(status="ok")}
 
 
 # ──────────────────────────────────────────────
@@ -335,7 +341,12 @@ class MenziesDiagnosticAgent:
 
         messages = [_image_message(state.seg_image_data, text_prompt)]
         output = _invoke(self.llm, self.output_format, messages, self.model_name)
-        return {"diagnosis_menzies": output}
+        if output is None:
+            return {
+                "diagnosis_menzies": output,
+                "status_menzies": AgentStatus(status="sem_resposta", causa="desconhecida"),
+            }
+        return {"diagnosis_menzies": output, "status_menzies": AgentStatus(status="ok")}
 
 
 # ──────────────────────────────────────────────
@@ -401,7 +412,12 @@ class SPCLDiagnosticAgent:
 
         messages = [_image_message(state.seg_image_data, text_prompt)]
         output = _invoke(self.llm, self.output_format, messages, self.model_name)
-        return {"diagnosis_spcl": output}
+        if output is None:
+            return {
+                "diagnosis_spcl": output,
+                "status_spcl": AgentStatus(status="sem_resposta", causa="desconhecida"),
+            }
+        return {"diagnosis_spcl": output, "status_spcl": AgentStatus(status="ok")}
 
 
 # ──────────────────────────────────────────────
@@ -521,12 +537,21 @@ def build_graph(
 ):
     """Constrói e compila o grafo de agentes LangGraph.
 
-    Fluxo:
+    Fluxo (A36: crítico/RAG removido do fluxo ativo em 2026-11-08 -- ver
+    docs/reconstruction/11_multiagent_flow_documentation.md):
         segmentation → [diagnostic_abcd ‖ diagnostic_menzies ‖ diagnostic_spcl]
-                     → summary → critical_review
+                     → summary → END
 
     Args:
-        retriever: Retriever FAISS com literatura médica.
+        retriever: Mantido na assinatura por compatibilidade com os pontos
+            de entrada existentes (scripts/run_pipeline.py,
+            scripts/run_train.py ainda constroem e passam um retriever
+            FAISS incondicionalmente), mas NÃO é mais usado dentro desta
+            função -- o nó que o consumia (critical_review) não é mais
+            registrado no grafo. Não removido do parâmetro aqui porque
+            isso exigiria também alterar os dois pontos de entrada, uma
+            mudança maior registrada como pendência, não feita nesta
+            entrega.
         model_name: Nome do LLM para os agentes diagnósticos.
         temperature: Temperatura de geração do LLM.
         seg_threshold: Limiar sigmoid para o SegmentationAgent (modo "model").
@@ -569,10 +594,16 @@ def build_graph(
         "summary",
         SummaryAgent(model_name, SummaryAnswer, temperature).summarize,
     )
-    graph.add_node(
-        "critical_review",
-        CriticalReviewAgent(retriever, model_name).validate_diagnosis,
-    )
+    # A36: CriticalReviewAgent (RAG) removido do fluxo ATIVO. A classe em si
+    # (acima, "Agente Crítico (RAG)") NÃO foi apagada -- preservada para
+    # histórico/possível decisão futura. O nó deixou de ser registrado aqui
+    # (não só desconectado por aresta) porque o LangGraph valida, na
+    # compilação, que todo nó registrado via add_node seja alcançável a
+    # partir de START; um nó registrado sem nenhuma aresta de entrada teria
+    # risco real de falhar graph.compile() com um erro de nó inalcançável.
+    # Remover o registro inteiro (em vez de só a aresta) é a forma segura de
+    # "desconectar do caminho ativo" sem arriscar quebrar a compilação na
+    # primeira execução real -- ver docs/reconstruction/11_multiagent_flow_documentation.md.
 
     # Definir conexões do fluxo
     graph.add_edge(START, "segmentation")
@@ -583,7 +614,7 @@ def build_graph(
     graph.add_edge(
         ["diagnostic_abcd", "diagnostic_menzies", "diagnostic_spcl"], "summary"
     )
-    graph.add_edge("summary", "critical_review")
-    graph.add_edge("critical_review", END)
+    # A36: fluxo termina no sumarizador (antes: summary -> critical_review -> END).
+    graph.add_edge("summary", END)
 
     return graph.compile()
