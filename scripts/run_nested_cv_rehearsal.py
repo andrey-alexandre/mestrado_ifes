@@ -496,11 +496,24 @@ def run_rehearsal(args: argparse.Namespace) -> None:
     if args.max_epochs < 1:
         raise ValueError(f"--max-epochs deve ser >= 1, recebido {args.max_epochs}")
 
-    print("=== ENSAIO: executor da validacao cruzada aninhada (UMA rodada externa) ===")
+    is_real_round = args.max_images_per_fold is None
     print(
-        "LEMBRETE: isto NAO e a execucao cientifica completa (5 rodadas externas), "
-        "NAO seleciona arquitetura/configuracao definitiva. HAM10000 nao e tocado."
+        f"=== {'RODADA EXTERNA REAL' if is_real_round else 'ENSAIO'} "
+        f"(external_fold={args.external_fold}): executor da validacao cruzada aninhada ==="
     )
+    if is_real_round:
+        print(
+            "Fold completo, teto/paciencia conforme o protocolo fixado -- esta execucao "
+            "conta como UMA das 5 rodadas externas reais (nao mais um ensaio mecanico), "
+            "ver docs/reconstruction/14_segmentation_nested_cv_consolidation.md. NAO "
+            "seleciona arquitetura/configuracao definitiva por si so -- isso so acontece "
+            "apos as 5 rodadas estarem completas. HAM10000 nao e tocado."
+        )
+    else:
+        print(
+            "LEMBRETE: --max-images-per-fold ativo -- isto e um ENSAIO/verificacao rapida "
+            "com amostra reduzida, NAO conta como rodada externa real. HAM10000 nao e tocado."
+        )
     device = _resolve_device(args.device)
     print(f"dispositivo solicitado={args.device} efetivo={device}")
 
@@ -541,12 +554,21 @@ def run_rehearsal(args: argparse.Namespace) -> None:
         },
         "architectures": {},
         "ham10000_touched": False,
+        "is_real_external_round": is_real_round,
         "aviso": (
-            "ENSAIO MECANICO de uma unica rodada externa, com treino real (nao "
-            f"mockado) por ate {args.max_epochs} epocas de rehearsal -- NAO e a "
-            "execucao cientifica completa (5 rodadas externas), NAO seleciona "
-            "arquitetura ou configuracao definitiva, NAO decide a grade "
-            "restrita final. HAM10000 nao foi tocado."
+            (
+                "RODADA EXTERNA REAL (parte das 5 rodadas da execucao cientifica), "
+                f"fold completo, teto de {args.max_epochs} epocas / paciencia "
+                f"{args.patience} conforme o protocolo fixado -- ver "
+                "docs/reconstruction/14_segmentation_nested_cv_consolidation.md. "
+                "NAO seleciona arquitetura/configuracao definitiva por si so (isso "
+                "so acontece apos as 5 rodadas estarem completas). HAM10000 nao foi tocado."
+            ) if is_real_round else (
+                "ENSAIO/verificacao rapida com --max-images-per-fold ativo (amostra "
+                f"reduzida) por ate {args.max_epochs} epocas -- NAO conta como rodada "
+                "externa real, NAO seleciona arquitetura ou configuracao definitiva. "
+                "HAM10000 nao foi tocado."
+            )
         ),
     }
 
@@ -577,8 +599,8 @@ def run_rehearsal(args: argparse.Namespace) -> None:
     print(f"relatorio (md) gravado: {report_md_path}")
     print(f"log gravado: {log_path}")
     print(
-        "\nLEMBRETE FINAL: ensaio mecanico de uma rodada externa, nao a execucao "
-        "cientifica completa. HAM10000 nao foi tocado nesta execucao."
+        f"\nLEMBRETE FINAL: {'rodada externa REAL' if is_real_round else 'ensaio/verificacao rapida'} "
+        f"(external_fold={args.external_fold}). HAM10000 nao foi tocado nesta execucao."
     )
 
 
@@ -724,7 +746,11 @@ def _render_probe_report_md(report: dict[str, Any]) -> str:
 
 def _render_report_md(report: dict[str, Any]) -> str:
     lines = [
-        "# Ensaio — executor da validação cruzada aninhada (uma rodada externa)",
+        (
+            f"# Rodada externa {report['external_fold']} — validação cruzada aninhada"
+            if report.get("is_real_external_round")
+            else f"# Ensaio — validação cruzada aninhada (rodada externa {report['external_fold']})"
+        ),
         "",
         f"**{report['aviso']}**",
         "",
