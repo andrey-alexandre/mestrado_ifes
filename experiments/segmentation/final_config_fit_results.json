@@ -1,0 +1,124 @@
+{
+  "architecture": "deeplabv3plus",
+  "device_requested": "mps",
+  "device_effective": "mps",
+  "procedure": "chosen_epochs = mediana (round-half-up) dos chosen_epochs das 5 rodadas externas reais (nao recomputado, lido dos arquivos fonte). chosen_threshold = busca de limiar out-of-fold: 5 treinos novos (nao os 50 originais), cada um com chosen_epochs fixo, sem early stopping, no conjunto de 4 folds; Dice por imagem no quinto fold (nunca visto por aquele treino) pooled nas 5 repeticoes e avaliado na grade 0.30-0.70. Os limiares das 5 rodadas externas originais NAO foram promediados nem reutilizados.",
+  "chosen_epochs": 17,
+  "chosen_epochs_sources": [
+    {
+      "external_fold": 0,
+      "source_file": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_rehearsal_externalfold0_results.json",
+      "chosen_epochs": 18
+    },
+    {
+      "external_fold": 1,
+      "source_file": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_rehearsal_externalfold1_results.json",
+      "chosen_epochs": 15
+    },
+    {
+      "external_fold": 2,
+      "source_file": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_rehearsal_externalfold2_results.json",
+      "chosen_epochs": 16
+    },
+    {
+      "external_fold": 3,
+      "source_file": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_rehearsal_externalfold3_results.json",
+      "chosen_epochs": 20
+    },
+    {
+      "external_fold": 4,
+      "source_file": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_rehearsal_externalfold4_results.json",
+      "chosen_epochs": 17
+    }
+  ],
+  "threshold_grid": [
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7
+  ],
+  "threshold_selection": {
+    "chosen_threshold": 0.5,
+    "mean_dice_by_threshold": {
+      "0.3": 0.8545116312028292,
+      "0.35": 0.8606056273170446,
+      "0.4": 0.8647649007578837,
+      "0.45": 0.8672879551991902,
+      "0.5": 0.8683257409912402,
+      "0.55": 0.8678702929726541,
+      "0.6": 0.8660041394821592,
+      "0.65": 0.8627015135218381,
+      "0.7": 0.857749006763831
+    },
+    "empate": false,
+    "tied_thresholds": [],
+    "empate_simetrico": false
+  },
+  "oof_folds": [
+    {
+      "held_out_fold": 0,
+      "n_train": 2075,
+      "n_held_out": 519,
+      "n_skipped_invalid_reference": 0,
+      "training_time_s": 2044.3851568698883,
+      "eval_time_s": 72.40108609199524,
+      "checkpoint_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_retrain_deeplabv3plus_extfoldoof0.pt",
+      "checkpoint_is_intermediate_discardable": true
+    },
+    {
+      "held_out_fold": 1,
+      "n_train": 2075,
+      "n_held_out": 519,
+      "n_skipped_invalid_reference": 0,
+      "training_time_s": 2014.8278319835663,
+      "eval_time_s": 70.55196285247803,
+      "checkpoint_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_retrain_deeplabv3plus_extfoldoof1.pt",
+      "checkpoint_is_intermediate_discardable": true
+    },
+    {
+      "held_out_fold": 2,
+      "n_train": 2075,
+      "n_held_out": 519,
+      "n_skipped_invalid_reference": 0,
+      "training_time_s": 2012.444760799408,
+      "eval_time_s": 66.9640851020813,
+      "checkpoint_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_retrain_deeplabv3plus_extfoldoof2.pt",
+      "checkpoint_is_intermediate_discardable": true
+    },
+    {
+      "held_out_fold": 3,
+      "n_train": 2075,
+      "n_held_out": 519,
+      "n_skipped_invalid_reference": 0,
+      "training_time_s": 2008.1960189342499,
+      "eval_time_s": 66.30078911781311,
+      "checkpoint_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_retrain_deeplabv3plus_extfoldoof3.pt",
+      "checkpoint_is_intermediate_discardable": true
+    },
+    {
+      "held_out_fold": 4,
+      "n_train": 2076,
+      "n_held_out": 518,
+      "n_skipped_invalid_reference": 0,
+      "training_time_s": 1989.863900899887,
+      "eval_time_s": 68.43730401992798,
+      "checkpoint_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/segmentation/nested_cv_retrain_deeplabv3plus_extfoldoof4.pt",
+      "checkpoint_is_intermediate_discardable": true
+    }
+  ],
+  "image_mask_correspondence": {
+    "n_images": 2594,
+    "n_masks": 2594,
+    "n_matched": 2594,
+    "n_only_in_images": 0,
+    "n_only_in_masks": 0,
+    "ok": true
+  },
+  "ham10000_touched": false,
+  "note_intermediate_checkpoints": "Os 5 checkpoints de held_out_fold acima sao INTERMEDIARIOS/DESCARTAVEIS (so para a busca de limiar) -- o modelo final usado no protocolo e um retreino separado em TODAS as 2594 imagens, ver scripts/run_segmentation_final_retrain.py."
+}
