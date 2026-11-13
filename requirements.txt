@@ -52,3 +52,15 @@ pyyaml
 
 # Testes (usado em toda a suíte tests/, desde a Tarefa 2 da reconstrução)
 pytest
+
+# Piloto local de VLM via Ollama (Etapa 5, segunda entrega,
+# src/multiagent/vlm_direct.py, docs/reconstruction/20_local_vlm_pilot.md)
+# -- DEPENDÊNCIAS NOVAS desta entrega, não instaladas antes:
+#   - psutil: memória do processo + swap do sistema antes/depois de cada
+#     chamada.
+#   - ollama: cliente Python oficial, usado só para ollama.show(modelo)
+#     (metadados/digest do modelo) uma vez por modelo no início do piloto;
+#     já era dependência transitiva de langchain-ollama, mas nunca
+#     importado diretamente neste projeto até agora.
+psutil
+ollama
