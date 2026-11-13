@@ -1,0 +1,29 @@
+{
+  "n_cases_total": 3000,
+  "manifest_sha256_verified": true,
+  "counts_by_condition": {
+    "s0": {
+      "disponivel": 3000,
+      "indisponivel": 0
+    },
+    "s1": {
+      "disponivel": 3000,
+      "indisponivel": 0
+    },
+    "s2": {
+      "disponivel": 2994,
+      "indisponivel": 6
+    }
+  },
+  "reason_counts_by_condition": {
+    "s0": {},
+    "s1": {},
+    "s2": {
+      "mascara_predita_vazia": 6
+    }
+  },
+  "duplicate_lesion_ids": {},
+  "duplicate_image_ids": {},
+  "image_ids_without_s2_entry": [],
+  "s2_entries_without_manifest_row": []
+}
