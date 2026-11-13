@@ -33,6 +33,17 @@ Alterados na primeira entrega (mantidos): `requirements.txt` — `psutil`, `olla
 Diretório de trabalho para todos: `C:\Projetos\IFES\mestrado_ifes`.
 
 ```
+# -1. Pré-requisito de infraestrutura (NENHUM script deste pacote faz isso
+#     por você -- ChatOllama/ollama.show() só se conectam a um servidor já
+#     rodando com o modelo já baixado; nunca sobem o servidor nem puxam o
+#     modelo sozinhos):
+ollama serve                                      # se o Ollama não estiver rodando como serviço já
+ollama pull qwen3-vl:8b-instruct-q4_K_M
+ollama pull medgemma1.5:4b-it-q4_K_M
+ollama list                                        # confirme que a tag aparece EXATAMENTE como em --model-tag
+# (só se necessário, modelo de contingência -- ver seção 7)
+ollama pull qwen2.5vl:7b-q4_K_M
+
 # 0. Dependências novas
 pip install psutil ollama
 
