@@ -1,8 +1,28 @@
-"""Etapa 5, segunda entrega — camada de chamada a VLMs locais via Ollama
-(VLM-direto e multiagente-sobre-Ollama), controles de pré-execução, lógica
-de abstenção sistemática, e classificação A34 — para o piloto de 12
+"""Etapa 5, segunda entrega (REWORK) — camada de chamada a VLMs locais via
+Ollama (VLM-direto e multiagente-sobre-Ollama), controles de pré-execução,
+lógica de abstenção sistemática, e classificação A34 — para o piloto de 12
 lesões fora da amostra congelada (ver
 `docs/reconstruction/20_local_vlm_pilot.md`).
+
+Este é o REWORK da segunda entrega original (commit `b097037` em
+`feature/inspection`), incorporando as 10 decisões fechadas pelo
+pesquisador sobre o primeiro rascunho (ver seção 5 do doc, "decisões
+fechadas pelo pesquisador"). Mudanças de arquitetura relevantes nesta
+versão (não apenas cosméticas):
+  - controles de envio de imagem agora são POR PAPEL VISUAL (4 papéis x 3
+    controles = 12 chamadas, não 3 compartilhadas);
+  - um novo controle "sem imagem" (texto puro, sem entrada `image_url`);
+  - total de chamadas planejadas por modelo passa a ser 108 (92 da matriz
+    + 16 de controle), não 92;
+  - a heurística de "achado clínico novo" deixou de ser pass/fail
+    automático — agora é só sinal de triagem, com um gate de revisão
+    manual explícito antes da matriz principal (ver
+    `scripts/run_local_vlm_pilot.py`);
+  - a regra de "crescimento sustentado de swap" deixou de ser monotonia
+    sobre TODAS as chamadas — agora é definida sobre janelas de 5 amostras
+    da MATRIZ PRINCIPAL, com baseline explícito pós-controles;
+  - a classificação de recusa ficou mais estrita (recusa só se não houver
+    também um parecer categórico válido na mesma resposta).
 
 Este módulo NÃO executa nada por si só (sem CLI, sem chamada real feita
 pelo assistente que o escreveu — `feedback_no_autonomous_execution`). O
@@ -22,23 +42,30 @@ re-derivação:
   - Casos que se tornam inalcançáveis por pausa são marcados
     `"nao_executado"` — status distinto de qualquer categoria de falha,
     nunca omitido.
+  - Texto exato da instrução de tarefa do VLM-direto, desenho dos
+    controles de envio de imagem por papel, os 4 cenários de síntese
+    (com o ajuste "não avaliado" no cenário conflitante), a heurística de
+    recusa (revisada), a definição de crescimento sustentado de swap
+    (nova), e a designação estratificada dos "4 de 12" — todas fechadas
+    pelo pesquisador, ver seção 5 do doc.
 
-Interpretações de design flagueadas para confirmação do pesquisador ANTES
-de qualquer execução real (ver também o relatório):
-  (1) o texto exato da instrução de tarefa do VLM-direto
-      (`VLM_DIRECT_TASK_INSTRUCTION`);
-  (2) o desenho dos controles de envio de imagem (`IMAGE_CONTROL_SPECS`,
-      `IMAGE_CONTROL_PROMPT`);
-  (3) os 4 inputs fixos dos controles de síntese (`FIXED_SYNTHESIS_SCENARIOS`);
-  (4) a heurística de "achado clínico novo" nos controles de síntese
-      (`_vocabulary_terms_not_in_inputs`);
-  (5) a heurística de detecção de recusa explícita (`_REFUSAL_MARKERS`);
-  (6) a definição de "crescimento sustentado de swap"
-      (`detect_sustained_swap_growth`).
+Interpretações de design NOVAS introduzidas neste rework, ainda sem
+confirmação explícita do pesquisador (distintas das 10 já fechadas — ver
+também o relatório desta entrega):
+  (11) a fraseologia aceita como reconhecimento de "não há imagem" no
+       controle sem imagem (`_NO_IMAGE_ACK_MARKERS`);
+  (12) os dois vocabulários de controle de imagem reusados para os 4
+       papéis visuais (mesmas duas combinações cor+quadrante, só
+       renomeadas por papel — não um conjunto de 8 combinações distintas);
+  (13) o texto exato da sub-semente do 4º sorteio de `run_pilot12_sample.py`
+       (`FOURTH_SLOT_SEED`) e do mecanismo de redistribuição de vaga
+       quando um grupo diagnóstico não tem nenhuma lesão com máscara de
+       referência válida.
 """
 from __future__ import annotations
 
 import concurrent.futures
+import statistics
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -68,8 +95,15 @@ from src.agents.schemas import (
     SPCLDiagnosticAnswer,
     SummaryAnswer,
 )
-from src.evaluation.case_status import classify_case_status
+from src.evaluation.case_status import _KEYWORD_TO_STATUS, classify_case_status
 from src.models.model import convert_to_base64
+from src.multiagent.presentation import images_are_effectively_equal
+
+# Vocabulário das 3 categorias de parecer válido, reusado tal como
+# `classify_case_status` o usa -- ITEM 5 da entrega exige reusar esta
+# lista (não hardcodar uma segunda cópia) para decidir se uma resposta com
+# um marcador de recusa também contém um parecer categórico válido.
+_VALID_PARECER_KEYWORDS: tuple[str, ...] = tuple(kw for kw, _ in _KEYWORD_TO_STATUS)
 
 try:
     import psutil
@@ -103,38 +137,38 @@ STATUS_NOT_EXECUTED = "nao_executado"
 
 
 # ---------------------------------------------------------------------------
-# 1. Instrução de tarefa do VLM-direto (INTERPRETAÇÃO DE DESIGN #1)
+# 1. Instrução de tarefa do VLM-direto -- DECISÃO FECHADA #1
 # ---------------------------------------------------------------------------
-# Pede explicitamente o MESMO vocabulário de 3 categorias que
-# SummaryAnswer.diagnostico documenta ("Suspeita de Melanoma" / "Lesão
-# Benigna" / "Lesão Indeterminada") -- sem isso, classify_case_status
-# classificaria qualquer resposta de VLM-direto que não usasse essa frase
-# exata como "nao_reconhecido" apenas por não usar a fraseologia esperada,
-# o que seria um artefato do protocolo de avaliação, não um achado real de
-# capacidade do modelo. NÃO É uma decisão óbvia (o VLM-direto, por
-# definição, não passa pelos 3 algoritmos/sumarizador) -- precisa de
-# confirmação explícita do pesquisador antes de qualquer execução real.
+# Aprovado pelo pesquisador: mesmas 3 categorias/mesmo significado do
+# sumarizador. Texto livre (NÃO JSON), sem pedir aplicação de
+# ABCD/Menzies/SPCL -- o VLM-direto, por definição, não passa pelos 3
+# algoritmos. O texto bruto é preservado e reclassificado post-hoc pela
+# MESMA `classify_case_status` usada para o sumarizador (reuso unmodified,
+# já era assim e continua assim).
+#
+# NOTA DE REGISTRO (não é mudança de comportamento de código -- registro
+# exigido pelo pesquisador): o status "negativo" devolvido por
+# `classify_case_status` vem literalmente da palavra-chave "lesão
+# benigna" no texto. Nesta comparação A34, "negativo" está sendo usado
+# como PROXY do `binary_target` "não_melanoma" -- convenção já existente
+# no projeto (não introduzida por esta instrução de VLM-direto). Sempre
+# que o relatório discutir cobertura binária, "negativo" deve ser lido
+# como esse proxy, não como um diagnóstico literal de benignidade.
 VLM_DIRECT_TASK_INSTRUCTION = """
 <-- Identidade do Agente -->
 Você está atuando como um sistema de apoio à pesquisa em análise de imagens dermatológicas.
 
 <-- Instruções -->
-Avalie a lesão cutânea na imagem fornecida e dê um parecer diagnóstico
-único e direto.
-
-Sua resposta DEVE conter, de forma explícita e literal, uma das três
-expressões abaixo (exatamente como escritas, para permitir classificação
+Analise a imagem dermatoscópica fornecida para a tarefa melanoma versus
+não melanoma. Dê um parecer breve em português e encerre com uma das três
+categorias abaixo (exatamente como escritas, para permitir classificação
 automática da sua resposta):
   - "Suspeita de Melanoma"
   - "Lesão Benigna"
   - "Lesão Indeterminada"
 
-Use "Lesão Indeterminada" quando a evidência visual não permitir uma
-conclusão razoável entre as outras duas opções -- isto é uma resposta
-válida, não uma recusa.
-
-Após a expressão escolhida, justifique brevemente sua escolha com base
-nos achados visuais observados na imagem.
+Se a imagem não sustentar uma decisão binária, use a categoria
+indeterminada -- isto é uma resposta válida, não uma recusa.
 """
 
 
@@ -233,10 +267,19 @@ def call_with_timeout(fn: Callable[[], Any], timeout_s: float = TIMEOUT_S) -> Ti
 # 5. Classificação da causa de uma chamada (sucesso/falha técnica/sem
 #    resposta/recusa) -- distinta da classificação A34 do CONTEÚDO.
 # ---------------------------------------------------------------------------
-# INTERPRETAÇÃO DE DESIGN #5: lista de marcadores textuais de recusa
+# DECISÃO FECHADA #5 (revisão da lista original -- INTERPRETAÇÃO DE DESIGN
+# ainda aberta, só a LÓGICA de quando um marcador vale como recusa foi
+# fechada pelo pesquisador): lista de marcadores textuais de recusa
 # explícita. Heurística simples (substring, case-insensitive) -- não há
 # especificação prévia no projeto para isto; precisa de confirmação do
 # pesquisador antes de uso real, em especial para texto em português.
+#
+# Revisão: "não consigo distinguir pela imagem" foi deliberadamente NÃO
+# incluída aqui (e não estava na lista original) -- é linguagem legítima
+# de um parecer indeterminado (classify_case_status classificaria como
+# "indeterminado" via "lesão indeterminada" se o modelo também emitir a
+# categoria exigida), não uma recusa. Revisado e confirmado como ausente
+# nesta entrega, não apenas assumido.
 _REFUSAL_MARKERS = (
     "não posso ajudar",
     "não posso fornecer",
@@ -251,12 +294,27 @@ _REFUSAL_MARKERS = (
 )
 
 
+def _contains_valid_parecer(text_lower: str) -> bool:
+    """``True`` se ``text_lower`` contém um dos 3 rótulos categóricos que
+    `classify_case_status` reconhece -- reusa o MESMO vocabulário (import
+    de `src.evaluation.case_status._KEYWORD_TO_STATUS`), não uma segunda
+    cópia hardcoded."""
+    return any(keyword in text_lower for keyword in _VALID_PARECER_KEYWORDS)
+
+
 def classify_call_outcome(outcome: TimedCallOutcome) -> tuple[str, str, Optional[str]]:
     """Devolve ``(status, causa, raw_text)``.
 
     ``status`` é um de STATUS_OK/STATUS_TECHNICAL_FAILURE/STATUS_NO_RESPONSE/
     STATUS_REFUSAL. ``causa`` é uma string curta para log. ``raw_text`` é o
     texto bruto devolvido quando houver (preservado mesmo em falha parcial).
+
+    DECISÃO FECHADA #5: um marcador de recusa só classifica a resposta
+    como STATUS_REFUSAL se o texto NÃO contiver também um parecer válido
+    (um dos 3 rótulos categóricos). Se um marcador de recusa aparecer MAS
+    a resposta também emitir um parecer categórico, a resposta é
+    STATUS_OK (o conteúdo é classificado normalmente por
+    `classify_case_status` depois, fora desta função).
     """
     if outcome.timed_out:
         return STATUS_TECHNICAL_FAILURE, f"timeout_excedido_{TIMEOUT_S:.0f}s", None
@@ -273,6 +331,11 @@ def classify_call_outcome(outcome: TimedCallOutcome) -> tuple[str, str, Optional
     lowered = text.lower()
     for marker in _REFUSAL_MARKERS:
         if marker in lowered:
+            if _contains_valid_parecer(lowered):
+                # Marcador de recusa presente, mas a resposta também
+                # contém um parecer categórico válido -- não classificar
+                # como recusa (decisão fechada #5). Segue para OK abaixo.
+                break
             return STATUS_REFUSAL, f"marcador_recusa:{marker}", text
 
     return STATUS_OK, "", text
@@ -559,7 +622,25 @@ def build_graph_state(image: Image.Image, image_path_label: str) -> GraphState:
 
 # ---------------------------------------------------------------------------
 # 10. Planejamento da matriz principal — exatamente 92 chamadas
+#
+# NOVO PARÂMETRO FECHADO (ver doc, "108 chamadas/teto de 4h"): o TOTAL de
+# chamadas planejadas por execução de modelo (controles + matriz) passa a
+# ser 108 = 92 (matriz, assert abaixo INALTERADO) + 16 de controle
+# (12 de envio de imagem: 4 papéis x 3 + 4 de síntese). As 92 da matriz em
+# si NÃO mudam -- só a contagem "total da execução" reportada muda de 92
+# para 108. 4h é um TETO OPERACIONAL para a execução completa de um
+# modelo (controles + matriz), não uma meta de desempenho -- passar do
+# teto não estabelece por si só viabilidade para os 3.000 reais (ver
+# projeção de duração do item 10 da entrega / seção 10 do doc).
 # ---------------------------------------------------------------------------
+N_IMAGE_SENDING_CONTROL_CALLS = 4 * 3  # 4 papéis visuais (VISUAL_ROLES, definido mais abaixo) x 3 controles = 12
+N_SYNTHESIS_CONTROL_CALLS = 4
+N_CONTROL_CALLS_TOTAL = N_IMAGE_SENDING_CONTROL_CALLS + N_SYNTHESIS_CONTROL_CALLS  # 16
+N_MAIN_MATRIX_CALLS = 92
+N_TOTAL_PLANNED_CALLS_PER_MODEL = N_MAIN_MATRIX_CALLS + N_CONTROL_CALLS_TOTAL  # 108
+assert N_TOTAL_PLANNED_CALLS_PER_MODEL == 108
+
+
 def build_planned_calls(pilot12_rows: list[dict[str, str]], designated_image_ids: list[str]) -> list[dict[str, str]]:
     """``pilot12_rows``: as 12 linhas do manifesto do piloto (lesion_id,
     image_id,...). ``designated_image_ids``: os 4 image_id designados para
@@ -599,11 +680,18 @@ def build_planned_calls(pilot12_rows: list[dict[str, str]], designated_image_ids
 
 
 # ---------------------------------------------------------------------------
-# 11. Controles de envio de imagem (INTERPRETAÇÃO DE DESIGN #2)
+# 11. Controles de envio de imagem -- DECISÃO FECHADA #2: agora POR PAPEL
+#     VISUAL (vlm_direto, diagnostic_abcd, diagnostic_menzies,
+#     diagnostic_spcl). Para CADA papel: 2 controles de imagem (cor E
+#     quadrante diferentes entre si) + 1 controle "sem imagem" (texto
+#     puro) = 3 controles/papel x 4 papéis = 12 chamadas de controle de
+#     imagem (não 3 compartilhadas como na primeira entrega).
 # ---------------------------------------------------------------------------
 CONTROL_IMAGE_SIZE = 400
 CONTROL_SHAPE_SIZE = 120
 CONTROL_MARGIN = 20
+
+VISUAL_ROLES = (ROLE_VLM_DIRETO, ROLE_ABCD, ROLE_MENZIES, ROLE_SPCL)
 
 QUADRANT_ALIASES: dict[str, tuple[str, ...]] = {
     "superior-esquerdo": ("superior esquerdo", "superior-esquerdo", "canto superior esquerdo", "top left", "top-left"),
@@ -612,11 +700,38 @@ QUADRANT_ALIASES: dict[str, tuple[str, ...]] = {
     "inferior-direito": ("inferior direito", "inferior-direito", "canto inferior direito", "bottom right", "bottom-right"),
 }
 
-IMAGE_CONTROL_SPECS: list[dict[str, Any]] = [
-    {"name": "controle_1_vermelho_sup_esq", "quadrant": "superior-esquerdo", "color_name": "vermelho", "color_rgb": (220, 30, 30)},
-    {"name": "controle_2_azul_inf_dir", "quadrant": "inferior-direito", "color_name": "azul", "color_rgb": (30, 60, 220)},
-    {"name": "controle_3_verde_sup_dir", "quadrant": "superior-direito", "color_name": "verde", "color_rgb": (30, 180, 60)},
-]
+# INTERPRETAÇÃO DE DESIGN #12 (nova): as 2 combinações cor+quadrante abaixo
+# diferem em AMBOS os eixos uma da outra (exigido pela decisão #2) e são
+# REUSADAS idênticas para os 4 papéis visuais -- só o nome/rótulo do
+# controle é prefixado pelo papel (não são 8 combinações distintas). Isto
+# é uma escolha de conveniência deste rework, não uma regra ditada
+# previamente; precisa de confirmação do pesquisador como as demais
+# interpretações novas.
+_BASE_IMAGE_CONTROL_SPECS: tuple[dict[str, Any], ...] = (
+    {"quadrant": "superior-esquerdo", "color_name": "vermelho", "color_rgb": (220, 30, 30)},
+    {"quadrant": "inferior-direito", "color_name": "azul", "color_rgb": (30, 60, 220)},
+)
+
+
+def build_image_control_specs_for_role(role: str) -> list[dict[str, Any]]:
+    """Devolve os 2 specs de imagem (cor+quadrante) para ``role``, com nome
+    prefixado pelo papel para facilitar leitura do log -- mesmas 2
+    combinações de `_BASE_IMAGE_CONTROL_SPECS` para todos os papéis."""
+    specs = []
+    for i, base in enumerate(_BASE_IMAGE_CONTROL_SPECS, start=1):
+        spec = dict(base)
+        spec["name"] = f"controle_imagem_{role}_{i}_{base['color_name']}_{base['quadrant']}"
+        spec["role"] = role
+        specs.append(spec)
+    return specs
+
+
+# Todas as specs de imagem dos 4 papéis, para conveniência de quem quiser
+# a lista completa (12 entradas: 4 papéis x 2 specs de imagem; o 3º
+# controle de cada papel é o "sem imagem", que não tem spec de imagem).
+IMAGE_CONTROL_SPECS_BY_ROLE: dict[str, list[dict[str, Any]]] = {
+    role: build_image_control_specs_for_role(role) for role in VISUAL_ROLES
+}
 
 IMAGE_CONTROL_PROMPT = """
 Esta é uma imagem de teste sintética (não é uma lesão de pele). Ela é
@@ -628,6 +743,40 @@ Responda apenas: (1) em qual quadrante está o quadrado colorido
 (superior-esquerdo, superior-direito, inferior-esquerdo ou
 inferior-direito) e (2) de qual cor ele é.
 """
+
+# DECISÃO FECHADA #2: controle "sem imagem" -- mensagem SÓ texto, sem
+# nenhuma entrada `image_url` no payload (ver `_text_only_control_message`
+# abaixo). O modelo deve indicar explicitamente que não recebeu/não
+# consegue ver uma imagem.
+NO_IMAGE_CONTROL_PROMPT = """
+Esta é uma mensagem de teste. Não há nenhuma imagem anexada a esta
+mensagem. Responda apenas: em qual quadrante estaria um quadrado colorido
+e de qual cor ele seria, com base na imagem que acompanha esta mensagem.
+"""
+
+# INTERPRETAÇÃO DE DESIGN #11 (nova): fraseologia aceita como o modelo
+# reconhecendo explicitamente a ausência de imagem. Heurística de
+# substring (case-insensitive) -- pode não cobrir todas as formas reais de
+# um VLM local dizer "não há imagem"; precisa de confirmação do
+# pesquisador, mesmo padrão das demais heurísticas de marcador textual
+# deste módulo.
+_NO_IMAGE_ACK_MARKERS: tuple[str, ...] = (
+    "não há imagem",
+    "nenhuma imagem",
+    "não recebi imagem",
+    "não recebi nenhuma imagem",
+    "não foi fornecida nenhuma imagem",
+    "não consigo ver",
+    "não consigo visualizar",
+    "sem imagem",
+    "no image",
+    "there is no image",
+    "i don't see an image",
+    "i do not see an image",
+    "i cannot see an image",
+    "no image was provided",
+    "no image provided",
+)
 
 
 def _quadrant_box(quadrant: str, size: int = CONTROL_IMAGE_SIZE, shape: int = CONTROL_SHAPE_SIZE, margin: int = CONTROL_MARGIN) -> tuple[int, int, int, int]:
@@ -648,6 +797,13 @@ def build_image_sending_control_image(spec: dict[str, Any]) -> Image.Image:
     return img
 
 
+def _text_only_control_message(text: str) -> HumanMessage:
+    """Mensagem de controle "sem imagem" -- NENHUMA entrada ``image_url``
+    no payload (diferente de `_image_message`, que sempre embute uma
+    imagem). Usada para o 3º controle de cada papel visual."""
+    return HumanMessage(content=[{"type": "text", "text": text}])
+
+
 def evaluate_image_control_response(raw_text: Optional[str], spec: dict[str, Any]) -> dict[str, Any]:
     text = (raw_text or "").lower()
     color_found = spec["color_name"] in text
@@ -655,28 +811,162 @@ def evaluate_image_control_response(raw_text: Optional[str], spec: dict[str, Any
     quadrant_found = any(alias in text for alias in quadrant_aliases)
     return {
         "name": spec["name"],
+        "role": spec.get("role"),
+        "kind": "imagem",
         "color_found": color_found,
         "quadrant_found": quadrant_found,
         "passed": color_found and quadrant_found,
     }
 
 
-def evaluate_image_sending_controls(results: list[dict[str, Any]]) -> dict[str, Any]:
-    """``results``: lista de ``{"spec": spec, "raw_text": raw_text}`` para
-    cada controle executado. Confirma (a) cada resposta individualmente
-    identifica corretamente SUA PRÓPRIA imagem (cor+quadrante), e (b) as
-    respostas não são todas idênticas entre si (sinal de que o modelo
-    poderia estar ignorando a imagem e respondendo de forma genérica)."""
-    per_control = [evaluate_image_control_response(r["raw_text"], r["spec"]) for r in results]
+def evaluate_no_image_control_response(raw_text: Optional[str], role: str, name: str) -> dict[str, Any]:
+    """O controle "sem imagem" passa se o texto contiver algum marcador de
+    `_NO_IMAGE_ACK_MARKERS` (INTERPRETAÇÃO DE DESIGN #11)."""
+    text = (raw_text or "").lower()
+    acknowledged = any(marker in text for marker in _NO_IMAGE_ACK_MARKERS)
+    return {
+        "name": name,
+        "role": role,
+        "kind": "sem_imagem",
+        "acknowledged_no_image": acknowledged,
+        "passed": acknowledged,
+    }
+
+
+def verify_image_control_payload_sent_correct_image(message: HumanMessage, expected_image: Image.Image) -> bool:
+    """Decodifica a imagem base64 realmente embutida em ``message`` e
+    confirma que corresponde a ``expected_image`` -- reusa
+    `src.multiagent.presentation.images_are_effectively_equal` (mesmo
+    padrão de comparação já usado pela "dublê de payload" da primeira
+    entrega da Etapa 5), não reimplementa comparação de imagem.
+    """
+    image_entries = [item for item in message.content if item.get("type") == "image_url"]
+    if len(image_entries) != 1:
+        return False
+    import base64
+    from io import BytesIO
+
+    data_url = image_entries[0]["image_url"]["url"]
+    b64_data = data_url.split(",", 1)[1]
+    raw_bytes = base64.b64decode(b64_data)
+    sent_image = Image.open(BytesIO(raw_bytes)).convert("RGB")
+    return images_are_effectively_equal(sent_image, expected_image)
+
+
+def verify_no_image_control_payload_has_no_image(message: HumanMessage) -> bool:
+    """``True`` se ``message`` não tiver NENHUMA entrada ``image_url`` --
+    confirma por construção que o controle "sem imagem" realmente não
+    envia imagem nenhuma."""
+    return not any(item.get("type") == "image_url" for item in message.content)
+
+
+def evaluate_image_sending_controls_for_role(results: list[dict[str, Any]]) -> dict[str, Any]:
+    """``results``: lista de dicts, um por controle executado para UM
+    papel visual, cada um com ``{"kind": "imagem"|"sem_imagem", "spec":
+    spec_ou_None, "raw_text": raw_text, "payload_correct": bool}``.
+    Espera exatamente 3 resultados (2 de imagem + 1 sem imagem) por papel,
+    mas não impõe isso aqui (quem chama em `run_local_vlm_pilot.py`
+    garante a composição)."""
+    per_control = []
+    for r in results:
+        if r["kind"] == "imagem":
+            evaluation = evaluate_image_control_response(r["raw_text"], r["spec"])
+        else:
+            evaluation = evaluate_no_image_control_response(r["raw_text"], r["role"], r["name"])
+        evaluation["payload_correct"] = r.get("payload_correct")
+        per_control.append(evaluation)
+
     all_individually_passed = all(p["passed"] for p in per_control)
-    distinct_raw_texts = {str(r["raw_text"]).strip().lower() for r in results}
-    varies_with_content = len(distinct_raw_texts) > 1 or len(results) <= 1
-    overall_pass = all_individually_passed and varies_with_content
+    all_payloads_correct = all(p["payload_correct"] for p in per_control)
+    image_raw_texts = {str(r["raw_text"]).strip().lower() for r in results if r["kind"] == "imagem"}
+    varies_with_content = len(image_raw_texts) > 1 or sum(1 for r in results if r["kind"] == "imagem") <= 1
+    overall_pass = all_individually_passed and all_payloads_correct and varies_with_content
     return {
         "per_control": per_control,
         "all_individually_passed": all_individually_passed,
+        "all_payloads_correct": all_payloads_correct,
         "responses_vary_with_image_content": varies_with_content,
         "overall_pass": overall_pass,
+    }
+
+
+def evaluate_image_sending_controls(results_by_role: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    """``results_by_role``: ``{papel: [resultados do papel, ver
+    evaluate_image_sending_controls_for_role]}`` para os 4 papéis visuais.
+    Passa geral SE E SOMENTE SE os 4 papéis passarem individualmente --
+    um papel cujo caminho multimodal falhe não deve ser mascarado pelo
+    sucesso dos outros 3."""
+    per_role = {role: evaluate_image_sending_controls_for_role(results) for role, results in results_by_role.items()}
+    overall_pass = all(e["overall_pass"] for e in per_role.values())
+    return {
+        "per_role": per_role,
+        "n_roles_evaluated": len(per_role),
+        "n_roles_passed": sum(1 for e in per_role.values() if e["overall_pass"]),
+        "overall_pass": overall_pass,
+    }
+
+
+def _build_role_llm(model_name: str, role: str):
+    """Constrói o LLM de ``role`` pelo MESMO caminho de construção que o
+    papel usa na matriz principal -- para `vlm_direto`, ``ChatOllama(model=...)``
+    direto (idêntico a `run_vlm_direct_call`); para os 3 papéis
+    diagnósticos, instancia a classe de agente real (o mesmo `_build_llm`
+    interno de `src.agents.agents` roda dentro do `__init__`) e devolve o
+    atributo `.llm` já construído -- NUNCA chama `.analyze_lesion` (que
+    monta sempre o prompt clínico real, intocado nesta entrega)."""
+    if role == ROLE_VLM_DIRETO:
+        return ChatOllama(model=model_name)
+    agent_cls, schema = _ROLE_TO_AGENT_CLASS_AND_SCHEMA[role]
+    agent = agent_cls(model_name, schema)
+    return agent.llm
+
+
+def run_image_sending_control_call(
+    model_name: str,
+    role: str,
+    kind: str,
+    spec: Optional[dict[str, Any]],
+    timeout_s: float = TIMEOUT_S,
+) -> dict[str, Any]:
+    """Executa UM controle de envio de imagem para ``role`` (``kind`` é
+    ``"imagem"`` ou ``"sem_imagem"``), pelo caminho de construção de LLM
+    PRÓPRIO do papel (ver `_build_role_llm`) -- com o prompt/imagem de
+    CONTROLE, nunca o prompt clínico real (nota do pesquisador: "Esses
+    controles verificam o caminho multimodal; os prompts diagnósticos
+    ficam intactos no piloto dermatoscópico").
+
+    Devolve um dict com ``call_record`` (CallRecord), ``kind``, ``spec``,
+    ``role``, ``name``, ``raw_text`` e ``payload_correct`` (bool --
+    confirma que o payload realmente enviado continha a imagem esperada,
+    ou nenhuma entrada de imagem no caso "sem_imagem"; nunca revela a
+    resposta esperada via nome de arquivo/metadado enviado ao modelo).
+    """
+    llm = _build_role_llm(model_name, role)
+
+    if kind == "imagem":
+        control_image = build_image_sending_control_image(spec)
+        message = _image_message(convert_to_base64(control_image), IMAGE_CONTROL_PROMPT)
+        payload_correct = verify_image_control_payload_sent_correct_image(message, control_image)
+        name = spec["name"]
+    else:
+        message = _text_only_control_message(NO_IMAGE_CONTROL_PROMPT)
+        payload_correct = verify_no_image_control_payload_has_no_image(message)
+        name = f"controle_imagem_{role}_3_sem_imagem"
+
+    attempt_ts = datetime.now(timezone.utc).isoformat()
+    outcome = call_with_timeout(lambda: llm.invoke([message]).content, timeout_s=timeout_s)
+    status, cause, raw_text = classify_call_outcome(outcome)
+
+    record = CallRecord(
+        model_name=model_name, role=f"controle_imagem_{role}", condition=name,
+        lesion_id="controle_sintetico", image_id=name,
+        attempt_timestamp_utc=attempt_ts, elapsed_s=outcome.elapsed_s,
+        mem_before=None, mem_after=None, raw_response_text=raw_text,
+        call_status=status, failure_cause=cause, classified_status=None,
+    )
+    return {
+        "call_record": record, "kind": kind, "spec": spec, "role": role,
+        "name": name, "raw_text": raw_text, "payload_correct": payload_correct,
     }
 
 
@@ -752,10 +1042,17 @@ FIXED_SYNTHESIS_SCENARIOS: dict[str, dict[str, Any]] = {
             negativas={"simetria": "0", "cor_unica": "0"},
             explicacao="Múltiplas características positivas presentes -- melanoma pelo Método Menzies.",
         ),
+        # DECISÃO FECHADA #3: `vasos_atipicos` deste cenário foi alterado
+        # para uma fraseologia inequívoca de "não avaliado" (NÃO "Sim"/
+        # "Não" -- um critério avaliado-e-ausente seria "Não.", o que é
+        # uma afirmação distinta de "não avaliado"). Isto é o que permite
+        # testar se o sumarizador preserva a distinção entre "não
+        # avaliado" e "avaliado e ausente" (ver
+        # `_check_not_evaluated_not_misrepresented_as_absent` abaixo).
         "diagnosis_spcl": SPCLDiagnosticAnswer(
             padrao_de_pigmentacao_atipico="Não.",
             veu_azul_branco_irregular="Não.",
-            vasos_atipicos="Não.",
+            vasos_atipicos="Não avaliado: este critério não foi avaliado nesta análise.",
             padrao_de_reticulo_irregular="Sim.",
             padrao_de_globulos_irregulares="Não.",
             hiperpigmentacao_localizada="Não.",
@@ -785,21 +1082,43 @@ FIXED_SYNTHESIS_SCENARIOS: dict[str, dict[str, Any]] = {
 }
 
 
-# INTERPRETAÇÃO DE DESIGN #4: vocabulário fechado de termos clínicos usados
-# nos 3 prompts reais (agents.py) -- heurística de "achado novo": qualquer
-# termo desta lista presente na JUSTIFICATIVA do sumarizador que não
-# aparece (nem como substring) em NENHUMA das 3 (ou 2) explicações de
-# entrada é reportado como candidato a achado introduzido pelo sumarizador.
-# Esta é uma aproximação lexical, não semântica -- não prova ausência real
-# de alucinação clínica, só torna visível um sinal objetivo e reproduzível
-# para o pesquisador revisar manualmente. Precisa de confirmação antes de
-# ser tratada como critério de aprovação automática.
+# INTERPRETAÇÃO DE DESIGN #4 (mantida como interpretação de VOCABULÁRIO --
+# só o PAPEL desta heurística no fluxo de aprovação foi fechado pelo
+# pesquisador, ver DECISÃO FECHADA #4 abaixo): vocabulário fechado de
+# termos clínicos usados nos 3 prompts reais (agents.py) -- heurística de
+# "achado novo": qualquer termo desta lista presente na JUSTIFICATIVA do
+# sumarizador que não aparece (nem como substring) em NENHUMA das 3 (ou 2)
+# explicações de entrada é reportado como candidato a achado introduzido
+# pelo sumarizador. Esta é uma aproximação lexical, não semântica -- não
+# prova ausência real de alucinação clínica, só torna visível um sinal
+# objetivo e reproduzível para o pesquisador revisar manualmente.
 _CLINICAL_VOCABULARY = (
     "véu azul-branco", "veu azul-branco", "pseudópodes", "pseudopodes", "streaming radial",
     "despigmentação tipo cicatriz", "pontos pretos periféricos", "rede pigmentada",
     "linhas ramificadas", "glóbulos", "globulos", "retículo irregular", "reticulo irregular",
     "vasos atípicos", "vasos atipicos", "hiperpigmentação localizada", "hiperpigmentacao localizada",
     "regressão", "regressao", "padrão de pigmentação atípico", "padrao de pigmentacao atipico",
+)
+
+# DECISÃO FECHADA #4: estas duas listas são heurísticas lexicais
+# APROXIMADAS (não provam ausência real do problema) para dois cuidados
+# distintos ao redor da distinção "não avaliado" vs "avaliado e ausente":
+#   - frases que afirmam EXPLICITAMENTE que um critério foi avaliado (uso
+#     no cenário "conflitante", onde vasos_atipicos é "não avaliado" --
+#     se a justificativa do sumarizador usar uma destas frases referindo-
+#     se a esse critério, é candidato a ter confundido "não avaliado" com
+#     "avaliado e ausente");
+#   - frases que convertem ausência/não-avaliação em "ausente na lesão"
+#     (uso no cenário "um_parecer_ausente", onde o parecer SPCL inteiro
+#     está ausente -- a justificativa não deve alegar que a LESÃO carece
+#     da característica, e sim que o PARECER está ausente).
+_EVALUATED_AND_ABSENT_PHRASES: tuple[str, ...] = (
+    "foi avaliado e está ausente", "avaliado e ausente", "critério avaliado",
+    "foi avaliado e não", "avaliamos este critério", "avaliado, não",
+)
+_ABSENCE_AS_LESION_LACKS_FEATURE_PHRASES: tuple[str, ...] = (
+    "ausente na lesão", "a lesão não apresenta", "a lesão não possui",
+    "lesão não apresenta esse critério", "característica ausente na lesão",
 )
 
 
@@ -812,6 +1131,35 @@ def _vocabulary_terms_not_in_inputs(justificativa: str, scenario: dict[str, Any]
     combined_inputs = " ".join(input_texts)
     justificativa_lower = (justificativa or "").lower()
     return [term for term in _CLINICAL_VOCABULARY if term in justificativa_lower and term not in combined_inputs]
+
+
+def _check_not_evaluated_not_misrepresented_as_absent(justificativa: str) -> dict[str, Any]:
+    """Heurística APROXIMADA (lexical, não semântica -- flagueada
+    explicitamente, mesmo espírito da heurística de achado novo) para o
+    cenário "conflitante": a justificativa do sumarizador não deveria
+    alegar que o critério `vasos_atipicos` foi "avaliado e ausente" --
+    ele foi marcado como "não avaliado" no input fixo. Não detecta
+    menções implícitas/paráfrases que não usem uma das frases vigiadas."""
+    text = (justificativa or "").lower()
+    hits = [p for p in _EVALUATED_AND_ABSENT_PHRASES if p in text]
+    return {
+        "heuristic_is_approximate": True,
+        "phrases_found": hits,
+        "likely_misrepresented_as_evaluated_absent": len(hits) > 0,
+    }
+
+
+def _check_absence_not_misrepresented_as_lesion_lacks_feature(justificativa: str) -> dict[str, Any]:
+    """Heurística APROXIMADA equivalente para o cenário "um_parecer_ausente":
+    a justificativa não deveria confundir "parecer SPCL ausente" com "a
+    lesão não tem essa característica"."""
+    text = (justificativa or "").lower()
+    hits = [p for p in _ABSENCE_AS_LESION_LACKS_FEATURE_PHRASES if p in text]
+    return {
+        "heuristic_is_approximate": True,
+        "phrases_found": hits,
+        "likely_misrepresented_absence_as_lesion_lacks_feature": len(hits) > 0,
+    }
 
 
 def build_synthesis_control_state(scenario_name: str) -> GraphState:
@@ -828,6 +1176,15 @@ def build_synthesis_control_state(scenario_name: str) -> GraphState:
 
 
 def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float = TIMEOUT_S) -> dict[str, Any]:
+    """DECISÃO FECHADA #4: a heurística de vocabulário (`novel_clinical_terms_candidates`)
+    NUNCA mais determina ``passed`` sozinha -- é só um sinal de TRIAGEM
+    reportado para revisão manual do pesquisador (ver
+    `build_synthesis_manual_review_template`/o fluxo de 2 estágios em
+    `scripts/run_local_vlm_pilot.py`). ``passed`` aqui reflete só o
+    critério automatizável (parsing bem-sucedido pela A34); os heurísticos
+    lexicais (achado novo + as 2 checagens de "não avaliado") são
+    reportados sempre, nunca usados para aprovar/reprovar sozinhos.
+    """
     state = build_synthesis_control_state(scenario_name)
     record, state_update = run_multiagent_role_call(
         model_name=model_name, role=ROLE_SUMMARY, state=state,
@@ -843,14 +1200,87 @@ def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float 
         justificativa = getattr(validation, "justificativa", None) or str(validation)
     novel_terms = _vocabulary_terms_not_in_inputs(justificativa, FIXED_SYNTHESIS_SCENARIOS[scenario_name])
 
-    return {
+    result: dict[str, Any] = {
         "scenario": scenario_name,
         "call_record": record,
         "classified_status": classified,
         "parseable": parseable,
+        "justificativa": justificativa,
         "novel_clinical_terms_candidates": novel_terms,
         "no_novel_terms_detected": len(novel_terms) == 0,
-        "passed": parseable and len(novel_terms) == 0,
+        # "passed" automatizado = só parsing A34 -- achado novo é triagem,
+        # nunca gate automático (decisão fechada #4).
+        "passed": parseable,
+        "requires_manual_review": True,
+    }
+    if scenario_name == "conflitante":
+        result["not_evaluated_vs_evaluated_absent_check"] = _check_not_evaluated_not_misrepresented_as_absent(justificativa)
+    if scenario_name == "um_parecer_ausente":
+        result["absence_vs_lesion_lacks_feature_check"] = _check_absence_not_misrepresented_as_lesion_lacks_feature(justificativa)
+    return result
+
+
+# ---------------------------------------------------------------------------
+# 12b. Template de revisão manual -- DECISÃO FECHADA #4: o driver escreve
+#      este template e PARA após os 4 controles de síntese; a matriz
+#      principal só é tentada numa segunda invocação, depois do
+#      pesquisador preencher o veredito manual de cada cenário.
+# ---------------------------------------------------------------------------
+MANUAL_REVIEW_VERDICT_NO_NOVEL_FINDING = "sem_achado_novo"
+MANUAL_REVIEW_VERDICT_NOVEL_FINDING_FOUND = "achado_novo_encontrado"
+VALID_MANUAL_REVIEW_VERDICTS = (MANUAL_REVIEW_VERDICT_NO_NOVEL_FINDING, MANUAL_REVIEW_VERDICT_NOVEL_FINDING_FOUND)
+
+
+def build_synthesis_manual_review_template(synthesis_results: list[dict[str, Any]]) -> dict[str, Any]:
+    """Um item por cenário de síntese, com os sinais de triagem já
+    calculados e um placeholder para o pesquisador preencher à mão
+    (``manual_review_verdict``: ``None`` até ser preenchido;
+    ``reviewer_notes``: string livre). Nunca preenchido automaticamente."""
+    items = []
+    for r in synthesis_results:
+        items.append({
+            "scenario": r["scenario"],
+            "justificativa": r.get("justificativa", ""),
+            "novel_clinical_terms_candidates": r.get("novel_clinical_terms_candidates", []),
+            "not_evaluated_vs_evaluated_absent_check": r.get("not_evaluated_vs_evaluated_absent_check"),
+            "absence_vs_lesion_lacks_feature_check": r.get("absence_vs_lesion_lacks_feature_check"),
+            "manual_review_verdict": None,
+            "reviewer_notes": "",
+        })
+    return {
+        "instructions": (
+            "Revise manualmente cada cenário abaixo. Preencha "
+            "'manual_review_verdict' com exatamente "
+            f"'{MANUAL_REVIEW_VERDICT_NO_NOVEL_FINDING}' ou "
+            f"'{MANUAL_REVIEW_VERDICT_NOVEL_FINDING_FOUND}' (strings exatas) "
+            "e 'reviewer_notes' com observações livres. Depois rode "
+            "run_local_vlm_pilot.py --synthesis-manual-review-file <este arquivo> "
+            "para prosseguir à matriz principal."
+        ),
+        "valid_verdicts": list(VALID_MANUAL_REVIEW_VERDICTS),
+        "scenarios": items,
+    }
+
+
+def evaluate_manual_review_file(manual_review_data: dict[str, Any]) -> dict[str, Any]:
+    """Confere se TODOS os cenários têm
+    ``manual_review_verdict == MANUAL_REVIEW_VERDICT_NO_NOVEL_FINDING`` --
+    qualquer veredito ausente/``None``/diferente disso bloqueia a
+    progressão (nunca assume/adivinha um veredito)."""
+    scenarios = manual_review_data.get("scenarios", [])
+    missing = [s["scenario"] for s in scenarios if s.get("manual_review_verdict") is None]
+    novel_found = [s["scenario"] for s in scenarios if s.get("manual_review_verdict") == MANUAL_REVIEW_VERDICT_NOVEL_FINDING_FOUND]
+    invalid = [
+        s["scenario"] for s in scenarios
+        if s.get("manual_review_verdict") is not None and s.get("manual_review_verdict") not in VALID_MANUAL_REVIEW_VERDICTS
+    ]
+    all_clear = len(scenarios) > 0 and not missing and not novel_found and not invalid
+    return {
+        "n_scenarios": len(scenarios),
+        "missing_verdict_scenarios": missing,
+        "novel_finding_scenarios": novel_found,
+        "invalid_verdict_scenarios": invalid,
+        "all_scenarios_cleared": all_clear,
     }
 
 
@@ -870,30 +1300,195 @@ def classify_binary_coverage(classified_status: Optional[str]) -> Optional[bool]
 
 
 # ---------------------------------------------------------------------------
-# 14. "Crescimento sustentado de swap" (INTERPRETAÇÃO DE DESIGN #6)
+# 14. "Crescimento sustentado de swap" -- DECISÃO FECHADA #6 (substitui
+#     POR COMPLETO a regra monotônica-sobre-todas-as-chamadas da primeira
+#     entrega).
 # ---------------------------------------------------------------------------
-def detect_sustained_swap_growth(swap_samples_bytes: list[int], floor_bytes: int = 0) -> dict[str, Any]:
-    """Definição ADOTADA (precisa de aval do pesquisador antes de valer
-    como critério de aprovação/reprovação do piloto): "crescimento
-    sustentado" = sequência MONOTÔNICA NÃO-DECRESCENTE de amostras de swap
-    ao longo de TODAS as chamadas realizadas, estritamente acima de
-    ``floor_bytes`` em algum ponto (um piso abaixo do qual flutuações são
-    ignoradas, documentado explicitamente, não decidido silenciosamente -- o
-    valor default 0 aqui NÃO é uma recomendação, é só um valor neutro para
-    permitir chamar a função sem argumento quando o pesquisador ainda não
-    tiver fixado um piso real).
+# Constante OPERACIONAL deste piloto -- NÃO é um limite universal de
+# máquina, é um limiar de triagem escolhido pelo pesquisador para este
+# experimento especificamente (512 MiB acima do baseline pós-controles).
+SWAP_GROWTH_THRESHOLD_BYTES = 512 * 1024 * 1024  # 512 MiB
+SWAP_GROWTH_WINDOW_SIZE = 5
+
+
+def detect_sustained_swap_growth(
+    main_matrix_swap_samples_bytes: list[int],
+    baseline_swap_bytes: int,
+    window_size: int = SWAP_GROWTH_WINDOW_SIZE,
+    growth_threshold_bytes: int = SWAP_GROWTH_THRESHOLD_BYTES,
+) -> dict[str, Any]:
+    """Definição FECHADA pelo pesquisador (decisão #6) -- implementada
+    aqui como regra operacional do piloto, não mais pendente de aval:
+
+      1. ``baseline_swap_bytes`` é um snapshot explícito capturado pelo
+         chamador DEPOIS do modelo carregado e dos controles completos,
+         ANTES da primeira chamada da matriz principal -- é um parâmetro
+         OBRIGATÓRIO aqui, nunca derivado da própria lista de amostras.
+      2. ``main_matrix_swap_samples_bytes`` contém SÓ as amostras
+         coletadas DURANTE a matriz principal (nunca as dos controles).
+      3. As amostras são particionadas em janelas NÃO-SOBREPOSTAS de
+         ``window_size`` amostras consecutivas (default 5); uma janela
+         incompleta ao final é DESCARTADA (não arredondada para baixo
+         silenciosamente -- ``n_samples_discarded_incomplete_window``
+         registra quantas amostras ficaram de fora).
+      4. Mediana por janela.
+      5. ``sustained_growth_detected = True`` SOMENTE SE existirem 2
+         janelas CONSECUTIVAS cujas medianas sejam AMBAS
+         >= ``baseline_swap_bytes + growth_threshold_bytes`` E a mediana
+         da segunda janela seja ESTRITAMENTE MAIOR que a da primeira.
+      6. Um padrão "pico então estável" (uma janela cruza o limiar, a
+         próxima também está no/acima do limiar mas NÃO supera a mediana
+         da anterior) é reportado SEPARADAMENTE em
+         ``spike_then_stable_detected`` -- nunca contado como crescimento
+         sustentado.
+
+    Todas as janelas/medianas brutas são reportadas para inspeção, mesmo
+    quando nenhum dos dois flags dispara.
     """
-    above_floor = [s for s in swap_samples_bytes if s > floor_bytes]
-    is_monotonic_non_decreasing = all(
-        swap_samples_bytes[i] <= swap_samples_bytes[i + 1] for i in range(len(swap_samples_bytes) - 1)
-    )
+    n_complete_windows = len(main_matrix_swap_samples_bytes) // window_size if window_size > 0 else 0
+    windows = [
+        main_matrix_swap_samples_bytes[i * window_size:(i + 1) * window_size]
+        for i in range(n_complete_windows)
+    ]
+    window_medians = [statistics.median(w) for w in windows]
+    threshold = baseline_swap_bytes + growth_threshold_bytes
+
+    sustained_growth_window_pairs: list[tuple[int, int]] = []
+    spike_then_stable_window_pairs: list[tuple[int, int]] = []
+    for i in range(len(window_medians) - 1):
+        m0, m1 = window_medians[i], window_medians[i + 1]
+        both_at_or_above_threshold = m0 >= threshold and m1 >= threshold
+        if not both_at_or_above_threshold:
+            continue
+        if m1 > m0:
+            sustained_growth_window_pairs.append((i, i + 1))
+        else:
+            spike_then_stable_window_pairs.append((i, i + 1))
+
     return {
-        "floor_bytes": floor_bytes,
-        "n_samples": len(swap_samples_bytes),
-        "n_samples_above_floor": len(above_floor),
-        "is_monotonic_non_decreasing_across_all_calls": is_monotonic_non_decreasing,
-        "sustained_growth_detected": is_monotonic_non_decreasing and len(above_floor) > 0,
-        "min_bytes": min(swap_samples_bytes) if swap_samples_bytes else None,
-        "max_bytes": max(swap_samples_bytes) if swap_samples_bytes else None,
-        "definition_needs_researcher_signoff": True,
+        "baseline_swap_bytes": baseline_swap_bytes,
+        "growth_threshold_bytes": growth_threshold_bytes,
+        "window_size": window_size,
+        "n_samples": len(main_matrix_swap_samples_bytes),
+        "n_complete_windows": n_complete_windows,
+        "n_samples_discarded_incomplete_window": len(main_matrix_swap_samples_bytes) - n_complete_windows * window_size,
+        "window_medians_bytes": window_medians,
+        "threshold_bytes_absolute": threshold,
+        "sustained_growth_window_pairs": sustained_growth_window_pairs,
+        "sustained_growth_detected": len(sustained_growth_window_pairs) > 0,
+        "spike_then_stable_window_pairs": spike_then_stable_window_pairs,
+        "spike_then_stable_detected": len(spike_then_stable_window_pairs) > 0,
+        "definition_needs_researcher_signoff": False,  # decisão #6 já fechada -- reportado para inspeção, não mais pendente.
+    }
+
+
+# ---------------------------------------------------------------------------
+# 15. Relatório informacional para ABCD/Menzies/SPCL -- DECISÃO FECHADA #9
+#     (extensão): "zero parecer conclusivo" continua restrito a
+#     vlm_direto/summary (único lugar onde classify_case_status se
+#     aplica); para os 3 papéis diagnósticos SEM campo categórico,
+#     reportamos (NUNCA um gate pass/fail) validade de resposta (já
+#     coberta por call_status), recusas explícitas, e uma contagem
+#     lexical informativa de "não avaliado"/"não considerado".
+# ---------------------------------------------------------------------------
+_NOT_EVALUATED_PHRASES: tuple[str, ...] = (
+    "não avaliado", "nao avaliado", "não considerado", "nao considerado",
+    "não avaliada", "nao avaliada", "não considerada", "nao considerada",
+)
+
+
+def count_not_evaluated_phrases(raw_text: Optional[str]) -> int:
+    """Contagem lexical INFORMATIVA (não um veredito) de quantas vezes uma
+    frase de `_NOT_EVALUATED_PHRASES` aparece no texto bruto de uma
+    resposta ABCD/Menzies/SPCL -- mesmo estilo da heurística de achado
+    novo (substring, case-insensitive)."""
+    text = (raw_text or "").lower()
+    return sum(text.count(phrase) for phrase in _NOT_EVALUATED_PHRASES)
+
+
+def summarize_diagnostic_role_reporting(records: list["CallRecord"], role: str) -> dict[str, Any]:
+    """``records``: todos os CallRecord da matriz principal para ``role``
+    (um de ROLE_ABCD/ROLE_MENZIES/ROLE_SPCL). Devolve contagens
+    informativas -- NUNCA aplica o flag "zero parecer conclusivo" (que só
+    faz sentido para vlm_direto/summary, os únicos papéis com campo de
+    diagnóstico categorizável por `classify_case_status`)."""
+    role_records = [r for r in records if r.role == role]
+    n_ok = sum(1 for r in role_records if r.call_status == STATUS_OK)
+    n_refusal = sum(1 for r in role_records if r.call_status == STATUS_REFUSAL)
+    n_not_evaluated_phrases_total = sum(count_not_evaluated_phrases(r.raw_response_text) for r in role_records)
+    return {
+        "role": role,
+        "n_calls": len(role_records),
+        "n_ok": n_ok,
+        "n_explicit_refusals": n_refusal,
+        "n_not_evaluated_phrases_total": n_not_evaluated_phrases_total,
+        "note": (
+            "Papel sem campo de diagnóstico categórico -- o flag 'zero "
+            "parecer conclusivo' (roles_with_zero_conclusive_opinion) NÃO "
+            "se aplica aqui por construção; ver decisão fechada #9."
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# 16. Projeção de duração em escala real -- DECISÃO FECHADA #10 (extensão):
+#     soma do elapsed_s das 4 chamadas sequenciais (ABCD->Menzies->SPCL->
+#     sumarizador) por lesão+condição, usada para projetar (não prometer)
+#     uma duração aproximada de uma hipotética execução em escala real.
+# ---------------------------------------------------------------------------
+def compute_per_lesion_condition_elapsed_totals(records: list["CallRecord"]) -> dict[tuple[str, str], float]:
+    """Soma `elapsed_s` das 4 chamadas sequenciais (ABCD, Menzies, SPCL,
+    sumarizador) por par (lesion_id, condition) -- ignora chamadas com
+    `elapsed_s is None` (ex.: `nao_executado`) somando 0.0 para essas."""
+    totals: dict[tuple[str, str], float] = {}
+    for r in records:
+        if r.role not in MULTIAGENT_ROLES_IN_ORDER:
+            continue
+        key = (r.lesion_id, r.condition)
+        totals[key] = totals.get(key, 0.0) + (r.elapsed_s or 0.0)
+    return totals
+
+
+def project_full_scale_duration(per_lesion_condition_totals: list[float], hypothetical_n: int) -> dict[str, Any]:
+    """Projeta (NUNCA promete) a duração de uma hipotética execução de
+    ``hypothetical_n`` casos a partir da média dos totais por lesão+
+    condição MEDIDOS NESTE PILOTO (fórmula: média * hypothetical_n).
+
+    Caveat explícito (sempre incluído no resultado, não só em docstring):
+    esta projeção extrapola a partir dos tempos por chamada DO PILOTO
+    (modelo já carregado, 12 lesões, máquina do pesquisador) -- não é uma
+    promessa sobre o tempo real de uma execução de 3.000 lesões, que pode
+    diferir por hardware, estado de carregamento do modelo entre
+    execuções, contenção de recursos, e variação do próprio modelo local
+    (sem seed garantido, ver decisão #8)."""
+    if not per_lesion_condition_totals:
+        return {
+            "n_samples": 0,
+            "mean_per_lesion_condition_elapsed_s": None,
+            "hypothetical_n": hypothetical_n,
+            "projected_total_s": None,
+            "caveat": (
+                "Sem amostras -- nenhuma projeção calculada. Projeção, quando "
+                "calculável, extrapola só dos tempos por chamada DESTE "
+                "PILOTO (modelo já carregado, 12 lesões); não é uma "
+                "promessa de tempo real para 3.000 lesões (hardware/estado "
+                "de carregamento/variação do modelo local podem diferir)."
+            ),
+        }
+    mean_s = statistics.mean(per_lesion_condition_totals)
+    projected_total_s = mean_s * hypothetical_n
+    return {
+        "n_samples": len(per_lesion_condition_totals),
+        "mean_per_lesion_condition_elapsed_s": mean_s,
+        "hypothetical_n": hypothetical_n,
+        "projected_total_s": projected_total_s,
+        "projected_total_hours": projected_total_s / 3600.0,
+        "caveat": (
+            "Projeção extrapola só dos tempos por chamada DESTE PILOTO "
+            "(modelo já carregado, 12 lesões, máquina do pesquisador); NÃO "
+            "é uma promessa de tempo real para uma execução de 3.000 "
+            "lesões -- hardware, estado de carregamento do modelo entre "
+            "execuções, contenção de recursos e variação do próprio modelo "
+            "local (sem seed garantido) podem diferir substancialmente."
+        ),
     }
