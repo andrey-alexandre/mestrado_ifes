@@ -419,6 +419,39 @@ def test_draw_contour_preserves_resolution_exactly():
 
 
 # ---------------------------------------------------------------------------
+# Regressao: contorno fino numa imagem grande nao pode ser um falso negativo
+# em images_are_clearly_different (bug real encontrado em execucao no Mac
+# com imagens HAM10000 450x600 -- a media de diferenca sobre a imagem
+# INTEIRA ficava bem abaixo do limiar de tolerancia a ruido de JPEG mesmo
+# com o contorno claramente desenhado, porque o contorno altera uma fracao
+# minuscula do total de pixels).
+# ---------------------------------------------------------------------------
+def test_images_are_clearly_different_detects_thin_contour_on_large_image():
+    w, h = 450, 600
+    image = _make_image(w, h, color=(120, 90, 80))
+    # mascara pequena em relacao ao total (lesao tipica), produz um
+    # contorno de poucos pixels de espessura -- a mudanca de conteudo e
+    # real e visivel, mas afeta uma fracao minuscula da imagem inteira.
+    mask = _make_mask(w, h, (200, 250, 260, 310))
+
+    contoured = draw_contour(image, mask)
+
+    # a media de diferenca sobre a imagem inteira cai sob o limiar de
+    # tolerancia a JPEG (prova de que a negacao de "effectively_equal"
+    # seria um falso negativo aqui).
+    assert images_are_effectively_equal(image, contoured) is True
+    # mas a deteccao por fracao de pixels localmente diferentes confirma
+    # corretamente que o contorno esta presente.
+    assert images_are_clearly_different(image, contoured) is True
+
+
+def test_images_are_clearly_different_false_for_truly_identical_images():
+    image = _make_image(40, 30)
+    identical_copy = image.copy()
+    assert images_are_clearly_different(image, identical_copy) is False
+
+
+# ---------------------------------------------------------------------------
 # Payload REAL (_image_message/convert_to_base64) -- decodifica de volta
 # a pixels e confirma que carrega a imagem certa, sem rotulo no texto.
 # ---------------------------------------------------------------------------

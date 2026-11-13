@@ -554,9 +554,36 @@ def images_are_effectively_equal(
 
 
 def images_are_clearly_different(
-    img_a: Image.Image, img_b: Image.Image, mean_abs_diff_threshold: float = 8.0
+    img_a: Image.Image,
+    img_b: Image.Image,
+    pixel_diff_threshold: int = 40,
+    min_differing_pixel_fraction: float = 0.00005,
 ) -> bool:
-    return not images_are_effectively_equal(img_a, img_b, mean_abs_diff_threshold)
+    """Detecta uma mudanca de conteudo localizada (ex.: um contorno de poucos
+    pixels de espessura desenhado sobre uma imagem HAM10000 real de
+    450x600) -- NAO e a negacao de :func:`images_are_effectively_equal`.
+
+    Diferenca media sobre a imagem INTEIRA (usada em
+    ``images_are_effectively_equal``) e a metrica errada aqui: um contorno
+    de poucos px altera uma fracao minuscula do total de pixels, entao a
+    media cai bem abaixo de qualquer limiar de tolerancia a ruido de JPEG
+    mesmo quando o contorno esta claramente presente e visivel -- foi
+    exatamente esse falso negativo que a `AssertionError: S1 deveria
+    diferir de S0` expos num caso real.
+
+    Em vez disso, conta a FRACAO DE PIXELS cuja diferenca maxima entre
+    canais excede ``pixel_diff_threshold`` (acima do ruido tipico de
+    quantizacao JPEG) e considera as imagens claramente diferentes se essa
+    fracao for >= ``min_differing_pixel_fraction`` -- sensivel a uma
+    mudanca localizada mesmo numa imagem grande.
+    """
+    arr_a = np.array(img_a.convert("RGB")).astype(int)
+    arr_b = np.array(img_b.convert("RGB")).astype(int)
+    if arr_a.shape != arr_b.shape:
+        return True
+    per_pixel_max_diff = np.abs(arr_a - arr_b).max(axis=-1)
+    differing_fraction = float((per_pixel_max_diff > pixel_diff_threshold).mean())
+    return differing_fraction >= min_differing_pixel_fraction
 
 
 # ---------------------------------------------------------------------------
