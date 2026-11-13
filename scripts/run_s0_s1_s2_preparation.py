@@ -42,6 +42,7 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
 from PIL import Image as PILImage
 from PIL import ImageDraw
 
@@ -50,16 +51,24 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from src.multiagent.presentation import (  # noqa: E402
     EXPECTED_N_CASES,
+    REASON_FILE_MISSING_LOCALLY,
+    REASON_MASK_EMPTY,
+    S2PayloadUnavailableError,
     build_pairing_report,
-    build_vlm_payload_stub,
+    build_real_vlm_payload,
+    build_s0_s1_s2_report_markdown,
     draw_contour,
+    images_are_clearly_different,
+    images_are_effectively_equal,
     index_s2_cases_by_image_id,
     load_binary_mask,
     load_manifest_rows,
     load_original_image,
+    payload_text_has_no_labels,
+    decode_payload_image,
+    require_s2_payload_available,
     resolve_s2_mask_path_locally,
     verify_manifest_or_die,
-    verify_payload_has_no_labels,
 )
 
 DEFAULT_MANIFEST_PATH = str(REPO_ROOT / "experiments" / "sampling" / "sample_manifest.csv")
@@ -195,20 +204,18 @@ def main() -> None:
         return {"disponivel": avail, "indisponivel": len(output_rows) - avail}
 
     counts = {"s0": _count("status_s0"), "s1": _count("status_s1"), "s2": _count("status_s2")}
-    reason_counts_s1: dict[str, int] = {}
-    reason_counts_s2: dict[str, int] = {}
+    reason_counts_by_condition: dict[str, dict[str, int]] = {"s0": {}, "s1": {}, "s2": {}}
     for r in output_rows:
-        if r["status_s1"] == "indisponivel" and r["reason_s1"]:
-            reason_counts_s1[r["reason_s1"]] = reason_counts_s1.get(r["reason_s1"], 0) + 1
-        if r["status_s2"] == "indisponivel" and r["reason_s2"]:
-            reason_counts_s2[r["reason_s2"]] = reason_counts_s2.get(r["reason_s2"], 0) + 1
+        for cond in ("s0", "s1", "s2"):
+            if r[f"status_{cond}"] == "indisponivel" and r[f"reason_{cond}"]:
+                reasons = reason_counts_by_condition[cond]
+                reasons[r[f"reason_{cond}"]] = reasons.get(r[f"reason_{cond}"], 0) + 1
 
     summary = {
         "n_cases_total": len(output_rows),
         "manifest_sha256_verified": True,
         "counts_by_condition": counts,
-        "reason_counts_s1_unavailable": reason_counts_s1,
-        "reason_counts_s2_unavailable": reason_counts_s2,
+        "reason_counts_by_condition": reason_counts_by_condition,
         "duplicate_lesion_ids": extras["duplicate_lesion_ids"],
         "duplicate_image_ids": extras["duplicate_image_ids"],
         "image_ids_without_s2_entry": extras["image_ids_without_s2_entry"],
@@ -218,27 +225,57 @@ def main() -> None:
     with open(summary_json_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
 
+    report_md = build_s0_s1_s2_report_markdown(
+        manifest_path=str(manifest_path),
+        n_cases_total=len(output_rows),
+        counts_by_condition=counts,
+        reason_counts_by_condition=reason_counts_by_condition,
+        duplicate_lesion_ids=extras["duplicate_lesion_ids"],
+        duplicate_image_ids=extras["duplicate_image_ids"],
+        image_ids_without_s2_entry=extras["image_ids_without_s2_entry"],
+        s2_entries_without_manifest_row=extras["s2_entries_without_manifest_row"],
+        manifest_csv_report_path=str(manifest_csv_path),
+    )
+    report_md_path = results_dir / "s0_s1_s2_preparation_report.md"
+    with open(report_md_path, "w", encoding="utf-8") as f:
+        f.write(report_md)
+
     print("Contagens por condicao:")
     print(json.dumps(counts, indent=2, ensure_ascii=False))
     print(f"Relatorio por caso: {manifest_csv_path}")
     print(f"Resumo: {summary_json_path}")
+    print(f"Relatorio Markdown: {report_md_path}")
 
     # --- exemplos lado a lado para inspecao visual ---
     examples_dir = output_images_dir / "examples"
     examples_dir.mkdir(parents=True, exist_ok=True)
     example_rows = [r for r in output_rows if r["status_s0"] == "disponivel"][:N_EXAMPLE_LESIONS - 1]
-    empty_mask_example = next(
-        (r for r in output_rows if r["status_s0"] == "disponivel" and r["reason_s2"] == "mascara_predita_vazia"),
+    unavailable_s2_example = next(
+        (
+            r
+            for r in output_rows
+            if r["status_s0"] == "disponivel"
+            and r["reason_s2"] in (REASON_MASK_EMPTY, REASON_FILE_MISSING_LOCALLY)
+        ),
         None,
     )
-    if empty_mask_example is not None and empty_mask_example not in example_rows:
-        example_rows.append(empty_mask_example)
+    if unavailable_s2_example is not None and unavailable_s2_example not in example_rows:
+        example_rows.append(unavailable_s2_example)
 
     for r in example_rows:
         panels = []
+        placeholder_size = None
         for key, label in (("path_s0", "S0"), ("path_s1", "S1"), ("path_s2", "S2")):
             if r[key]:
-                panels.append((PILImage.open(r[key]), label))
+                panel_img = PILImage.open(r[key])
+                placeholder_size = placeholder_size or panel_img.size
+                panels.append((panel_img, label))
+            elif key == "path_s2" and r["reason_s2"]:
+                size = placeholder_size or (300, 225)
+                placeholder = PILImage.new("RGB", size, (40, 40, 40))
+                pdraw = ImageDraw.Draw(placeholder)
+                pdraw.text((8, size[1] // 2 - 10), f"S2 indisponivel:\n{r['reason_s2']}", fill="white")
+                panels.append((placeholder, "S2 (indisponivel)"))
         if not panels:
             continue
         pad = 8
@@ -256,13 +293,60 @@ def main() -> None:
 
     print(f"Exemplos lado a lado salvos em: {examples_dir}")
 
-    # --- stub de payload dublê (apenas demonstracao, nenhuma chamada real) ---
-    demo_row = next((r for r in output_rows if r["status_s2"] == "disponivel"), None)
-    if demo_row is not None:
-        payload = build_vlm_payload_stub(Path(demo_row["path_s2"]), condition="S2")
-        assert verify_payload_has_no_labels(payload), "payload dublê vazou rotulo -- defeito, nao prosseguir"
-        print("Payload dublê de exemplo (sem rotulos):")
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    # --- payload dublê REAL (reusa _image_message/convert_to_base64; nenhuma
+    # chamada de modelo ocorre) -- caso normal: prova por decodificacao de
+    # base64 que cada payload carrega a imagem certa, que S1 difere de S0,
+    # e que nenhum rotulo categorico vaza no texto de nenhuma condicao. ---
+    pairings_by_image_id = {p.image_id: p for p in pairings}
+    normal_row = next(
+        (r for r in output_rows if r["status_s0"] == "disponivel" and r["status_s1"] == "disponivel" and r["status_s2"] == "disponivel"),
+        None,
+    )
+    if normal_row is not None:
+        s0_img = PILImage.open(normal_row["path_s0"])
+        s1_img = PILImage.open(normal_row["path_s1"])
+        s2_img = PILImage.open(normal_row["path_s2"])
+
+        payload_s0 = build_real_vlm_payload(s0_img, condition="S0")
+        payload_s1 = build_real_vlm_payload(s1_img, condition="S1")
+        payload_s2 = build_real_vlm_payload(s2_img, condition="S2")
+
+        decoded_s0 = decode_payload_image(payload_s0)
+        decoded_s1 = decode_payload_image(payload_s1)
+        decoded_s2 = decode_payload_image(payload_s2)
+
+        assert images_are_effectively_equal(decoded_s0, s0_img), "payload S0 nao corresponde a imagem S0 salva"
+        assert images_are_effectively_equal(decoded_s1, s1_img), "payload S1 nao corresponde a imagem S1 salva"
+        assert images_are_effectively_equal(decoded_s2, s2_img), "payload S2 nao corresponde a imagem S2 salva"
+        assert images_are_clearly_different(decoded_s0, decoded_s1), "S1 deveria diferir de S0 (contorno de referencia)"
+
+        pairing = pairings_by_image_id[normal_row["image_id"]]
+        ref_mask = load_binary_mask(pairing.reference_mask_path)
+        s2_mask = load_binary_mask(resolve_s2_mask_path_locally(s2_masks_dir, normal_row["image_id"]))
+        if ref_mask is not None and s2_mask is not None and not np.array_equal(ref_mask, s2_mask):
+            assert images_are_clearly_different(decoded_s1, decoded_s2), (
+                "mascaras de referencia e predita diferem mas S1/S2 decodificados nao diferem"
+            )
+
+        assert payload_text_has_no_labels(payload_s0), "payload S0 vazou rotulo no texto"
+        assert payload_text_has_no_labels(payload_s1), "payload S1 vazou rotulo no texto"
+        assert payload_text_has_no_labels(payload_s2), "payload S2 vazou rotulo no texto"
+        print(
+            f"Payload dublê (caso normal, image_id={normal_row['image_id']}): "
+            "pixels de S0/S1/S2 confirmados por decodificacao, sem vazamento de rotulo."
+        )
+
+    # --- caso S2 indisponivel: construcao de payload S2 deve ser bloqueada
+    # explicitamente (excecao controlada), nunca cair para S0/S1 em silencio ---
+    if unavailable_s2_example is not None:
+        unavailable_pairing = pairings_by_image_id[unavailable_s2_example["image_id"]]
+        try:
+            require_s2_payload_available(unavailable_pairing)
+            raise AssertionError(
+                f"esperava S2PayloadUnavailableError para image_id={unavailable_pairing.image_id}"
+            )
+        except S2PayloadUnavailableError as exc:
+            print(f"Payload S2 bloqueado como esperado (image_id={unavailable_pairing.image_id}): {exc}")
 
 
 if __name__ == "__main__":

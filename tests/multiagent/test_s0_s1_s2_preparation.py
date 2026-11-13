@@ -20,11 +20,18 @@ from src.multiagent.presentation import (
     REASON_MASK_EMPTY,
     REASON_REF_SHAPE_MISMATCH,
     REASON_SHAPE_MISMATCH,
+    S2PayloadUnavailableError,
     build_pairing_report,
+    build_real_vlm_payload,
     build_vlm_payload_stub,
+    decode_payload_image,
     draw_contour,
     find_duplicate_ids,
+    images_are_clearly_different,
+    images_are_effectively_equal,
     load_binary_mask,
+    payload_text_has_no_labels,
+    require_s2_payload_available,
     sha256_of_file,
     verify_manifest_or_die,
     verify_payload_has_no_labels,
@@ -399,3 +406,79 @@ def test_verify_payload_has_no_labels_catches_leaked_key():
 def test_verify_payload_has_no_labels_catches_leaked_value_substring():
     leaked_payload = {"image_path": "x.png", "condition": "S1", "instruction": "this case is binary_target=melanoma"}
     assert verify_payload_has_no_labels(leaked_payload) is False
+
+
+# ---------------------------------------------------------------------------
+# draw_contour: preservacao explicita de resolucao/enquadramento.
+# ---------------------------------------------------------------------------
+def test_draw_contour_preserves_resolution_exactly():
+    image = _make_image(37, 23)
+    mask = _make_mask(37, 23, (5, 4, 20, 15))
+    result = draw_contour(image, mask)
+    assert result.size == image.size
+
+
+# ---------------------------------------------------------------------------
+# Payload REAL (_image_message/convert_to_base64) -- decodifica de volta
+# a pixels e confirma que carrega a imagem certa, sem rotulo no texto.
+# ---------------------------------------------------------------------------
+def test_build_real_vlm_payload_roundtrip_matches_source_image():
+    image = _make_image(24, 18, color=(10, 200, 30))
+    payload = build_real_vlm_payload(image, condition="S0")
+    decoded = decode_payload_image(payload)
+    assert images_are_effectively_equal(decoded, image)
+
+
+def test_build_real_vlm_payload_contour_image_differs_from_original():
+    image = _make_image(24, 18)
+    mask = _make_mask(24, 18, (2, 2, 15, 12))
+    contoured = draw_contour(image, mask)
+
+    payload_original = build_real_vlm_payload(image, condition="S0")
+    payload_contoured = build_real_vlm_payload(contoured, condition="S1")
+
+    decoded_original = decode_payload_image(payload_original)
+    decoded_contoured = decode_payload_image(payload_contoured)
+    assert images_are_clearly_different(decoded_original, decoded_contoured)
+
+
+def test_payload_text_has_no_labels_passes_for_clean_instruction():
+    image = _make_image(10, 10)
+    payload = build_real_vlm_payload(image, condition="S2", task_instruction="descreva a lesao")
+    assert payload_text_has_no_labels(payload) is True
+
+
+def test_payload_text_has_no_labels_catches_leaked_diagnosis_text():
+    image = _make_image(10, 10)
+    payload = build_real_vlm_payload(
+        image, condition="S2", task_instruction="este caso tem binary_target=melanoma"
+    )
+    assert payload_text_has_no_labels(payload) is False
+
+
+# ---------------------------------------------------------------------------
+# require_s2_payload_available: bloqueio explicito, nunca fallback.
+# ---------------------------------------------------------------------------
+def test_require_s2_payload_available_raises_for_unavailable_case(synthetic_project):
+    pairings, _ = build_pairing_report(
+        synthetic_project["manifest_rows"],
+        synthetic_project["s2_cases_by_image_id"],
+        synthetic_project["images_dir"],
+        synthetic_project["ref_masks_dir"],
+        synthetic_project["s2_masks_dir"],
+    )
+    case2 = next(p for p in pairings if p.image_id == "ISIC_0000002")  # mascara_predita_vazia
+    with pytest.raises(S2PayloadUnavailableError):
+        require_s2_payload_available(case2)
+
+
+def test_require_s2_payload_available_does_not_raise_for_available_case(synthetic_project):
+    pairings, _ = build_pairing_report(
+        synthetic_project["manifest_rows"],
+        synthetic_project["s2_cases_by_image_id"],
+        synthetic_project["images_dir"],
+        synthetic_project["ref_masks_dir"],
+        synthetic_project["s2_masks_dir"],
+    )
+    case1 = next(p for p in pairings if p.image_id == "ISIC_0000001" and p.lesion_id == "HAM_0000001")
+    require_s2_payload_available(case1)  # nao deve levantar

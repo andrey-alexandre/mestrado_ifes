@@ -36,15 +36,25 @@ lida/revisada (regra `feedback_no_autonomous_execution`).
 """
 from __future__ import annotations
 
+import base64
 import csv
 import hashlib
 from dataclasses import dataclass, field
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Optional
 
 import cv2
 import numpy as np
 from PIL import Image
+
+try:
+    from langchain_core.messages import HumanMessage
+except ImportError:
+    from langchain.schema import HumanMessage
+
+from src.agents.agents import _image_message
+from src.models.model import convert_to_base64
 
 # ---------------------------------------------------------------------------
 # Constantes do manifesto congelado (mesmos valores de
@@ -446,3 +456,175 @@ def verify_payload_has_no_labels(payload: dict[str, Any]) -> bool:
             if substr in text:
                 return False
     return True
+
+
+# ---------------------------------------------------------------------------
+# 6b. Payload REAL de agente visual -- reusa ``_image_message``
+#     (`src/agents/agents.py`) e ``convert_to_base64``
+#     (`src/models/model.py`) diretamente, em vez de reimplementar
+#     codificacao/montagem. Isto permite provar, decodificando o base64
+#     de volta para pixels, que o payload de cada condicao carrega
+#     exatamente a imagem composta daquela condicao -- nao so uma string
+#     de tamanho plausivel.
+# ---------------------------------------------------------------------------
+class S2PayloadUnavailableError(Exception):
+    """Levantado deliberadamente ao tentar construir um payload S2 para um
+    caso cuja condicao S2 esta estruturalmente indisponivel (ver
+    ``CasePairing.reason_s2_unavailable``). Nunca capturado para cair de
+    volta a S0/S1 -- a ausencia de S2 deve ser visivel a quem chama."""
+
+
+FORBIDDEN_TEXT_SUBSTRINGS = FORBIDDEN_PAYLOAD_KEYS | {
+    "binary_target",
+    "melanoma",
+    "nao_melanoma",
+}
+
+
+def build_real_vlm_payload(
+    image: Image.Image,
+    condition: str,
+    task_instruction: str = GENERIC_TASK_INSTRUCTION_PLACEHOLDER,
+) -> HumanMessage:
+    """Constroi o ``HumanMessage`` multimodal EXATO que um agente visual
+    receberia para ``image`` (ja composta para ``condition``), reusando
+    ``_image_message``/``convert_to_base64`` -- nao reimplementa a
+    codificacao base64 nem a montagem da mensagem. ``task_instruction``
+    nunca deve conter ``dx``/``binary_target``/termo de diagnostico;
+    validar com :func:`payload_text_has_no_labels` apos construir.
+    """
+    seg_b64 = convert_to_base64(image)
+    text = f"[condicao: {condition}] {task_instruction}"
+    return _image_message(seg_b64, text)
+
+
+def require_s2_payload_available(pairing: CasePairing) -> None:
+    """Levanta :class:`S2PayloadUnavailableError` se a condicao S2 de
+    ``pairing`` estiver indisponivel -- chamar SEMPRE antes de construir
+    um payload S2 real. Nunca substituir silenciosamente por S0/S1.
+    """
+    if not pairing.s2_mask_available_locally:
+        raise S2PayloadUnavailableError(
+            f"S2 indisponivel para image_id={pairing.image_id}: "
+            f"{pairing.reason_s2_unavailable or 'motivo nao registrado'}"
+        )
+
+
+def decode_payload_image(message: HumanMessage) -> Image.Image:
+    """Decodifica a imagem base64 embutida em ``message`` (construido por
+    :func:`build_real_vlm_payload`) de volta a um ``PIL.Image`` RGB --
+    prova que o payload carrega de fato a imagem da condicao esperada.
+    """
+    image_entry = next(item for item in message.content if item.get("type") == "image_url")
+    data_url = image_entry["image_url"]["url"]
+    b64_data = data_url.split(",", 1)[1]
+    raw_bytes = base64.b64decode(b64_data)
+    return Image.open(BytesIO(raw_bytes)).convert("RGB")
+
+
+def payload_text_content(message: HumanMessage) -> str:
+    text_entry = next(item for item in message.content if item.get("type") == "text")
+    return text_entry["text"]
+
+
+def payload_text_has_no_labels(message: HumanMessage) -> bool:
+    """Confere que o CONTEUDO DE TEXTO do payload (nao a imagem) nao
+    contem nenhum literal de rotulo categorico -- aplica-se a TODAS as
+    condicoes (S0/S1/S2): S1 pode legitimamente usar a mascara de
+    REFERENCIA como overlay visual (protocolo aprovado), mas o texto
+    nunca pode vazar o diagnostico categorico em nenhuma condicao.
+    """
+    text = payload_text_content(message).lower()
+    return not any(substr in text for substr in FORBIDDEN_TEXT_SUBSTRINGS)
+
+
+def images_are_effectively_equal(
+    img_a: Image.Image, img_b: Image.Image, mean_abs_diff_threshold: float = 8.0
+) -> bool:
+    """Compara duas imagens por diferenca media absoluta de pixel --
+    tolerante a artefatos de compressao JPEG introduzidos por
+    ``convert_to_base64`` (que nao mudam o CONTEUDO visual da imagem),
+    nao exige igualdade byte-a-byte.
+    """
+    arr_a = np.array(img_a.convert("RGB")).astype(int)
+    arr_b = np.array(img_b.convert("RGB")).astype(int)
+    if arr_a.shape != arr_b.shape:
+        return False
+    return float(np.abs(arr_a - arr_b).mean()) <= mean_abs_diff_threshold
+
+
+def images_are_clearly_different(
+    img_a: Image.Image, img_b: Image.Image, mean_abs_diff_threshold: float = 8.0
+) -> bool:
+    return not images_are_effectively_equal(img_a, img_b, mean_abs_diff_threshold)
+
+
+# ---------------------------------------------------------------------------
+# 7. Relatorio Markdown (mesma convencao de
+#    ``src/data_audit/sampling.py::build_verification_report_markdown``)
+# ---------------------------------------------------------------------------
+def build_s0_s1_s2_report_markdown(
+    *,
+    manifest_path: str,
+    n_cases_total: int,
+    counts_by_condition: dict[str, dict[str, int]],
+    reason_counts_by_condition: dict[str, dict[str, int]],
+    duplicate_lesion_ids: dict[str, int],
+    duplicate_image_ids: dict[str, int],
+    image_ids_without_s2_entry: list[str],
+    s2_entries_without_manifest_row: list[str],
+    manifest_csv_report_path: str,
+) -> str:
+    """Render o relatorio Markdown de ``scripts/run_s0_s1_s2_preparation.py``.
+
+    Pura formatacao de string -- nenhuma logica de preparacao aqui. Para
+    cada condicao (S0/S1/S2), mostra `disponivel + indisponivel == 3000`
+    e a quebra de indisponiveis por codigo de motivo.
+    """
+    lines = [
+        "# Preparacao S0/S1/S2 — HAM10000 (sem chamada a VLM)",
+        "",
+        f"- Manifesto: `{manifest_path}`",
+        f"- Total de casos: **{n_cases_total}**",
+        f"- Relatorio por caso (CSV): `{manifest_csv_report_path}`",
+        "",
+        "## Contagens por condicao",
+        "",
+    ]
+    for condition in ("s0", "s1", "s2"):
+        counts = counts_by_condition[condition]
+        total = counts["disponivel"] + counts["indisponivel"]
+        lines += [
+            f"### {condition.upper()}",
+            "",
+            f"- Disponivel: {counts['disponivel']}",
+            f"- Indisponivel: {counts['indisponivel']}",
+            f"- Soma (deve ser {n_cases_total}): {total}",
+            "",
+        ]
+        reasons = reason_counts_by_condition.get(condition, {})
+        if reasons:
+            lines += ["| Motivo | Contagem |", "|---|---|"]
+            for reason, count in sorted(reasons.items(), key=lambda kv: (-kv[1], kv[0])):
+                lines.append(f"| `{reason}` | {count} |")
+            lines.append("")
+
+    lines += [
+        "## Duplicatas e divergencias manifesto <-> JSON de S2 (registro, sem exclusao)",
+        "",
+        f"- `lesion_id` duplicados: {duplicate_lesion_ids if duplicate_lesion_ids else 'nenhum'}",
+        f"- `image_id` duplicados: {duplicate_image_ids if duplicate_image_ids else 'nenhum'}",
+        f"- `image_id` do manifesto sem entrada no JSON de S2: "
+        f"{image_ids_without_s2_entry if image_ids_without_s2_entry else 'nenhum'}",
+        f"- Entradas do JSON de S2 sem linha correspondente no manifesto: "
+        f"{s2_entries_without_manifest_row if s2_entries_without_manifest_row else 'nenhuma'}",
+        "",
+        "## Aviso",
+        "",
+        "Este relatorio e gerado por `scripts/run_s0_s1_s2_preparation.py` "
+        "sobre o manifesto congelado; nenhuma chamada a VLM/LLM ocorre "
+        "nesta entrega. Nenhum caso e descartado ou substituido em "
+        "nenhuma das 3 condicoes.",
+        "",
+    ]
+    return "\n".join(lines)
