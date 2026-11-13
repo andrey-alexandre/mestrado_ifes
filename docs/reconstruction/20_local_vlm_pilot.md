@@ -28,6 +28,14 @@ Não alterados nesta entrega (só importados/reusados): `src/multiagent/presenta
 
 Alterados na primeira entrega (mantidos): `requirements.txt` — `psutil`, `ollama`.
 
+Entrega adicional pós-execução real do Estágio 1 (2026-11-13) — parser v2
+"conclusão final", ver seção 9 abaixo: `src/evaluation/case_status_v2.py`
+(novo), `scripts/run_reclassify_pilot_with_v2_parser.py` (novo),
+`tests/evaluation/test_case_status_v2.py` (novo), e alterações aditivas em
+`src/multiagent/vlm_direct.py`/`scripts/run_local_vlm_pilot.py` (campo
+`classified_status_v2` ao lado de `classified_status`, nunca o
+substituindo). `src/evaluation/case_status.py` continua intocado.
+
 ## 2. Sequência exata de comandos
 
 Diretório de trabalho para todos: `C:\Projetos\IFES\mestrado_ifes`.
@@ -179,3 +187,172 @@ Este branching é decidido pelo pesquisador entre execuções, lendo os `summary
 - Matriz principal com exatamente 92 chamadas planejadas, verificado por `assert` em `vd.build_planned_calls` (não só no docstring) — inalterado; só a contagem "total da execução do modelo" (controles + matriz) passou de 92 para 108.
 - A34 (`src.evaluation.case_status.classify_case_status`) reusada idêntica para VLM-direto e multiagente-sumarizador, nunca uma classificação paralela.
 - Texto bruto de toda resposta preservado verbatim nos logs (`call_log.jsonl` dos controles, `call_log_matriz_principal.jsonl` da matriz), mesmo quando classificado como `nao_reconhecido`/`ausente`.
+
+## 9. Parser v2 "conclusão final" (pós-execução real do Estágio 1, 2026-11-13)
+
+STATUS: implementado, aguardando execução do pesquisador. Nada deste
+pacote foi executado pelo assistente que o escreveu
+(`feedback_no_autonomous_execution`) — nenhum `python`/`pytest`/`git`
+foi chamado.
+
+### 9.1 O que aconteceu (dado real, não hipotético)
+
+O pesquisador executou o Estágio 1 do piloto para
+`qwen3-vl:8b-instruct-q4_K_M`. Controles de envio de imagem: 4/4 papéis
+passaram. Controles de síntese: 3/4 cenários parsearam corretamente via
+`classify_case_status` (A34). O 4º cenário (`um_parecer_ausente`) NÃO
+parseou — `classified_status: "nao_reconhecido"` — porque o texto bruto
+real do modelo (preservado em
+`experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M/call_log.jsonl`
+e `report.md`) nunca escreveu a frase literal "lesão benigna":
+  - no meio do texto: `"Diagnóstico Consolidado: Lesão Cutânea Benigna — Pode ser caracterizada como um nevo..."` (a palavra "Cutânea" quebra o substring, e isto nem é o veredito final);
+  - no veredito final (depois de um separador `---`, prefixado por `✅`): `"✅ **Diagnóstico Consolidado: BENIGNO (Nevus com características típicas)**"` — usa "BENIGNO" isolado, sem a palavra "lesão".
+
+Isto confirma o gap já registrado em
+`docs/reconstruction/15_multiagent_experimental_matrix.md §6.1`: modelos
+locais via Ollama (sem `with_structured_output`) parafraseiam e não
+batem sempre a frase literal exigida pela A34.
+
+### 9.2 Decisão do pesquisador (implementada sem reinterpretação)
+
+NÃO modificar `src/evaluation/case_status.py::classify_case_status` (usado
+em avaliações históricas/stage6 — "mantenha as avaliações históricas
+intactas"). Também não alterados: os prompts reais
+(`VLM_DIRECT_TASK_INSTRUCTION` em `src/multiagent/vlm_direct.py`,
+`src/agents/agents.py`, `src/agents/schemas.py`,
+`src/multiagent/presentation.py`). Em vez disso, foi construído um
+classificador NOVO, separadamente versionado, aplicado ADITIVAMENTE.
+
+### 9.3 Arquivos novos/alterados nesta entrega
+
+Novos:
+- `src/evaluation/case_status_v2.py` — classificador v2
+  (`classify_case_status_v2`/`classify_case_status_v2_detailed`,
+  `PARSER_VERSION = "v2_conclusion_line_2026_11_13"`). Reusa o MESMO
+  vocabulário de status de `case_status` (import direto das constantes
+  `POSITIVO`/`NEGATIVO`/`INDETERMINADO`/`AUSENTE`/`NAO_RECONHECIDO`,
+  nunca redefinidas).
+- `scripts/run_reclassify_pilot_with_v2_parser.py` — reclassificação
+  OFFLINE de um `--output-dir` já executado (lê `call_log.jsonl`
+  e/ou `call_log_matriz_principal.jsonl`, nunca faz nova chamada ao
+  modelo, nunca sobrescreve os arquivos originais).
+- `tests/evaluation/test_case_status_v2.py` — cobre o texto bruto REAL
+  (literal, copiado de `call_log.jsonl`) dos cenários `um_parecer_ausente`
+  e `conflitante`, negação sintética, múltiplas categorias no corpo com
+  um veredito final claro, e confirmação de que indeterminado/recusa-
+  adjacente/ausente nunca caem em positivo/negativo.
+
+Alterados (aditivamente, sem tocar prompts/vocabulário/gate de
+pausa-abstenção):
+- `src/multiagent/vlm_direct.py` — `CallRecord` ganhou o campo
+  `classified_status_v2` (default `None`), calculado em paralelo a
+  `classified_status` (v1, intocado) em `run_vlm_direct_call`,
+  `run_multiagent_role_call` e `run_synthesis_control`. Confirmado por
+  leitura de código antes de editar: a lógica de pausa/abstenção
+  (`AbstentionTracker.register`, em `scripts/run_local_vlm_pilot.py`) lê
+  só `record.call_status` (saída de `classify_call_outcome` — recusa/
+  falha técnica/sem resposta), NUNCA `classified_status` — portanto não
+  foi tocada e não depende do novo campo.
+- `scripts/run_local_vlm_pilot.py` — importa `case_status_v2`; o log por
+  chamada no console agora mostra `classificado_v1=`/`classificado_v2=`
+  lado a lado; `summary.json` ganhou um bloco aditivo/informativo
+  `binary_coverage_v2_informational` (mesma contagem de
+  `binary_coverage`, mas a partir de `classified_status_v2`) — o bloco
+  `binary_coverage` original (v1) não foi alterado e continua sendo o
+  campo histórico/real do relatório.
+
+Não alterados: `src/evaluation/case_status.py`, `src/agents/agents.py`,
+`src/agents/schemas.py`, `src/multiagent/presentation.py`,
+`VLM_DIRECT_TASK_INSTRUCTION` e os demais prompts reais em
+`vlm_direct.py`.
+
+### 9.4 Heurística do v2 (APROXIMADA — ver docstring completa em `case_status_v2.py`)
+
+1. **Extração da "conclusão final"** (`_extract_final_conclusion_region`):
+   separa o texto em parágrafos (por linha em branco); procura marcadores
+   (`"conclusão final"`, `"diagnóstico consolidado"`, `"avaliação final"`,
+   `"conclusão integrada"`, `"veredito final"`, `"resumo final"`) só na
+   METADE FINAL do documento (por índice de parágrafo) — isto evita
+   ancorar num título/cabeçalho que repete a mesma palavra no início
+   (ex.: o cenário real `conflitante` começa com "Diagnóstico
+   Consolidado: ..." como TÍTULO, não como veredito). A região de
+   conclusão final vai do primeiro marcador qualificado até o fim do
+   documento. Sem marcador: cai para a última linha que começa com `✅`;
+   sem isso, cai para o último parágrafo não vazio.
+2. **Mapeamento de variantes** (`LABEL_VARIANTS_V2`, dict/tupla
+   inspecionável): positivo/indeterminado usam EXATAMENTE as mesmas
+   frases literais de `case_status._KEYWORD_TO_STATUS` (nenhuma variante
+   nova — não foi pedido e é mais arriscado generalizar sem dados).
+   Negativo ganha, ALÉM de `"lesão benigna"`/`"lesao benigna"`: `"lesão
+   cutânea benigna"`/`"lesao cutanea benigna"` e as palavras isoladas
+   `"benigno"`/`"benigna"` (match de PALAVRA EXATA — não casa o plural
+   `"benignos"`/`"benignas"`, decisão deliberada: no cenário real
+   `conflitante`, "resultados benignos dos algoritmos ABCD e SPCL" é um
+   adjetivo sobre OUTROS algoritmos, não um veredito).
+3. **Negação** (`_is_negated`): procura "não"/"nao" nas últimas 4
+   palavras IMEDIATAMENTE antes do rótulo casado, restrito à cláusula
+   atual (nunca atravessa `. ! ? ; , : \n`) — evita que uma negação de
+   uma cláusula anterior "vaze" para a próxima (ex.: "não é benigna, é
+   suspeita de melanoma" não nega "suspeita de melanoma"). HEURÍSTICA
+   APROXIMADA, não NLP real — não entende negação distribuída, dupla
+   negação, "nunca"/"jamais", etc.
+4. **Resolução de múltiplos candidatos**: dentro da região de conclusão
+   final, entre todos os rótulos casados NÃO negados, vence o mais
+   próximo do FIM da região — aproxima "o último veredito declarado
+   vence" sem reimplementar um parser de discurso real.
+
+**LIMITAÇÃO CONHECIDA, AINDA SEM CONFIRMAÇÃO EXPLÍCITA DO PESQUISADOR**:
+esta é uma heurística posicional/lexical sobre os estilos de resposta
+observados neste piloto (qwen3-vl:8b-instruct-q4_K_M, 4 cenários fixos).
+Pode não cobrir todos os estilos possíveis de um VLM local (ex.: um
+modelo que declare o veredito real ANTES de uma longa análise posterior,
+sem repeti-lo ao final, quebraria a heurística de "metade final do
+documento").
+
+### 9.5 Confirmação real (cenário `um_parecer_ausente`, mesmo texto bruto do piloto)
+
+- v1 (`classify_case_status`, intocado): `"nao_reconhecido"` — inalterado.
+- v2 (`classify_case_status_v2`): `"negativo"` — variante casada:
+  `"benigno"`, na região de conclusão final extraída (último parágrafo:
+  `"✅ Diagnóstico Consolidado: BENIGNO (Nevus com características típicas)"`),
+  sem negação.
+
+### 9.6 Comando de reclassificação (sem repetir chamadas ao modelo)
+
+```
+python scripts/run_reclassify_pilot_with_v2_parser.py \
+    --output-dir experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M
+```
+
+Lê `call_log.jsonl` (e `call_log_matriz_principal.jsonl`, se existir)
+já gravados por uma execução anterior de `run_local_vlm_pilot.py`.
+NUNCA sobrescreve/muta `call_log.jsonl`, `call_log_matriz_principal.jsonl`,
+`summary.json` ou `report.md`. Escreve, no MESMO `--output-dir`:
+- `reclassification_v2_results.json`
+- `reclassification_v2_report.md` (inclui uma seção dedicada confirmando
+  o resultado do item 9.5 acima, e, por registro, texto bruto + v1
+  histórico + v1 recomputado + v2 + concordância).
+
+### 9.7 Comando de testes
+
+```
+python -m pytest tests/evaluation/test_case_status_v2.py -v
+```
+
+(`tests/evaluation/test_case_status.py` — já existente, testa só o v1 —
+não é alterado por esta entrega.)
+
+### 9.8 Interpretações de design novas introduzidas nesta entrega (sem confirmação explícita)
+
+14. O conjunto exato de marcadores de "conclusão final"
+    (`_CONCLUSION_MARKERS`) e a regra "só na metade final do documento,
+    por índice de parágrafo" — cobre os 2 cenários reais deste piloto
+    (`um_parecer_ausente`, `conflitante`), mas não foi confirmado contra
+    outros estilos de resposta/modelos ainda não testados.
+15. A exclusão deliberada do plural (`"benignos"`/`"benignas"`) do
+    mapeamento de variantes — resolve o caso real observado no cenário
+    `conflitante`, mas é uma escolha de design, não uma regra
+    linguística geral.
+16. A janela de negação de 4 tokens restrita à cláusula atual (até a
+    pontuação mais próxima) — heurística aproximada, não confirmada
+    contra todos os padrões de negação possíveis em português.

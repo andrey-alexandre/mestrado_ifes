@@ -61,6 +61,19 @@ também o relatório desta entrega):
        (`FOURTH_SLOT_SEED`) e do mecanismo de redistribuição de vaga
        quando um grupo diagnóstico não tem nenhuma lesão com máscara de
        referência válida.
+
+ADENDO (2026-11-13, pós-execução real do Estágio 1 para
+qwen3-vl:8b-instruct-q4_K_M): `CallRecord` ganhou um campo ADITIVO
+`classified_status_v2` -- saída do NOVO classificador versionado
+`src.evaluation.case_status_v2.classify_case_status_v2`, calculada em
+paralelo a `classified_status` (v1, `classify_case_status`, intocado)
+nos mesmos pontos (`run_vlm_direct_call`, `run_multiagent_role_call`,
+`run_synthesis_control`). Motivação, desenho e limitações do v2: ver
+`src/evaluation/case_status_v2.py` e
+`docs/reconstruction/20_local_vlm_pilot.md`. Nenhum gate existente
+(pausa/abstenção, "passed" dos controles de síntese, binary_coverage do
+relatório) passou a depender de `classified_status_v2` -- é só mais um
+campo reportado ao lado do v1.
 """
 from __future__ import annotations
 
@@ -96,6 +109,7 @@ from src.agents.schemas import (
     SummaryAnswer,
 )
 from src.evaluation.case_status import _KEYWORD_TO_STATUS, classify_case_status
+from src.evaluation.case_status_v2 import classify_case_status_v2
 from src.models.model import convert_to_base64
 from src.multiagent.presentation import images_are_effectively_equal
 
@@ -434,6 +448,15 @@ class CallRecord:
     call_status: str  # STATUS_OK / _TECHNICAL_FAILURE / _NO_RESPONSE / _REFUSAL / _NOT_EXECUTED
     failure_cause: str
     classified_status: Optional[str]  # saída de classify_case_status, None se nao_executado
+    # NOVO (aditivo, nunca substitui classified_status acima): saída do
+    # classificador v2 "conclusão final"
+    # (src.evaluation.case_status_v2.classify_case_status_v2), calculada
+    # EM PARALELO ao v1 para o mesmo texto bruto, nos mesmos pontos de
+    # chamada -- nunca usada para decidir pausa/abstenção (isso continua
+    # lendo só `call_status`, ver AbstentionTracker.register em
+    # scripts/run_local_vlm_pilot.py) nem para substituir
+    # `classified_status` em nenhum relatório histórico.
+    classified_status_v2: Optional[str] = None
 
     def to_flat_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
@@ -448,6 +471,7 @@ class CallRecord:
             "call_status": self.call_status,
             "failure_cause": self.failure_cause,
             "classified_status": self.classified_status,
+            "classified_status_v2": self.classified_status_v2,
         }
         for prefix, snap in (("mem_before", self.mem_before), ("mem_after", self.mem_after)):
             if snap is None:
@@ -485,6 +509,9 @@ def run_vlm_direct_call(
 
     status, cause, raw_text = classify_call_outcome(outcome)
     classified = classify_case_status({"validation": raw_text}) if status == STATUS_OK else None
+    # Aditivo: v2 calculado em paralelo, mesmo gate (status == STATUS_OK),
+    # mesmo texto bruto -- nunca substitui `classified` (v1) acima.
+    classified_v2 = classify_case_status_v2({"validation": raw_text}) if status == STATUS_OK else None
 
     return CallRecord(
         model_name=model_name,
@@ -500,6 +527,7 @@ def run_vlm_direct_call(
         call_status=status,
         failure_cause=cause,
         classified_status=classified,
+        classified_status_v2=classified_v2,
     )
 
 
@@ -564,6 +592,7 @@ def run_multiagent_role_call(
         status, cause, _ = classify_call_outcome(outcome)
         raw_text = None
         classified = None
+        classified_v2 = None
         state_update: dict[str, Any] = {}
         if role != ROLE_SUMMARY:
             agcls_key = {ROLE_ABCD: "diagnosis_abcd", ROLE_MENZIES: "diagnosis_menzies", ROLE_SPCL: "diagnosis_spcl"}[role]
@@ -579,6 +608,10 @@ def run_multiagent_role_call(
         fake_outcome = TimedCallOutcome(value=raw_text, exception=None, timed_out=False, elapsed_s=outcome.elapsed_s)
         status, cause, raw_text = classify_call_outcome(fake_outcome)
         classified = classify_case_status({"validation": raw_text}) if (status == STATUS_OK and role == ROLE_SUMMARY) else None
+        # Aditivo: v2 calculado em paralelo ao v1, MESMO gate (só papel
+        # sumarizador, mesma condição de STATUS_OK) -- aplicado
+        # IDENTICAMENTE ao v1, nunca um caso especial por papel.
+        classified_v2 = classify_case_status_v2({"validation": raw_text}) if (status == STATUS_OK and role == ROLE_SUMMARY) else None
         state_update = result_dict
 
     record = CallRecord(
@@ -595,6 +628,7 @@ def run_multiagent_role_call(
         call_status=status,
         failure_cause=cause,
         classified_status=classified,
+        classified_status_v2=classified_v2,
     )
     return record, state_update
 
@@ -1193,6 +1227,11 @@ def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float 
     )
     validation = state_update.get("validation")
     classified = classify_case_status({"validation": validation})
+    # Aditivo: v2 reportado ao lado do v1 para os 4 cenários fixos de
+    # síntese também (mesma chamada, mesmo texto bruto) -- "passed"/
+    # "parseable" abaixo continuam definidos só pelo v1 (nenhum gate
+    # existente passa a depender do v2).
+    classified_v2 = classify_case_status_v2({"validation": validation})
     parseable = classified not in ("ausente", "nao_reconhecido")
 
     justificativa = ""
@@ -1204,6 +1243,7 @@ def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float 
         "scenario": scenario_name,
         "call_record": record,
         "classified_status": classified,
+        "classified_status_v2": classified_v2,
         "parseable": parseable,
         "justificativa": justificativa,
         "novel_clinical_terms_candidates": novel_terms,

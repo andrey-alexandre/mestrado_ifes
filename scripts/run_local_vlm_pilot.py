@@ -87,6 +87,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from PIL import Image  # noqa: E402
 
+from src.evaluation import case_status_v2  # noqa: E402
 from src.multiagent import vlm_direct as vd  # noqa: E402
 
 DEFAULT_MANIFEST_PATH = str(REPO_ROOT / "experiments" / "multiagent" / "pilot12_manifest.csv")
@@ -368,7 +369,8 @@ def _run_stage2_matrix(
         matrix_records.append(record)
         print(
             f"  [{role}/{condition}] lesion={lesion_id} image={image_id} "
-            f"status={record.call_status} classificado={record.classified_status}"
+            f"status={record.call_status} classificado_v1={record.classified_status} "
+            f"classificado_v2={record.classified_status_v2}"
         )
 
     _write_full_report(
@@ -504,6 +506,13 @@ def _write_full_report(
     n_positivo = sum(1 for b in binary_statuses if b is True)
     n_negativo = sum(1 for b in binary_statuses if b is False)
 
+    # Aditivo/INFORMATIVO: mesma contagem, mas usando classified_status_v2
+    # (src.evaluation.case_status_v2) -- nunca substitui binary_coverage
+    # (v1) acima, que continua sendo o campo histórico/real do relatório.
+    binary_statuses_v2 = [vd.classify_binary_coverage(r.classified_status_v2) for r in matrix_records]
+    n_positivo_v2 = sum(1 for b in binary_statuses_v2 if b is True)
+    n_negativo_v2 = sum(1 for b in binary_statuses_v2 if b is False)
+
     # Candidatos a recusa -- surfaced SEMPRE que houver qualquer
     # STATUS_REFUSAL na matriz, não só na 3ª consecutiva que dispara pausa
     # (decisão fechada #5).
@@ -556,6 +565,17 @@ def _write_full_report(
                 "binary_target='não_melanoma' -- convenção existente do "
                 "projeto, não um diagnóstico literal de benignidade."
             ),
+        },
+        # Aditivo/INFORMATIVO (nunca usado por nenhum gate/critério de
+        # pass-fail do piloto): mesma cobertura binária, mas a partir do
+        # classificador v2 "conclusão final"
+        # (src.evaluation.case_status_v2.PARSER_VERSION). Ver
+        # docs/reconstruction/20_local_vlm_pilot.md para a motivação e as
+        # limitações aproximadas do v2.
+        "binary_coverage_v2_informational": {
+            "parser_version": case_status_v2.PARSER_VERSION,
+            "positivo": n_positivo_v2,
+            "negativo": n_negativo_v2,
         },
         "by_role_condition": by_role_condition,
         "roles_with_zero_conclusive_opinion": roles_with_zero_conclusive,
