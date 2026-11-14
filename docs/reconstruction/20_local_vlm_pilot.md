@@ -356,3 +356,203 @@ não é alterado por esta entrega.)
 16. A janela de negação de 4 tokens restrita à cláusula atual (até a
     pontuação mais próxima) — heurística aproximada, não confirmada
     contra todos os padrões de negação possíveis em português.
+
+## 9b. Correção de bug no script de reclassificação + extensão POSITIVO (2026-11-14)
+
+STATUS: implementado, aguardando execução do pesquisador. Nada deste
+pacote foi executado pelo assistente que o escreveu
+(`feedback_no_autonomous_execution`) — nenhum `python`/`pytest`/`git`
+foi chamado.
+
+### 9b.1 Achado 1 — bug real no script de reclassificação (corrigido)
+
+O pesquisador executou de fato
+`scripts/run_reclassify_pilot_with_v2_parser.py` contra o `--output-dir`
+real do piloto (`qwen3-vl_8b-instruct-q4_K_M`). O relatório produzido
+(`reclassification_v2_report.md`) reportou "v1 recomputado difere do
+histórico: 12". Os 12 são EXATAMENTE os 12 registros de controle de
+envio de imagem (`role` ∈ {`controle_imagem_vlm_direto`,
+`controle_imagem_diagnostic_abcd`, `controle_imagem_diagnostic_menzies`,
+`controle_imagem_diagnostic_spcl`}, texto bruto do tipo
+`"superior-esquerdo, vermelho"` ou a resposta do controle "sem
+imagem"). Confirmado por leitura de
+`src/multiagent/vlm_direct.py::run_image_sending_control_call`: este
+registro grava `classified_status=None` EXPLICITAMENTE (nunca chama
+`classify_case_status`/`classify_case_status_v2` — são controles de
+quadrante/cor do caminho multimodal, não pareceres diagnósticos).
+
+O script, porém, chamava os dois classificadores em cima do
+`raw_response_text` de QUALQUER registro, ignorando o `role` —
+produzindo um `"nao_reconhecido"` espúrio para os 12 e comparando esse
+valor recomputado contra o histórico real `None`, reportando uma falsa
+divergência. **Isto NÃO era evidência de que `case_status.py` mudou** —
+era um bug de escopo do próprio script de reclassificação.
+
+**Correção** (`scripts/run_reclassify_pilot_with_v2_parser.py::reclassify_record`):
+registros cujo `role` comece com `controle_imagem_` são agora
+explicitamente excluídos da reclassificação v1/v2 (`applicable=False`),
+com uma nota dedicada (`"não aplicável — controle de envio de
+imagem..."`) em vez de uma classificação inventada. Um novo contador
+`n_image_sending_control_records_excluded` (exposto no JSON e no
+Markdown) deixa explícito quantos registros foram excluídos — para que
+o pesquisador confirme que o 0 esperado em
+`n_v1_recomputed_differs_from_historical_log` é resultado de uma
+exclusão correta, não de uma coincidência. Após a correção, executar o
+script novamente contra o mesmo `--output-dir` real deve reportar
+`n_image_sending_control_records_excluded = 12` e
+`n_v1_recomputed_differs_from_historical_log = 0`.
+
+### 9b.2 Achado 2 — gap real do parser v2 (extensão implementada)
+
+Mesmo relatório real: o cenário de controle de síntese
+`unanime_positivo` tem v1 = `positivo` (acertou por coincidência —
+substring literal "Suspeita de Melanoma Maligno" no TÍTULO do
+documento, fora da região de conclusão final) e v2 (antes desta
+correção) = `nao_reconhecido`. A região de conclusão final real
+extraída corretamente por v2 é:
+
+```
+### ✅ Conclusão Final
+
+> Há suspeita clara e consistente de melanoma maligno com base em três
+  algoritmos independentes e complementares...
+```
+
+A frase literal "suspeita de melanoma" NÃO aparece nesta região — as
+palavras "clara e consistente" quebram o substring — e a versão
+anterior de v2 só aceitava a frase literal exata.
+
+### 9b.3 Decisão do pesquisador (verbatim, implementada)
+
+"Escolha a opção 1, mas não aceite qualquer ocorrência de 'suspeita …
+melanoma'. Aceite a variante quando a conclusão final expressar suspeita
+afirmativa e inequívoca de melanoma, como no caso relatado: 'suspeita
+clara e consistente de melanoma maligno'. [...] Preserve as regras
+atuais para indeterminação, recusa e falha. Use o caso perdido como
+teste de regressão e inclua exemplos de negação, incerteza e conclusões
+conflitantes. [...] Não use o v1 como desempate automático."
+
+### 9b.4 Implementação (`src/evaluation/case_status_v2.py`)
+
+- `PARSER_VERSION` trocado para
+  `"v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14"` (nunca
+  mantido silenciosamente — resultados antigos e novos ficam
+  rastreáveis por este campo).
+- Novo padrão regex `_AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN`: exige
+  literalmente a palavra "suspeita", seguida de 0 a 6 palavras de um
+  vocabulário FECHADO de intensificadores/conectivos
+  (`_AFFIRMATIVE_INTENSIFIER_WORDS` — "clara", "consistente", "forte",
+  "elevada", "e", etc.), seguida de "de melanoma". NÃO é "contém as duas
+  palavras em qualquer lugar da cláusula" — a ausência de pontuação
+  exigida pelo regex entre as palavras do vocabulário fechado já
+  restringe o match à mesma cláusula/frase, no mesmo espírito de
+  `_CLAUSE_BOUNDARY_CHARS` já usado pelo resto do módulo.
+- `_is_sem_prefixed`: checagem NOVA e DISTINTA de `_is_negated` — "sem"
+  imediatamente antes de "suspeita" bloqueia o match (`_is_negated`
+  procura só "não"/"nao", um padrão lexical diferente; generalizar
+  `_NEGATION_WORDS` mudaria o comportamento de negação para TODOS os
+  rótulos, o que não foi pedido).
+- `_is_hedged_uncertain`: julgamento do pesquisador, documentado como
+  tal — quando a mesma SENTENÇA (limite mais largo que cláusula: só
+  pontuação final `. ! ?`/quebra de linha) contém um marcador de "isto
+  não é conclusivo" (`_HEDGE_MARKERS`), o match não é tratado como
+  afirmação inequívoca, mesmo que a frase literal antiga bata. Aplicado
+  a QUALQUER match POSITIVO baseado em "suspeita" (variante literal
+  antiga E extensão nova), para que "pode haver suspeita de melanoma,
+  mas não é conclusivo" não vire positivo só porque a frase literal
+  antiga ainda bate.
+- Aplicado IDENTICAMENTE para VLM-direto e sumarizador — mesma função
+  `classify_case_status_v2`/`classify_case_status_v2_detailed`, sem
+  ramificação por papel (arquitetura do módulo preservada).
+- **Não alterado**: detecção de indeterminado/recusa/falha técnica em
+  nenhum lugar (`classify_call_outcome` em `vlm_direct.py`, tratamento de
+  `INDETERMINADO` em `case_status_v2.py`) — fora do escopo pedido.
+
+### 9b.5 Exemplos aceitos/rejeitados (raciocinados, não executados)
+
+| Texto (região de conclusão final) | Resultado | Por quê |
+|---|---|---|
+| "suspeita clara e consistente de melanoma maligno" (caso real `unanime_positivo`) | **positivo** | match pelo novo padrão regex, sem negação/"sem"/hedge |
+| "sem suspeita de melanoma" | **não positivo** | `_is_sem_prefixed` bloqueia (tanto a variante literal antiga quanto a extensão nova) |
+| "melanoma não pode ser descartado" | **não positivo** (`nao_reconhecido`) | não contém a palavra "suspeita" — nenhum padrão (antigo ou novo) exige/aceita "melanoma" solto |
+| "pode haver suspeita de melanoma, mas não é conclusivo" | **não positivo** (julgamento do pesquisador) | `_is_hedged_uncertain` detecta "mas não é conclusivo" na mesma sentença |
+| "diagnóstico diferencial inclui suspeita de melanoma, nevo atípico..." | **positivo** (RISCO RESIDUAL CONHECIDO, não corrigido) | a frase literal bate dentro de uma listagem de diferencial — não foi implementada uma heurística de "contexto de listagem" por não ter sido pedida e ser arriscada de generalizar sem mais dados reais |
+| "Suspeita de Melanoma segundo critério Menzies" (caso real `conflitante`) | **positivo** (inalterado) | variante literal antiga, sem negação/"sem"/hedge — teste de regressão já existente continua passando sem modificação |
+
+**"Não usar v1 como desempate"**: a extensão é uma regra regex
+PRINCIPIADA (vocabulário fechado de intensificadores + exigência da
+palavra "suspeita" + "de melanoma", dentro da mesma cláusula) que
+coincide com v1 no caso real por ter sido desenhada a partir do padrão
+linguístico observado, não por copiar a saída de v1 para este registro
+específico — nenhum código consulta `v1_classified_status`/`classify_case_status`
+dentro de `case_status_v2.py`.
+
+### 9b.6 Arquivos alterados nesta entrega
+
+- `src/evaluation/case_status_v2.py` — extensão POSITIVO (seção 9b.4),
+  `PARSER_VERSION` novo.
+- `scripts/run_reclassify_pilot_with_v2_parser.py` — correção do bug de
+  escopo (seção 9b.1): registros `controle_imagem_*` excluídos da
+  reclassificação, novo contador
+  `n_image_sending_control_records_excluded`.
+- `tests/evaluation/test_case_status_v2.py` — novos testes: regressão
+  real `unanime_positivo` (v1 inalterado + v2 agora positivo via
+  extensão), `"sem suspeita de melanoma"` (não positivo), `"melanoma não
+  pode ser descartado"` (não positivo), incerteza `"pode haver suspeita
+  de melanoma, mas não é conclusivo"` (não positivo, julgamento
+  documentado), risco residual de listagem de diferencial (positivo,
+  documentado como conhecido/não corrigido), conclusão conflitante
+  sintética com a nova variante intensificada no veredito final
+  (positivo). Testes reais já existentes (`um_parecer_ausente`,
+  `conflitante`) confirmados inalterados por leitura/raciocínio.
+
+Não alterados nesta entrega: `src/evaluation/case_status.py`,
+`src/agents/agents.py`, `src/agents/schemas.py`,
+`src/multiagent/presentation.py`, e os prompts reais em
+`src/multiagent/vlm_direct.py`.
+
+### 9b.7 Comando de reclassificação (reexecutar com o parser corrigido)
+
+```
+python scripts/run_reclassify_pilot_with_v2_parser.py \
+    --output-dir experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M
+```
+
+Produz um NOVO `reclassification_v2_results.json`/`reclassification_v2_report.md`
+no mesmo diretório (sobrescrevendo só estes dois arquivos de
+reclassificação, nunca os logs/relatório originais do piloto). Para
+comparar com a execução anterior sem perder o "antes": o pesquisador
+pode copiar os dois arquivos atuais para um nome `..._before_2026_11_14`
+antes de rodar de novo — este script não faz isso automaticamente
+(nunca grava fora do `--output-dir`/com nomes diferentes dos fixos). O
+antes/depois mais direto, porém, é o `v2_parser_version` registrado por
+registro no JSON: a execução antiga tem
+`"v2_conclusion_line_2026_11_13"`, a nova tem
+`"v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14"` — qualquer
+registro cujo `v2_classified_status` difira entre as duas execuções
+(especialmente `image=controle_unanime_positivo`, que deve virar de
+`nao_reconhecido` para `positivo`) é a mudança real produzida por esta
+entrega.
+
+### 9b.8 Comando de testes
+
+```
+python -m pytest tests/evaluation/test_case_status_v2.py -v
+```
+
+### 9b.9 Interpretações de design novas introduzidas nesta entrega (sem confirmação explícita)
+
+17. O vocabulário fechado de intensificadores aceitos entre "suspeita" e
+    "de melanoma" (`_AFFIRMATIVE_INTENSIFIER_WORDS`) cobre o caso real
+    observado (`unanime_positivo`), mas é uma lista fechada de
+    conveniência — não foi confirmada contra outras formas possíveis de
+    um VLM expressar suspeita afirmativa.
+18. A janela de 2 palavras para `_is_sem_prefixed` e o limite de
+    sentença (não cláusula) para `_is_hedged_uncertain` são escolhas de
+    design específicas para os exemplos fornecidos pelo pesquisador —
+    não confirmadas contra todas as variações possíveis de "sem"/hedge
+    em português.
+19. O risco residual de listagens de diagnóstico diferencial (seção
+    9b.5) é documentado como conhecido e NÃO corrigido nesta entrega —
+    decisão explícita de não generalizar sem mais dados reais, não um
+    descuido.

@@ -35,6 +35,27 @@ intactas"):
 Uso:
     python scripts/run_reclassify_pilot_with_v2_parser.py \
         --output-dir experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M
+
+ENTREGA 2026-11-14 (correção de bug real achado na primeira execução real
+do pesquisador, ver docs/reconstruction/20_local_vlm_pilot.md §9b e a
+docstring de `reclassify_record` abaixo): este script, antes desta
+correção, chamava `classify_case_status`/`classify_case_status_v2` em
+CIMA do `raw_response_text` de QUALQUER registro, inclusive os 12
+registros de CONTROLE DE ENVIO DE IMAGEM (`role` começando com
+`"controle_imagem_"`) -- que nunca têm `classified_status` aplicável por
+design (são controles de quadrante/cor do caminho multimodal, não
+pareceres diagnósticos). Isso produzia `"nao_reconhecido"` espúrio para
+os 12 e uma falsa contagem de "v1 recomputado difere do histórico"
+(histórico real = `None` por design, não um bug de `case_status.py`).
+Corrigido: estes 12 registros são agora excluídos da reclassificação e
+reportados com uma nota dedicada, nunca contados nos contadores de
+divergência. Este script também foi reaplicado (parser v2 atualizado,
+`PARSER_VERSION` novo -- ver `src/evaluation/case_status_v2.py`) para a
+extensão do rótulo POSITIVO ("suspeita ... melanoma" com
+intensificadores) -- nenhuma mudança de código NESTE arquivo foi
+necessária para essa parte: o script já lê `PARSER_VERSION`/
+`classify_case_status_v2_detailed` por import, então a nova versão do
+parser é usada automaticamente na próxima execução.
 """
 from __future__ import annotations
 
@@ -99,17 +120,57 @@ def reclassify_record(source_filename: str, record: dict[str, Any]) -> dict[str,
     registros sem ``raw_response_text`` (ex.: ``nao_executado``,
     controles de envio de imagem que não têm ``classified_status``
     aplicável), ambas as classificações são reportadas como ``None`` com
-    uma nota explícita, nunca inventadas."""
+    uma nota explícita, nunca inventadas.
+
+    BUG REAL CORRIGIDO (2026-11-14, achado na primeira execução real do
+    pesquisador): registros de CONTROLE DE ENVIO DE IMAGEM (``role``
+    começando com ``"controle_imagem_"`` -- ``controle_imagem_vlm_direto``/
+    ``controle_imagem_diagnostic_abcd``/``controle_imagem_diagnostic_menzies``/
+    ``controle_imagem_diagnostic_spcl``) TÊM ``raw_response_text`` (ex.:
+    ``"superior-esquerdo, vermelho"`` ou a resposta do controle "sem
+    imagem") mas são controles de QUADRANTE/COR do caminho multimodal,
+    nunca pareceres diagnósticos -- confirmado por leitura de
+    `src/multiagent/vlm_direct.py::run_image_sending_control_call`, que
+    grava ``classified_status=None`` EXPLICITAMENTE para estes registros
+    (nunca chama `classify_case_status`/`classify_case_status_v2`).
+    A versão anterior deste script ignorava o ``role`` e chamava os dois
+    classificadores em CIMA do texto bruto de TODOS os registros com
+    ``raw_response_text`` -- produzindo um ``"nao_reconhecido"`` espúrio
+    para os 12 controles de imagem e, pior, comparando esse
+    ``"nao_reconhecido"`` recomputado contra o histórico real ``None``,
+    reportando uma falsa "v1 recomputado difere do histórico" para os 12
+    (quando na verdade v1 nunca deveria ter sido recomputado para eles --
+    não é evidência de que `case_status.py` mudou). Corrigido: estes
+    registros são explicitamente excluídos de ``applicable`` abaixo,
+    marcados com uma nota dedicada, e NUNCA contam no
+    `n_v1_recomputed_differs_from_historical_log` nem no
+    `n_v1_v2_disagree`."""
     raw_text = record.get("raw_response_text")
     v1_recorded = record.get("classified_status")  # já estava salvo no log original (histórico, intocado)
+    role = record.get("role") or ""
+    is_image_sending_control = role.startswith("controle_imagem_")
 
-    applicable = raw_text is not None and record.get("call_status") != "nao_executado"
+    applicable = (
+        raw_text is not None
+        and record.get("call_status") != "nao_executado"
+        and not is_image_sending_control
+    )
 
     if not applicable:
         v1_recomputed = None
         v2_result = None
         v2_status = None
-        note = "sem raw_response_text aplicável (ex.: nao_executado, ou papel sem campo de diagnóstico classificável) -- nenhuma reclassificação tentada."
+        if is_image_sending_control:
+            note = (
+                f"não aplicável -- controle de envio de imagem (role='{role}'), "
+                "nunca classificado por A34: run_image_sending_control_call grava "
+                "classified_status=None por design (controle de quadrante/cor do "
+                "caminho multimodal, não um parecer diagnóstico). Nenhuma "
+                "reclassificação v1/v2 tentada; excluído de ambos os contadores "
+                "de divergência do relatório."
+            )
+        else:
+            note = "sem raw_response_text aplicável (ex.: nao_executado, ou papel sem campo de diagnóstico classificável) -- nenhuma reclassificação tentada."
     else:
         v1_recomputed = classify_case_status({"validation": raw_text})
         v2_result = classify_case_status_v2_detailed({"validation": raw_text})
@@ -153,6 +214,13 @@ def build_reclassification_report(output_dir: Path) -> dict[str, Any]:
     n_applicable = sum(1 for r in reclassified if r["v2_classified_status"] is not None or r["v1_classified_status_recomputed"] is not None)
     n_disagree = sum(1 for r in reclassified if r["v1_v2_agree"] is False)
     n_historical_mismatch = sum(1 for r in reclassified if r["v1_recomputed_matches_historical_log"] is False)
+    # Correção 2026-11-14 (ver docstring de `reclassify_record`): contado
+    # separadamente para que o pesquisador veja explicitamente quantos
+    # registros foram excluídos por serem controle de envio de imagem --
+    # nunca silenciosamente miscontados como 0 por coincidência.
+    n_image_sending_control_records = sum(
+        1 for r in reclassified if (r.get("role") or "").startswith("controle_imagem_")
+    )
 
     # Confirmação explícita pedida pelo pesquisador: o cenário real
     # `um_parecer_ausente` deste piloto deve mudar de nao_reconhecido (v1)
@@ -167,6 +235,7 @@ def build_reclassification_report(output_dir: Path) -> dict[str, Any]:
         "parser_version_v2": PARSER_VERSION,
         "n_records_total": len(reclassified),
         "n_records_applicable": n_applicable,
+        "n_image_sending_control_records_excluded": n_image_sending_control_records,
         "n_v1_v2_disagree": n_disagree,
         "n_v1_recomputed_differs_from_historical_log": n_historical_mismatch,
         "um_parecer_ausente_confirmation": um_parecer_ausente_records,
@@ -217,8 +286,9 @@ def write_reclassification_report(output_dir: Path, report: dict[str, Any]) -> t
         f"- Versão do parser v2: `{report['parser_version_v2']}`",
         f"- Registros totais lidos: {report['n_records_total']}",
         f"- Registros com classificação aplicável (v1 e/ou v2): {report['n_records_applicable']}",
-        f"- Divergências v1 vs v2: {report['n_v1_v2_disagree']}",
-        f"- v1 recomputado difere do histórico salvo (deveria ser SEMPRE 0 -- confirma que v1/case_status.py não foi alterado): {report['n_v1_recomputed_differs_from_historical_log']}",
+        f"- Registros de controle de envio de imagem excluídos da classificação (nunca têm `classified_status` aplicável -- ver `run_image_sending_control_call`): {report['n_image_sending_control_records_excluded']}",
+        f"- Divergências v1 vs v2 (só entre registros aplicáveis): {report['n_v1_v2_disagree']}",
+        f"- v1 recomputado difere do histórico salvo (deveria ser SEMPRE 0 -- confirma que v1/case_status.py não foi alterado; controles de envio de imagem EXCLUÍDOS deste contador -- correção 2026-11-14, ver `reclassify_record`): {report['n_v1_recomputed_differs_from_historical_log']}",
         "",
         "## Confirmação explícita -- cenário real `um_parecer_ausente`",
         "",
@@ -256,8 +326,9 @@ def main() -> None:
     json_path, md_path = write_reclassification_report(output_dir, report)
 
     print(f"Registros lidos: {report['n_records_total']}")
-    print(f"Divergências v1 vs v2: {report['n_v1_v2_disagree']}")
-    print(f"v1 recomputado != histórico (deveria ser 0): {report['n_v1_recomputed_differs_from_historical_log']}")
+    print(f"Registros de controle de envio de imagem excluídos da classificação: {report['n_image_sending_control_records_excluded']}")
+    print(f"Divergências v1 vs v2 (só entre aplicáveis): {report['n_v1_v2_disagree']}")
+    print(f"v1 recomputado != histórico (deveria ser 0, controles de imagem excluídos): {report['n_v1_recomputed_differs_from_historical_log']}")
     print(f"Relatório JSON: {json_path}")
     print(f"Relatório Markdown: {md_path}")
 

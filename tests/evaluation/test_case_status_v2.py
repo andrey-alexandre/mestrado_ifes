@@ -105,6 +105,75 @@ REAL_RAW_TEXT_UM_PARECER_AUSENTE = """A análise dos três pareceres técnicos f
 ✅ **Diagnóstico Consolidado: BENIGNO (Nevus com características típicas)**
 🔍 *Avaliado por ABCD e Menzies; SPCL não avaliado.*"""
 
+REAL_RAW_TEXT_UNANIME_POSITIVO = """**Diagnóstico Consolidado: Suspeita de Melanoma Maligno**
+
+---
+
+### 📊 **Integração dos Três Pareceres Técnicos**
+
+Os três algoritmos — ABCD, Menzies e SPCL — convergiram de forma consistente para um diagnóstico de **suspeita de melanoma maligno**, com múltiplas evidências de alto risco que se repetem em todos os critérios analisados.
+
+---
+
+### 🔍 **Análise Comparativa**
+
+#### 1️⃣ **ABCD – Escore > 5.45 → Lesão Maligna**
+- **Assimetria 2** (irregular em ambos os eixos) → indica ausência de simetria, padrão de alto risco.
+- **Bordas 7** (nítidas em quase todos os quadrantes) — embora nítidas, a regularidade não é um fator de baixo risco, e a combinação com outras características eleva o risco.
+- **Cor 5** → presença de **cinco cores distintas** (branco/bege, vermelho/rosa, marrom claro, marrom escuro, preto) → **padrão de multi-coloração extremamente significativo**.
+- **Estruturas 4** → rede pigmentada, linhas ramificadas, pontos e glóbulos → sinais clássicos de atipia morfológica.
+- **Conclusão ABCD**: Lesão maligna pelo critério ABCD.
+
+#### 2️⃣ **Menzies – Múltiplas Características Positivas**
+- **Véu azul-branco (1)** → presença de véu iridescência, típico de melanoma.
+- **Múltiplos pontos marrons (1)** → indica atipia.
+- **Pseudopodes (1)** → estruturas pontiagudas que se projetam, sinal de malignidade.
+- **Pontos pretos periféricos (1)** → bordas com pontos escuros, indicativo de regressão ou malignidade.
+- **Múltiplas cores (1)** → novamente, confirma a coloração atípica.
+- **Ausência de negativas** → não há simetria nem cor única — **fator decisivo para diagnóstico**.
+- **Conclusão Menzies**: Melanoma pelo Método Menzies.
+
+#### 3️⃣ **SPCL – Pontuação 7 → Suspeita Alta**
+- **Padrão de pigmentação atípico (Sim)** → confirma o padrão irregular.
+- **Véu azul-branco irregular (Sim)** → confirma a presença de véu com padrão anatômico atípico.
+- **Padrão de retículo irregular (Sim)** → rede pigmentada mal definida.
+- **Padrão de glóbulos irregulares (Sim)** → pontos pigmentados com forma atípica.
+- **Hiperpigmentação localizada (Sim)** → presença de áreas hiperpigmentadas, indicando crescimento ou inflamação.
+- **Conclusão SPCL**: Suspeita elevada — **pontuação 7, acima do limiar de 3**.
+
+---
+
+### 🔬 **Concordância entre os Algoritmos**
+
+- Todos os três algoritmos identificaram a presença de **multi-coloração**, **bordas irregulares**, **estruturas atípicas** e **padrões pigmentados anormais**.
+- O **Menzies** é o mais específico em detectar critérios morfológicos complexos, como véu azul-branco, pseudopodes e pontos pretos periféricos.
+- O **SPCL** reforça a presença de padrões morfológicos atípicos em múltiplos parâmetros.
+- O **ABCD**, embora mais genérico, teve a pontuação mais alta (>5.45), validando o diagnóstico com base em critérios clássicos.
+
+---
+
+### ⚠️ **Evidências de Alto Risco Reincidentes**
+
+- **Multi-coloração** (ABCD, Menzies, SPCL) → **indício decisivo de malignidade.**
+- **Bordas irregulares / assimetria** (ABCD, Menzies) → **padrão de malignidade clássico.**
+- **Estruturas atípicas (rede, glóbulos, pseudopodes)** (ABCD, Menzies, SPCL) → **sinais de crescimento dissemínado.**
+
+---
+
+### ✅ **Conclusão Final**
+
+> **Há suspeita clara e consistente de melanoma maligno com base em três algoritmos independentes e complementares — ABCD, Menzies e SPCL — todos concordando em identificar múltiplas características de alto risco.**
+
+---
+
+### 📌 **Recomendação Clínica**
+
+Não é possível fornecer diagnóstico clínico. Porém, **é imperativo que a lesão seja avaliada por um dermatologista especialista em melanoma, com exame clínico e biópsia se necessário**. A lesão apresenta padrões morfológicos consistentes com malignidade, e deve ser considerada com **alta prioridade de avaliação diagnóstica e tratamento**.
+
+---
+
+**Atenção: este parecer é baseado em análise de imagem segmentada e critérios diagnósticos. Não substitui avaliação clínica, exame de biópsia ou consulta com especialista.**"""
+
 REAL_RAW_TEXT_CONFLITANTE = """**Diagnóstico Consolidado: Lesão de Baixo Risco com Suspeita Discordante de Alta Gravidade (Avaliação Integrada)**
 
 ---
@@ -250,6 +319,118 @@ def test_real_conflitante_v2_follows_final_verdict_not_early_mentions():
     result = classify_case_status_v2_detailed({"validation": REAL_RAW_TEXT_CONFLITANTE})
     assert result.status == POSITIVO
     assert result.matched_variant == "suspeita de melanoma"
+
+
+# ---------------------------------------------------------------------------
+# 2b. Caso real "unanime_positivo" -- REGRESSÃO (Estágio 1,
+#     qwen3-vl:8b-instruct-q4_K_M). A região de conclusão final real é
+#     "Há suspeita clara e consistente de melanoma maligno com base em
+#     três algoritmos..." -- a frase literal "suspeita de melanoma" NÃO
+#     aparece ali (só no TÍTULO do documento, fora da região de
+#     conclusão final). Antes da extensão de 2026-11-14, v2 devolvia
+#     "nao_reconhecido" para este caso real -- ver
+#     docs/reconstruction/20_local_vlm_pilot.md §9b.
+# ---------------------------------------------------------------------------
+def test_real_unanime_positivo_v1_unaffected():
+    """v1 (intocado) continua acertando "positivo" por coincidência de
+    substring no TÍTULO do documento ("Diagnóstico Consolidado: Suspeita
+    de Melanoma Maligno") -- não alterado por este módulo."""
+    assert classify_case_status({"validation": REAL_RAW_TEXT_UNANIME_POSITIVO}) == POSITIVO
+
+
+def test_real_unanime_positivo_v2_now_classifies_positivo():
+    """Teste de regressão do gap real encontrado na execução do piloto:
+    a extensão "suspeita <intensificador> de melanoma" deve reconhecer
+    "suspeita clara e consistente de melanoma" como afirmação inequívoca,
+    usando a REGIÃO DE CONCLUSÃO FINAL (não o título, que fica fora da
+    metade final do documento)."""
+    result = classify_case_status_v2_detailed({"validation": REAL_RAW_TEXT_UNANIME_POSITIVO})
+    assert result.status == POSITIVO
+    assert result.parser_version == PARSER_VERSION
+    assert "suspeita" in result.matched_variant
+    assert "melanoma" in result.matched_variant
+    # confirma que o match usado foi da extensão nova (palavras
+    # intensificadoras entre "suspeita" e "de melanoma"), não da frase
+    # literal antiga (que não aparece na região de conclusão final real).
+    assert result.matched_variant != "suspeita de melanoma"
+    assert "clara" in result.matched_variant and "consistente" in result.matched_variant
+
+
+# ---------------------------------------------------------------------------
+# 2c. Extensão POSITIVO 2026-11-14 -- casos de rejeição explícitos pedidos
+#     pelo pesquisador (sintéticos).
+# ---------------------------------------------------------------------------
+def test_sem_suspeita_de_melanoma_is_not_positivo():
+    """"sem" imediatamente antes de "suspeita" bloqueia o match -- tanto
+    o padrão novo quanto a frase literal antiga."""
+    text = "### Conclusão Final\n\nSem suspeita de melanoma; achados compatíveis com lesão comum."
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status != POSITIVO
+
+
+def test_melanoma_nao_pode_ser_descartado_is_not_positivo():
+    """Frase hedge/incerta que nunca contém a palavra "suspeita" -- o
+    padrão novo exige literalmente "suspeita", então esta frase não deve
+    disparar positivo por nenhum caminho (nem o literal antigo, nem a
+    extensão nova); confirma que NÃO foi adicionado um match genérico de
+    "melanoma" solto."""
+    text = "### Conclusão Final\n\nMelanoma não pode ser descartado com os dados disponíveis."
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status != POSITIVO
+    assert result.status == NAO_RECONHECIDO
+
+
+def test_uncertain_suspeita_mas_nao_conclusivo_is_not_positivo():
+    """JULGAMENTO DO PESQUISADOR (documentado, não regra geral): "pode
+    haver suspeita de melanoma, mas não é conclusivo" tem a frase literal
+    "suspeita de melanoma", mas a cláusula seguinte ("mas não é
+    conclusivo") undercuts a afirmação -- decisão de projeto: NÃO tratar
+    como positivo (poderia ter sido o contrário; ver `_is_hedged_uncertain`
+    para a justificativa completa)."""
+    text = "### Conclusão Final\n\nPode haver suspeita de melanoma, mas não é conclusivo com os dados atuais."
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status != POSITIVO
+
+
+def test_differential_diagnosis_listing_known_residual_risk():
+    """RISCO RESIDUAL CONHECIDO, documentado explicitamente (não
+    totalmente evitável pela heurística lexical atual): quando uma
+    LISTAGEM de diagnóstico diferencial menciona "suspeita de melanoma"
+    dentro da mesma cláusula de uma lista de possibilidades (em vez de um
+    veredito isolado), o parser ainda classifica como positivo, porque a
+    frase literal bate dentro da região de conclusão final. Este teste
+    FIXA o comportamento atual como risco conhecido -- não afirma que
+    seja o comportamento desejável, e uma heurística mais sofisticada
+    (ex.: detectar "diagnóstico diferencial inclui ..." como contexto de
+    listagem) não foi implementada nesta entrega por não ter sido pedida
+    e por ser arriscada de generalizar sem mais dados reais."""
+    text = (
+        "### Conclusão Final\n\n"
+        "Diagnóstico diferencial inclui suspeita de melanoma, nevo atípico "
+        "e ceratose seborreica, a confirmar com biópsia."
+    )
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status == POSITIVO  # risco residual conhecido, não uma correção pedida
+
+
+# ---------------------------------------------------------------------------
+# 2d. Conclusão conflitante sintética, análoga ao cenário real
+#     "conflitante", mas usando a NOVA variante intensificada no veredito
+#     final (confirma que a resolução "último veredito vence" continua
+#     funcionando com a extensão nova).
+# ---------------------------------------------------------------------------
+def test_conflicting_body_with_new_intensified_positivo_final_verdict():
+    text = (
+        "Parecer ABCD: lesão benigna.\n\n"
+        "Parecer Menzies: suspeita de melanoma.\n\n"
+        "Parecer SPCL: lesão indeterminada.\n\n"
+        "---\n\n"
+        "### Conclusão Final\n\n"
+        "Há suspeita forte e consistente de melanoma, segundo critério Menzies."
+    )
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status == POSITIVO
+    assert result.matched_variant != "suspeita de melanoma"
 
 
 # ---------------------------------------------------------------------------

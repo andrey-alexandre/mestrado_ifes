@@ -63,7 +63,20 @@ from src.evaluation.case_status import (
     POSITIVO,
 )
 
-PARSER_VERSION = "v2_conclusion_line_2026_11_13"
+PARSER_VERSION = "v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14"
+
+# Entrega 2026-11-14 (ver docs/reconstruction/20_local_vlm_pilot.md §9b):
+# decisão verbatim do pesquisador -- "Escolha a opção 1, mas não aceite
+# qualquer ocorrência de 'suspeita ... melanoma'. Aceite a variante
+# quando a conclusão final expressar suspeita afirmativa e inequívoca de
+# melanoma, como no caso relatado: 'suspeita clara e consistente de
+# melanoma maligno'." -- extensão do rótulo POSITIVO (ver seção 1b/2b
+# abaixo) para cobrir o cenário real `unanime_positivo` deste piloto
+# (v1 acertou por coincidência de substring; v2 original errou porque a
+# região de conclusão final real paraphraseia "suspeita de melanoma"
+# com palavras intensificadoras no meio). O PARSER_VERSION foi trocado
+# (nunca mantido silenciosamente) para que resultados antigos e novos
+# sejam rastreáveis a qual versão do parser os produziu.
 
 # ---------------------------------------------------------------------------
 # 1. Mapeamento explícito e versionado de variantes de rótulo aceitas --
@@ -78,17 +91,23 @@ PARSER_VERSION = "v2_conclusion_line_2026_11_13"
 #    cenário real `um_parecer_ausente` disparar a classificação por si
 #    só, independente de ser ou não a conclusão real).
 #
-#    As entradas de POSITIVO/INDETERMINADO são EXATAMENTE as mesmas frases
-#    literais de `case_status._KEYWORD_TO_STATUS` -- o pesquisador só
-#    pediu para ESTENDER a categoria negativo (benigno/benigna/"lesão
-#    cutânea benigna"); não foram adicionadas variantes novas de
-#    positivo/indeterminado por não terem sido solicitadas e por serem
-#    mais arriscadas de generalizar sem dados adicionais (ex.: a palavra
-#    solta "melanoma", sem "suspeita de", aparece com frequência em
-#    discussões analíticas que NÃO são o veredito, como no cenário real
-#    "conflitante" -- "Suspeita de Melanoma segundo critério Menzies" já
-#    é capturada pela frase literal existente, sem precisar da palavra
-#    solta).
+#    A entrada de INDETERMINADO é EXATAMENTE a mesma frase literal de
+#    `case_status._KEYWORD_TO_STATUS` -- não foi tocada por esta entrega.
+#    A entrada de POSITIVO listada aqui ("suspeita de melanoma") também
+#    é a mesma frase literal original; a EXTENSÃO pedida pelo pesquisador
+#    em 2026-11-14 ("suspeita <intensificador> de melanoma", ex. "suspeita
+#    clara e consistente de melanoma") é implementada SEPARADAMENTE via
+#    `_AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN` (ver seção 1b, abaixo da
+#    negação) -- não foi adicionada a este dict porque é um padrão regex
+#    com vocabulário fechado de intensificadores, não uma lista plana de
+#    frases literais; ambas as fontes de match POSITIVO passam pelas
+#    mesmas checagens de negação/"sem"-prefixo/incerteza antes de contar
+#    como válidas (ver `_find_all_label_matches`). A palavra solta
+#    "melanoma", sem "suspeita", continua deliberadamente NÃO aceita
+#    (aparece com frequência em discussões analíticas que NÃO são o
+#    veredito, como no cenário real "conflitante" -- "Suspeita de
+#    Melanoma segundo critério Menzies" já é capturada pela frase
+#    literal/padrão existente, sem precisar da palavra solta).
 # ---------------------------------------------------------------------------
 LABEL_VARIANTS_V2: dict[str, tuple[str, ...]] = {
     POSITIVO: (
@@ -142,6 +161,105 @@ _NEGATION_WINDOW_WORDS = 4
 _CLAUSE_BOUNDARY_CHARS = (".", "!", "?", ";", ",", ":", "\n")
 
 
+# ---------------------------------------------------------------------------
+# 1b. Extensão POSITIVO 2026-11-14 -- "suspeita ... melanoma" com palavras
+#     intensificadoras/descritivas entre "suspeita" e "de melanoma", desde
+#     que a conclusão final expresse suspeita AFIRMATIVA E INEQUÍVOCA
+#     (decisão verbatim do pesquisador, ver `PARSER_VERSION` acima).
+#
+#     Caso real de regressão (`unanime_positivo`, Estágio 1,
+#     qwen3-vl:8b-instruct-q4_K_M): a região de conclusão final real é
+#     "Há suspeita clara e consistente de melanoma maligno com base em
+#     três algoritmos..." -- a frase literal "suspeita de melanoma" NÃO
+#     aparece como substring (as palavras "clara e consistente" quebram
+#     o match), mas o veredito é inequivocamente afirmativo. v1 acertou
+#     "positivo" só porque o TÍTULO do documento ("Diagnóstico
+#     Consolidado: Suspeita de Melanoma Maligno") contém a frase literal
+#     -- v1 varre o corpo inteiro, v2 (corretamente, por design) só olha
+#     a região de conclusão final, que não repete a frase literal.
+#
+#     Regra implementada (NÃO "contém as duas palavras em qualquer
+#     lugar da cláusula" -- isso seria arriscado demais, pegaria listas
+#     de diagnóstico diferencial): exige literalmente a palavra
+#     "suspeita", seguida de 0 a 6 palavras de um vocabulário FECHADO de
+#     intensificadores/conectivos (`_AFFIRMATIVE_INTENSIFIER_WORDS`),
+#     seguida de "de melanoma". A ausência de pontuação entre as palavras
+#     do vocabulário fechado (regex exige espaço, nunca vírgula/ponto)
+#     já restringe o match à MESMA cláusula, no mesmo espírito de
+#     `_CLAUSE_BOUNDARY_CHARS` usado pelo resto do módulo -- qualquer
+#     vírgula/ponto entre "suspeita" e "de melanoma" quebra o match
+#     (ex.: "suspeita, segundo o laudo, de melanoma" NÃO casa).
+# ---------------------------------------------------------------------------
+_AFFIRMATIVE_INTENSIFIER_WORDS = (
+    "clara", "claro", "consistente", "forte", "elevada", "alta",
+    "significativa", "importante", "evidente", "real", "concreta",
+    "moderada", "considerável", "considerada", "e",
+)
+_AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN = re.compile(
+    r"suspeita(?:\s+(?:" + "|".join(_AFFIRMATIVE_INTENSIFIER_WORDS) + r")){0,6}\s+de\s+melanoma"
+)
+
+# "sem suspeita de melanoma" -- REJEITAR. Decisão explícita do
+# pesquisador: "sem" imediatamente antes de "suspeita" bloqueia o match.
+# Isto é uma checagem DISTINTA de `_is_negated`: `_is_negated` procura
+# "não"/"nao" nos tokens imediatamente antes do RÓTULO casado (que, para
+# o padrão "suspeita de melanoma", seria o próprio "suspeita" -- a
+# mesma posição). O padrão real pedido usa a palavra "sem", não
+# "não"/"nao" -- um padrão lexical diferente, por isso não é capturado
+# por `_is_negated` e precisa de uma checagem própria, documentada aqui
+# em vez de generalizar `_NEGATION_WORDS` (generalizar arriscaria mudar
+# o comportamento de negação para TODOS os rótulos -- negativo,
+# indeterminado -- o que não foi pedido).
+_SEM_PREFIX_WORD = "sem"
+_SEM_PREFIX_WINDOW_WORDS = 2
+
+# "pode haver suspeita de melanoma, mas não é conclusivo" -- julgamento
+# do pesquisador (documentado explicitamente como tal, não uma regra
+# linguística geral): quando a MESMA SENTENÇA (limite mais largo que
+# cláusula -- só pontuação final "." "!" "?"/quebra de linha, para
+# incluir a cláusula seguinte separada por vírgula) contém um marcador
+# textual de "isto não é conclusivo", a suspeita deixa de ser tratada
+# como afirmação inequívoca, mesmo que a frase "suspeita de melanoma"
+# apareça literalmente. Aplicado a QUALQUER match POSITIVO baseado em
+# "suspeita" (tanto a variante literal antiga quanto a extensão nova),
+# para que "pode haver suspeita de melanoma, mas não é conclusivo" não
+# vire positivo só porque a frase literal antiga ainda bate.
+_HEDGE_SENTENCE_BOUNDARY_CHARS = (".", "!", "?", "\n")
+_HEDGE_MARKERS = (
+    "mas não é conclusivo", "mas nao e conclusivo",
+    "mas não é conclusiva", "mas nao e conclusiva",
+    "não é conclusivo", "nao e conclusivo",
+    "não é conclusiva", "nao e conclusiva",
+    "inconclusivo", "inconclusiva",
+)
+
+
+def _is_sem_prefixed(text_lower: str, match_start: int) -> bool:
+    """Ver comentário acima (`_SEM_PREFIX_WORD`). Restringe a busca por
+    "sem" à cláusula atual (mesmo limite de `_CLAUSE_BOUNDARY_CHARS` já
+    usado por `_is_negated`) e, dentro dela, às últimas
+    `_SEM_PREFIX_WINDOW_WORDS` palavras imediatamente antes do match."""
+    preceding = text_lower[:match_start]
+    boundary_idx = max((preceding.rfind(ch) for ch in _CLAUSE_BOUNDARY_CHARS), default=-1)
+    clause = preceding[boundary_idx + 1:]
+    words = re.findall(r"[\wÀ-ÿ]+", clause)
+    window = words[-_SEM_PREFIX_WINDOW_WORDS:]
+    return _SEM_PREFIX_WORD in window
+
+
+def _is_hedged_uncertain(text_lower: str, match_start: int, match_end: int) -> bool:
+    """Ver comentário acima (`_HEDGE_MARKERS`). Examina a SENTENÇA que
+    contém o match (não só a cláusula) porque o marcador de incerteza
+    ("mas não é conclusivo") tipicamente aparece numa cláusula seguinte,
+    separada por vírgula, não imediatamente antes do rótulo."""
+    start_candidates = [text_lower.rfind(ch, 0, match_start) for ch in _HEDGE_SENTENCE_BOUNDARY_CHARS]
+    sentence_start = max(start_candidates, default=-1)
+    end_candidates = [c for c in (text_lower.find(ch, match_end) for ch in _HEDGE_SENTENCE_BOUNDARY_CHARS) if c != -1]
+    sentence_end = min(end_candidates) if end_candidates else len(text_lower)
+    sentence = text_lower[sentence_start + 1:sentence_end]
+    return any(marker in sentence for marker in _HEDGE_MARKERS)
+
+
 def _is_negated(text_lower: str, match_start: int) -> bool:
     """HEURÍSTICA APROXIMADA (decisão fechada do pesquisador: "implemente
     um simples... e flagueie como heurística aproximada, não solução de
@@ -184,9 +302,32 @@ def _find_all_label_matches(text_lower: str) -> list[LabelMatch]:
                     idx = text_lower.find(variant, start)
                     if idx == -1:
                         break
-                    matches.append(LabelMatch(status=status, variant=variant, start=idx,
-                                               negated=_is_negated(text_lower, idx)))
-                    start = idx + len(variant)
+                    end = idx + len(variant)
+                    negated = _is_negated(text_lower, idx)
+                    if status == POSITIVO:
+                        # Extensão 2026-11-14: a variante literal antiga
+                        # "suspeita de melanoma" também passa pelas novas
+                        # checagens de "sem"-prefixo/incerteza -- ver
+                        # comentário em `_is_hedged_uncertain` (sem isto,
+                        # "sem suspeita de melanoma" e "pode haver
+                        # suspeita de melanoma, mas não é conclusivo"
+                        # continuariam batendo por esta variante literal,
+                        # mesmo com a extensão nova corretamente
+                        # rejeitando o padrão regex equivalente).
+                        negated = negated or _is_sem_prefixed(text_lower, idx) or _is_hedged_uncertain(text_lower, idx, end)
+                    matches.append(LabelMatch(status=status, variant=variant, start=idx, negated=negated))
+                    start = end
+
+    # Extensão POSITIVO 2026-11-14 -- "suspeita <intensificadores> de
+    # melanoma" (ver `_AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN`). Caso real
+    # de regressão: `unanime_positivo` (ver docstring da seção 1b acima).
+    for m in _AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN.finditer(text_lower):
+        negated = (
+            _is_negated(text_lower, m.start())
+            or _is_sem_prefixed(text_lower, m.start())
+            or _is_hedged_uncertain(text_lower, m.start(), m.end())
+        )
+        matches.append(LabelMatch(status=POSITIVO, variant=m.group(0), start=m.start(), negated=negated))
     return matches
 
 
