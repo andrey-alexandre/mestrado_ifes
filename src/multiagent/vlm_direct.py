@@ -1280,6 +1280,115 @@ def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float 
 
 
 # ---------------------------------------------------------------------------
+# 12c. Controles de síntese com IMAGEM REAL -- ADITIVO (tarefa 2026-11-14,
+#     pós-achado da 3ª execução real do Estágio 1 para
+#     qwen3-vl:8b-instruct-q4_K_M). No cenário `um_parecer_ausente` dessa
+#     3ª execução, o modelo recusou aplicar os 3 critérios porque notou,
+#     CORRETAMENTE, que `_fixed_control_image()` (64x64 cinza sólido, sem
+#     nenhuma lesão) não mostra nada -- "a imagem fornecida é completamente
+#     cinza e vazia... nenhum dos três algoritmos pode ser aplicado". Isto
+#     NÃO desqualifica qwen3-vl -- o sumarizador REAL
+#     (`SummaryAgent.summarize`, `src/agents/agents.py:441-484`) SEMPRE
+#     envia uma imagem dermatoscópica REAL junto dos 3 pareceres (ver
+#     `_image_message(state.seg_image_data, text_prompt)` na linha 482 de
+#     `agents.py`) -- é o CONTROLE que quebrou essa fidelidade, usando um
+#     placeholder sem lesão. Esta extensão corrige isso trocando SÓ a
+#     imagem (nunca os pareceres fixos de `FIXED_SYNTHESIS_SCENARIOS`,
+#     nunca o mecanismo de envio) por uma imagem HAM10000 real, verificada
+#     como externa à amostra congelada de 3.000 lesões por `lesion_id` E
+#     `image_id` (ver `scripts/run_synthesis_control_real_image_selection.py`).
+#
+#     ESCOLHA DE DESIGN (documentada, não invisível): em vez de acrescentar
+#     um parâmetro `image=None` a `build_synthesis_control_state`/
+#     `run_synthesis_control` (o que exigiria editar o CORPO de duas
+#     funções já usadas em produção nas 3 execuções reais históricas do
+#     Estágio 1, mesmo que o comportamento default ficasse idêntico),
+#     optou-se por DUAS FUNÇÕES NOVAS E TOTALMENTE SEPARADAS, que não
+#     chamam nem são chamadas pelas antigas -- menos invasivo (zero risco
+#     de uma edição acidental no caminho antigo), ao custo de duplicar
+#     ~20 linhas de lógica. `_fixed_control_image`,
+#     `build_synthesis_control_state` e `run_synthesis_control` acima
+#     permanecem byte-a-byte INALTERADOS por esta tarefa -- continuam
+#     produzindo exatamente o mesmo comportamento de antes, inclusive para
+#     qualquer reexecução futura do Estágio 1 original via
+#     `scripts/run_local_vlm_pilot.py` (NÃO MODIFICADO por esta tarefa).
+# ---------------------------------------------------------------------------
+def build_synthesis_control_state_real_image(scenario_name: str, image: Image.Image) -> GraphState:
+    """Idêntica a `build_synthesis_control_state`, exceto que usa ``image``
+    (uma imagem dermatoscópica REAL, já verificada externamente como fora
+    da amostra congelada -- ver script de seleção) em vez de
+    `_fixed_control_image()`. NÃO chama nem modifica
+    `build_synthesis_control_state` -- função paralela e independente, ver
+    nota de design acima."""
+    scenario = FIXED_SYNTHESIS_SCENARIOS[scenario_name]
+    return GraphState(
+        image_path="controle_sintese_imagem_real",
+        lesion_size=0.0,
+        seg_image_data=convert_to_base64(image),
+        diagnosis_abcd=scenario["diagnosis_abcd"],
+        diagnosis_menzies=scenario["diagnosis_menzies"],
+        diagnosis_spcl=scenario.get("diagnosis_spcl"),
+        status_spcl=scenario.get("status_spcl"),
+    )
+
+
+def run_synthesis_control_real_image(
+    model_name: str, scenario_name: str, image: Image.Image, timeout_s: float = TIMEOUT_S
+) -> dict[str, Any]:
+    """Mesma lógica de `run_synthesis_control` (gate oficial via
+    `classify_case_status_v2`, v1 só rastreabilidade -- nunca
+    fallback/desempate --, heurística de achado novo como triagem, e as 2
+    checagens aproximadas "não avaliado"/"ausente"), construindo o estado
+    via `build_synthesis_control_state_real_image` (imagem real) em vez de
+    `build_synthesis_control_state` (placeholder cinza). Usa
+    `lesion_id`/`image_id`/`condition` distintos (`controle_sintese_imagem_real`/
+    `controle_imagem_real_<cenário>`) para que os registros desta tarefa
+    nunca se confundam com os 3 registros históricos reais de
+    `run_synthesis_control` já gravados em
+    `experiments/multiagent/local_vlm_pilot/<model_tag>/call_log.jsonl`.
+    NÃO chama `run_synthesis_control` internamente -- função paralela e
+    independente, mesmo motivo de design documentado acima."""
+    state = build_synthesis_control_state_real_image(scenario_name, image)
+    record, state_update = run_multiagent_role_call(
+        model_name=model_name, role=ROLE_SUMMARY, state=state,
+        lesion_id="controle_sintese_imagem_real", image_id=f"controle_imagem_real_{scenario_name}",
+        condition="controle_sintese_imagem_real", timeout_s=timeout_s,
+    )
+    validation = state_update.get("validation")
+    # Rastreabilidade APENAS -- nunca lido para decidir "parseable"/"passed"
+    # abaixo (mesma convenção de `run_synthesis_control`).
+    classified_v1_historical = classify_case_status({"validation": validation})
+    # GATE OFICIAL (decisão do pesquisador, §9c do doc) -- idêntico a
+    # `run_synthesis_control`: "parseable"/"passed" dependem só do v2.
+    classified_v2 = classify_case_status_v2({"validation": validation})
+    parseable = classified_v2 not in ("ausente", "nao_reconhecido")
+
+    justificativa = ""
+    if validation is not None:
+        justificativa = getattr(validation, "justificativa", None) or str(validation)
+    novel_terms = _vocabulary_terms_not_in_inputs(justificativa, FIXED_SYNTHESIS_SCENARIOS[scenario_name])
+
+    result: dict[str, Any] = {
+        "scenario": scenario_name,
+        "call_record": record,
+        "classified_status_v2": classified_v2,
+        "official_classification_parser_version": CASE_STATUS_V2_PARSER_VERSION,
+        "classified_status_v1_historical": classified_v1_historical,
+        "parseable": parseable,
+        "justificativa": justificativa,
+        "novel_clinical_terms_candidates": novel_terms,
+        "no_novel_terms_detected": len(novel_terms) == 0,
+        "passed": parseable,
+        "requires_manual_review": True,
+    }
+    if scenario_name == "conflitante":
+        result["not_evaluated_vs_evaluated_absent_check"] = _check_not_evaluated_not_misrepresented_as_absent(justificativa)
+    if scenario_name == "um_parecer_ausente":
+        result["absence_vs_lesion_lacks_feature_check"] = _check_absence_not_misrepresented_as_lesion_lacks_feature(justificativa)
+    return result
+
+
+# ---------------------------------------------------------------------------
 # 12b. Template de revisão manual -- DECISÃO FECHADA #4: o driver escreve
 #      este template e PARA após os 4 controles de síntese; a matriz
 #      principal só é tentada numa segunda invocação, depois do

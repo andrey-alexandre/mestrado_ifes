@@ -36,6 +36,18 @@ Entrega adicional pós-execução real do Estágio 1 (2026-11-13) — parser v2
 `classified_status_v2` ao lado de `classified_status`, nunca o
 substituindo). `src/evaluation/case_status.py` continua intocado.
 
+Entrega adicional — imagem REAL nos controles de síntese (2026-11-14), ver
+seção 9e abaixo: `scripts/run_synthesis_control_real_image_selection.py`
+(novo — seleção/registro/verificação sem inferência da imagem real),
+`scripts/run_synthesis_controls_real_image.py` (novo — as 8 chamadas
+reais, 4 cenários x 2 modelos), e 2 funções ADITIVAS em
+`src/multiagent/vlm_direct.py` (`build_synthesis_control_state_real_image`/
+`run_synthesis_control_real_image`, seção 12c do módulo — não tocam
+`_fixed_control_image`/`build_synthesis_control_state`/`run_synthesis_control`
+originais). `src/evaluation/case_status_v2.py`, `scripts/run_local_vlm_pilot.py`
+e os prompts reais de `src/agents/agents.py` continuam intocados por esta
+entrega.
+
 ## 2. Sequência exata de comandos
 
 Diretório de trabalho para todos: `C:\Projetos\IFES\mestrado_ifes`.
@@ -1005,3 +1017,206 @@ python -m pytest tests/evaluation/test_case_status_v2.py -v
     dados reais — mantém o risco residual já documentado em §9b.9 item
     19 em aberto para o caso em que a listagem aparece DENTRO da região
     de conclusão final.
+
+## 9e. Imagem REAL nos controles de síntese — correção pós-achado da 3ª execução real do Estágio 1 (2026-11-14)
+
+STATUS: implementado, aguardando execução do pesquisador. Nada deste
+pacote foi executado pelo assistente que o escreveu
+(`feedback_no_autonomous_execution`) — nenhum `python`/`pytest`/`git`/
+`ollama` foi chamado.
+
+### 9e.1 O que aconteceu (dado real, não hipotético)
+
+Na 3ª execução real do Estágio 1 de `qwen3-vl:8b-instruct-q4_K_M`, o
+cenário de controle de síntese `um_parecer_ausente` falhou por um motivo
+NOVO e ESTRUTURAL (não um gap de vocabulário do parser): o controle envia
+`_fixed_control_image()` — um placeholder 64x64 cinza sólido, sem
+nenhuma lesão — junto dos pareceres sintéticos ABCD/Menzies. O modelo
+notou, CORRETAMENTE, que a imagem não mostra nada e se recusou a aplicar
+os critérios diagnósticos: "a imagem fornecida é completamente cinza e
+vazia... nenhum dos três algoritmos pode ser aplicado".
+
+Isto NÃO desqualifica qwen3-vl. O sumarizador REAL
+(`SummaryAgent.summarize`, `src/agents/agents.py:441-484`) sempre envia
+uma imagem dermatoscópica REAL junto dos 3 pareceres
+(`_image_message(state.seg_image_data, text_prompt)`, `agents.py:482`) —
+confirmado por leitura de código, não assumido. É o CONTROLE que quebra
+essa fidelidade usando um placeholder sem lesão. Este resultado
+permanece no registro histórico (não é apagado/substituído), mas a
+conclusão correta é "o controle precisa de correção", não "o modelo
+falhou".
+
+### 9e.2 Correção: só a imagem muda, nunca os pareceres/mecanismo
+
+- **Imagem real selecionada**:
+  `scripts/run_synthesis_control_real_image_selection.py` — reusa as
+  mesmas primitivas de `src/data_audit/sampling.py`/
+  `src/multiagent/presentation.py` já usadas por
+  `scripts/run_pilot12_sample.py`: verifica o SHA-256 do manifesto
+  congelado de 3.000 lesões
+  (`32bbd1b318dccca048abeb25de64e6b1f2db6184d589286606a73271d6392799`)
+  antes de qualquer leitura, exclui do pool elegível TODO `lesion_id` E
+  TODO `image_id` presente no congelado (exclusão por ambas as chaves,
+  mesmo padrão), e sorteia 1 lesão/imagem com uma semente NOVA
+  (`SYNTHESIS_CONTROL_IMAGE_SEED = 20270901` — distinta de `20261106`
+  da amostra congelada, `20270203`/`PILOT_SEED` e `20270204`/
+  `FOURTH_SLOT_SEED` do piloto de 12, todas já documentadas neste
+  projeto). Grava `experiments/multiagent/synthesis_control_real_image_registry.json`
+  (+ `.md`) com `lesion_id`/`image_id`/`dx` escolhidos, confirmação
+  explícita de zero sobreposição por AMBAS as chaves, SHA-256 do arquivo
+  de imagem, e dimensões. **Se a separação não puder ser verificada**
+  (hash não confere, pool vazio, sobreposição detectada por construção,
+  ou imagem ilegível/ausente), o script NUNCA escolhe uma alternativa
+  silenciosamente — grava `verification_status: "pendente"` com o motivo
+  exato, e nada mais.
+- **Decisão de design sinalizada (não ditada pelo pesquisador)**: 1 única
+  imagem real compartilhada pelos 4 cenários (não 4 imagens distintas) —
+  o controle testa fidelidade de SÍNTESE TEXTUAL (os pareceres variam por
+  cenário, não a imagem); variar a imagem por cenário não acrescentaria
+  sinal relevante e ampliaria sem necessidade a superfície de
+  verificação. Ver campo `design_note_shared_image` no registry.
+- **Pareceres fixos preservados tal como estão**:
+  `vd.FIXED_SYNTHESIS_SCENARIOS` NÃO foi alterado — nenhum texto de
+  nenhum parecer de nenhum dos 4 cenários foi tocado por esta tarefa. O
+  cenário `um_parecer_ausente` já fornecia só os 2 pareceres disponíveis
+  (ABCD, Menzies), com a ausência do SPCL representada pelo mecanismo
+  real de ausência A05 (`diagnosis_spcl=None`,
+  `status_spcl=AgentStatus(status="sem_resposta", causa="controle_sintetico_parecer_ausente")`)
+  — confirmado por leitura de código: isto já corresponde a "fornecer só
+  os 2 pareceres disponíveis, com a ausência representada como no fluxo
+  real", sem necessidade de nenhuma mudança de conteúdo, só a troca de
+  imagem.
+- **Novas funções ADITIVAS em `src/multiagent/vlm_direct.py`** (seção 12c
+  do módulo): `build_synthesis_control_state_real_image(scenario_name,
+  image)` e `run_synthesis_control_real_image(model_name, scenario_name,
+  image, timeout_s=...)`. Escolha de design explícita: em vez de
+  acrescentar um parâmetro `image=None` ao `build_synthesis_control_state`/
+  `run_synthesis_control` já existentes (o que exigiria editar o CORPO de
+  duas funções usadas pelas 3 execuções reais históricas do Estágio 1),
+  foram criadas duas funções NOVAS E TOTALMENTE SEPARADAS, que não chamam
+  nem são chamadas pelas antigas — `_fixed_control_image`,
+  `build_synthesis_control_state` e `run_synthesis_control` permanecem
+  byte-a-byte INALTERADOS, continuando a produzir exatamente o mesmo
+  comportamento de antes para qualquer reexecução futura do Estágio 1
+  original (`scripts/run_local_vlm_pilot.py`, também NÃO MODIFICADO).
+
+### 9e.3 Separação parser-validity vs. revisão de fidelidade (novo script)
+
+`scripts/run_synthesis_controls_real_image.py` — executa SOMENTE os 4
+cenários de síntese corrigidos, 1 chamada por (cenário, modelo), para os
+2 modelos do piloto (`qwen3-vl:8b-instruct-q4_K_M`,
+`medgemma1.5:4b-it-q4_K_M`) = **8 chamadas**, sem repetição/retry. Não
+toca os 12 controles de envio de imagem por papel, não toca a matriz
+principal de 92 nem a de 12 lesões.
+
+Para cada uma das 8 chamadas, grava SEPARADAMENTE:
+- `raw_response_text` (verbatim);
+- `expected_category` por cenário (conceito NOVO desta tarefa) + sua
+  justificativa (`EXPECTED_CATEGORY_RATIONALE_BY_SCENARIO`):
+  - `unanime_positivo` → `"positivo"` (os 3 pareceres concordam em
+    suspeita de melanoma);
+  - `unanime_negativo` → `"negativo"` (os 3 pareceres concordam em lesão
+    benigna);
+  - `conflitante` → **`None`, deliberadamente** — não há categoria
+    "correta" única por desenho (ABCD=benigno, Menzies=melanoma,
+    SPCL=1/3 pontos com `vasos_atipicos` "não avaliado"); o propósito é
+    testar se o sumarizador PRESERVA a divergência e a distinção "não
+    avaliado"/"ausente", não se chega a um rótulo específico;
+  - `um_parecer_ausente` → `"negativo"` (os 2 pareceres disponíveis,
+    ABCD e Menzies, concordam em lesão benigna);
+- `classified_status_v2` (gate oficial, `classify_case_status_v2`,
+  **REUSADO SEM NENHUMA MODIFICAÇÃO** — `src/evaluation/case_status_v2.py`
+  não é tocado por esta tarefa, nem para adicionar um caso; se v2 não
+  reconhecer uma resposta, isto é registrado tal como está, sem ampliar
+  vocabulário nem recorrer ao v1 como desempate) e
+  `classified_status_v1_historical` (rastreabilidade só);
+- um **template de revisão de fidelidade** manual (mesmo
+  estilo/convenção de `vd.build_synthesis_manual_review_template` —
+  placeholders `None`/`""`, nunca preenchidos automaticamente):
+  `fidelity_authorship_preserved` (achados atribuídos ao algoritmo
+  correto, divergências preservadas), `fidelity_not_evaluated_vs_absent_correct`
+  (reusa as 2 heurísticas lexicais de triagem já existentes —
+  `_check_not_evaluated_not_misrepresented_as_absent`/
+  `_check_absence_not_misrepresented_as_lesion_lacks_feature` — como
+  PONTEIRO para o revisor, nunca como veredito),
+  `fidelity_no_fictional_third_parecer` (nenhum 3º parecer inventado),
+  `summarizer_added_own_observation`/`summarizer_own_observation_clearly_marked_as_summarizer_own`
+  (a observação própria do sumarizador, se houver, é permitida pelo
+  pesquisador desde que marcada como dele), e
+  `faithful_but_unrecognized_by_v2` (campo explícito para o caso pedido
+  pelo pesquisador: uma conclusão fiel que o v2 não reconheça —
+  registrado, nunca resolvido automaticamente).
+
+Saída em `experiments/multiagent/synthesis_controls_real_image/` —
+diretório NOVO e SEPARADO, nunca sobrescrevendo/tocando os 3 artefatos
+históricos reais em `experiments/multiagent/local_vlm_pilot/<model_tag>/`:
+- `<model_tag>/call_log.jsonl` — log bruto por chamada (`CallRecord.to_flat_dict()`,
+  mesma convenção já usada no resto do projeto), 4 registros por modelo.
+- `results.json` — as 8 entradas completas (campos acima + registry da
+  imagem usada).
+- `report.md` — versão legível, com o texto bruto de cada chamada e o
+  template de fidelidade vazio para o pesquisador preencher.
+
+### 9e.4 Verificação sem inferência (antes de autorizar as 8 chamadas)
+
+```
+python scripts/run_synthesis_control_real_image_selection.py --verify-only \
+    --ham10000-images-dir D:/Andrey/Mestrado/dataverse_files/HAM10000
+```
+
+Re-verifica, sem nenhuma chamada a modelo: o SHA-256 do manifesto
+congelado, a exclusão por AMBAS as chaves do item já selecionado, e que o
+arquivo de imagem ainda carrega (e seu próprio SHA-256 ainda confere).
+`scripts/run_synthesis_controls_real_image.py` roda esta MESMA checagem
+internamente antes de fazer qualquer chamada real — se falhar, aborta
+sem tentar nenhuma das 8 chamadas.
+
+### 9e.5 Comandos completos
+
+```
+# 1. Seleção da imagem real (uma vez)
+python scripts/run_synthesis_control_real_image_selection.py \
+    --ham10000-images-dir D:/Andrey/Mestrado/dataverse_files/HAM10000
+
+# 2. Verificação sem inferência (repetível, antes de autorizar as 8 chamadas)
+python scripts/run_synthesis_control_real_image_selection.py --verify-only \
+    --ham10000-images-dir D:/Andrey/Mestrado/dataverse_files/HAM10000
+
+# 3. As 8 chamadas reais (4 cenários x 2 modelos, sem repetição)
+python scripts/run_synthesis_controls_real_image.py \
+    --ham10000-images-dir D:/Andrey/Mestrado/dataverse_files/HAM10000
+```
+
+### 9e.6 Confirmação explícita — o que NÃO foi tocado nesta tarefa
+
+- `src/evaluation/case_status_v2.py` — intocado (import direto, sem
+  nenhuma edição; nenhum caso novo adicionado, nenhuma extensão de
+  vocabulário).
+- `scripts/run_local_vlm_pilot.py` — intocado, inclusive seu gate do
+  Estágio 1 (`image_controls_eval`/`synthesis_overall_pass`/o requisito
+  de revisão manual de achado novo) — essa execução continua
+  disponível e produzindo o mesmo comportamento de sempre.
+- `src/agents/agents.py` — intocado; confirmado por leitura (linhas
+  441-484) que `SummaryAgent.summarize` já envia a imagem real + os 3
+  pareceres serializados exatamente da forma que este módulo reusa via
+  `run_multiagent_role_call(role=ROLE_SUMMARY, ...)` — o ajuste desta
+  tarefa é especificamente e só sobre QUAL imagem o CONTROLE envia, não
+  sobre o mecanismo real de envio (que já era fiel).
+- `src/multiagent/vlm_direct.py::_fixed_control_image`/
+  `build_synthesis_control_state`/`run_synthesis_control` — intocados
+  byte-a-byte; as novas funções (`build_synthesis_control_state_real_image`/
+  `run_synthesis_control_real_image`) são paralelas e independentes.
+- A matriz de 12 lesões (`experiments/multiagent/pilot12_manifest.csv`) —
+  fora de escopo por instrução explícita do pesquisador; o critério de
+  >=95% desse piloto não é estimado a partir desta seleção/dos 4
+  controles de síntese.
+
+### 9e.7 Interpretações de design novas introduzidas nesta tarefa (sem confirmação explícita)
+
+23. Imagem real ÚNICA compartilhada pelos 4 cenários (em vez de 4
+    imagens distintas) — ver 9e.2, julgamento deste assistente.
+24. A semente nova (`SYNTHESIS_CONTROL_IMAGE_SEED = 20270901`) e o
+    mecanismo de sorteio (1 lesão via `random.Random(seed)`, depois 1
+    imagem dessa lesão via um segundo `random.Random(seed)` idêntico,
+    mesmo padrão de `src.data_audit.sampling.sample_lesions`) — escolha
+    de conveniência, não ditada pelo pesquisador.
