@@ -9,11 +9,55 @@ brutas reais de `medgemma1.5:4b-it-q4_K_M`, e a suspeita de que
 artefato da heurística de "região de conclusão final", não pelo
 conteúdo real da resposta).
 
-**Status: implementada, aguardando execução do pesquisador.** Nenhum
-script foi executado por este agente — nem `python`, nem `pytest`, nem
-git. Tudo abaixo que descreve "o que o script vai produzir" é uma
-**previsão manual**, feita por rastreamento linha-a-linha da lógica real
-de `case_status_v2.py` contra os 8 textos brutos reais, não uma execução.
+**Status: CONFIRMADO COM EXECUÇÃO REAL do pesquisador, 2026-11-14.**
+Nenhum script foi executado por este agente (nem `python`, nem `pytest`,
+nem git) — mas o pesquisador rodou `python -m pytest
+tests/evaluation/test_response_template_extraction.py -v` (5/5 passou) e
+`python scripts/run_reprocess_synthesis_controls_final_answer_extraction.py`
+de verdade, e o resultado real está em
+`experiments/multiagent/synthesis_controls_real_image/final_answer_extraction_reprocessing_results.json`.
+A seção 3 abaixo foi atualizada com o resultado REAL (não mais previsão).
+
+## 3. Resultado REAL (confirmado, não mais previsão manual)
+
+Lido diretamente de `final_answer_extraction_reprocessing_results.json`:
+
+- `n_before_vs_stored_mismatches: 0` — o "antes" recomputado bate 100%
+  com `classified_status_v2` já salvo em `results.json` (confirma que
+  nada mudou no v1/parser por conta própria).
+- `n_before_after_disagreements: 0` — em NENHUM dos 8 casos a
+  classificação mudou entre o texto bruto completo e a resposta final
+  extraída (template removido só nos 4 casos do medgemma1.5, confirmado
+  via `delimiter_pair_used: ["<unused94>thought", "<unused95>"]`; os 4
+  casos do qwen3-vl deram `no_template_detected`, texto inalterado, como
+  esperado).
+- **`medgemma1.5/conflitante` — o caso central**: mesmo com o bloco de
+  pensamento removido, a região de conclusão final extraída pelo v2 (já
+  sobre o texto limpo) é o parágrafo real:
+  > "**Integração e Diagnóstico Consolidado:**\n\nOs pareceres
+  > apresentam resultados significativamente divergentes. [...]
+  > **Conclusão:** A lesão apresenta características que são
+  > discordantemente interpretadas pelos diferentes algoritmos, com
+  > resultados que variam de **benigno** (ABCD) a melanoma (Menzies) e
+  > borderline (SPCL). [...]"
+  >
+  > `matched_variant: "benigno"`, `matched_category: "negativo"`,
+  > `status: "negativo"` — IDÊNTICO ao resultado antes da extração.
+
+  **Confirmado: o problema NÃO se limita ao vazamento de template.** A
+  resposta final de fato (limpa, sem o `<unused94>/<unused95>`) preserva
+  corretamente a divergência entre os 3 algoritmos (fidelidade OK, já
+  revisada no doc 21) — mas o v2 captura a palavra solta "benigno" dentro
+  de uma frase que ENUMERA o desacordo ("resultados que variam de X a Y a
+  Z"), não que afirma um veredito. É uma falha real de correspondência do
+  v2 com texto enumerativo/comparativo, distinta do problema de template
+  que motivou esta tarefa.
+
+Por instrução explícita do pesquisador, NENHUM ajuste de vocabulário ou
+da heurística do v2 foi proposto ou feito nesta entrega — o resultado
+fica registrado para decisão em uma tarefa futura.
+
+## (histórico) Previsão manual original, mantida abaixo para rastreabilidade
 
 ## 1. O que foi construído
 
