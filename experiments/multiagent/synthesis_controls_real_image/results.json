@@ -64,17 +64,17 @@
       "not_evaluated_vs_evaluated_absent_check": null,
       "absence_vs_lesion_lacks_feature_check": null,
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "Achados de ABCD (assimetria 2, bordas 7, cor 5, estruturas 4), Menzies (veu azul-branco, multiplos pontos marrons, pseudopodes, pontos pretos perifericos, multiplas cores) e SPCL (pontuacao 7) todos atribuidos corretamente ao algoritmo de origem, batendo com os valores fixos de FIXED_SYNTHESIS_SCENARIOS['unanime_positivo']. Nenhuma troca de autoria percebida.",
         "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
-        "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
-        "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "fidelity_not_evaluated_vs_absent_notes": "Nao aplicavel -- este cenario nao tem nenhum criterio marcado como 'nao avaliado' nos pareceres fixos.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "So ABCD/Menzies/SPCL sao referenciados, nenhum 4o parecer inventado.",
+        "summarizer_added_own_observation": true,
+        "summarizer_own_observation_clearly_marked_as_summarizer_own": true,
+        "summarizer_own_observation_notes": "Secao 'Justificativa Final com Base na Imagem' adiciona leitura visual propria (assimetria, cores, bordas, rede pigmentada observadas na imagem), separada em cabecalho proprio, nao atribuida a nenhum dos 3 algoritmos individualmente.",
+        "faithful_but_unrecognized_by_v2": true,
+        "reviewer_notes": "Conteudo e claramente fiel e positivo (integra os 3 pareceres corretamente, conclui risco alto de melanoma), mas o veredito final usa 'padrao de alto risco para melanoma' em vez da frase 'suspeita de melanoma' -- v2 nao reconheceu por vocabulario, nao por falta de fidelidade. Caso registrado, vocabulario NAO ampliado nesta tarefa."
       }
     },
     {
@@ -100,17 +100,17 @@
       "not_evaluated_vs_evaluated_absent_check": null,
       "absence_vs_lesion_lacks_feature_check": null,
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "ABCD, Menzies e SPCL apresentados separadamente com seus proprios criterios/pontuacoes (todos batendo com os pareceres fixos de 'unanime_negativo'), sem trocas.",
         "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
-        "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
+        "fidelity_not_evaluated_vs_absent_notes": "Nao aplicavel -- cenario sem criterio 'nao avaliado'.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "So os 3 algoritmos reais citados.",
+        "summarizer_added_own_observation": true,
+        "summarizer_own_observation_clearly_marked_as_summarizer_own": true,
+        "summarizer_own_observation_notes": "Trecho 'A imagem nao revela sinais de alta suspeita...' na 'Conclusao Final' e observacao propria baseada na imagem, apresentada como sintese integradora, nao atribuida a nenhum dos 3 algoritmos isoladamente.",
         "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "reviewer_notes": "v2 reconheceu corretamente como negativo -- bate com a categoria esperada e com o conteudo."
       }
     },
     {
@@ -149,17 +149,17 @@
       },
       "absence_vs_lesion_lacks_feature_check": null,
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
-        "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
-        "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "ABCD (benigno, criterios corretos), Menzies (melanoma, 6 caracteristicas positivas corretas) e SPCL (1 ponto, 'Vasos atipicos: Nao avaliado' preservado) todos atribuidos corretamente, inclusive a divergencia real entre eles. Conclusao final atribui a suspeita especificamente 'ao Metodo Menzies', nao alega consenso -- preserva autoria da divergencia.",
+        "fidelity_not_evaluated_vs_absent_correct": true,
+        "fidelity_not_evaluated_vs_absent_notes": "Texto lista literalmente 'Vasos atipicos: Nao avaliado' na secao SPCL -- preserva corretamente a distincao de 'nao avaliado' (nao convertido em 'Nao'/ausente). Heuristica de triagem tambem nao encontrou frase de risco.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "So ABCD/Menzies/SPCL, nenhuma invencao.",
+        "summarizer_added_own_observation": true,
+        "summarizer_own_observation_clearly_marked_as_summarizer_own": true,
+        "summarizer_own_observation_notes": "Secao 'Integracao com a imagem' adiciona leitura visual propria (tonalidades, contornos, ausencia de veu azul-branco visivel), em cabecalho proprio, inclusive marcando explicitamente 'nao confirmado' quando a imagem nao corrobora um achado de Menzies -- uso responsavel da propria observacao.",
         "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "reviewer_notes": "Melhor resposta das 8 em termos de fidelidade: preserva divergencia real, distincao nao-avaliado/ausente, e autoria. v2 reconheceu corretamente (positivo, via 'Suspeita de melanoma maligno')."
       }
     },
     {
@@ -194,17 +194,17 @@
         "likely_misrepresented_absence_as_lesion_lacks_feature": true
       },
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
-        "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
-        "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "ABCD e Menzies atribuidos corretamente (ambos benignos, criterios batendo com os pareceres fixos); SPCL explicitamente descrito como 'Nenhum parecer fornecido' / 'Nao ha dados ou descricao do SPCL' -- nao inventa valores para SPCL.",
+        "fidelity_not_evaluated_vs_absent_correct": true,
+        "fidelity_not_evaluated_vs_absent_notes": "Heuristica de triagem marcou TRUE (risco) pela frase 'a lesao nao apresenta' em 'a estrutura e regular, e nao apresenta assemelhanca de padroes atipicos' -- lendo o texto, isto descreve uma observacao visual da LESAO (achado clinico legitimo baseado na imagem), nao uma confusao entre 'SPCL ausente' e 'lesao nao tem essa caracteristica'. A ausencia do parecer SPCL em si e tratada corretamente ('nao ha dados', 'sua ausencia nao afeta o diagnostico'), nunca como 'a lesao nao tem as caracteristicas do SPCL'. Avaliado como FALSO POSITIVO da heuristica lexical, nao um erro real de fidelidade.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "SPCL permanece explicitamente ausente, nenhum valor inventado para ele.",
+        "summarizer_added_own_observation": true,
+        "summarizer_own_observation_clearly_marked_as_summarizer_own": true,
+        "summarizer_own_observation_notes": "Secao 'Caracteristicas Relevantes Observadas (com base na imagem)' em cabecalho proprio, descrevendo cor/bordas/estrutura vistas na imagem -- nao atribuida a ABCD ou Menzies isoladamente.",
         "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "reviewer_notes": "v2 reconheceu corretamente (negativo), bate com categoria esperada. Heuristica de 'ausencia vs lesao sem caracteristica' disparou mas foi avaliada como falso positivo apos leitura do texto (ver nota acima)."
       }
     },
     {
@@ -235,17 +235,17 @@
       "not_evaluated_vs_evaluated_absent_check": null,
       "absence_vs_lesion_lacks_feature_check": null,
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "Resposta final (apos '<unused95>') atribui corretamente ABCD/Menzies/SPCL com seus criterios, batendo com os pareceres fixos. IMPORTANTE: raw_response_text inclui um bloco de cadeia-de-pensamento interna (entre '<unused94>thought' e '<unused95>') antes da resposta final -- nao e um erro de fidelidade do sumarizador, mas um vazamento de token de template do Ollama/medgemma nao filtrado pelo pipeline; a resposta final em si (apos '<unused95>') e a que deve ser avaliada.",
         "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
+        "fidelity_not_evaluated_vs_absent_notes": "Nao aplicavel -- cenario sem criterio 'nao avaliado'.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "So os 3 algoritmos reais.",
+        "summarizer_added_own_observation": false,
         "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
-        "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "summarizer_own_observation_notes": "A resposta FINAL (pos '<unused95>') nao adiciona uma observacao visual propria distinta -- so sintetiza os 3 pareceres. O bloco de pensamento interno menciona a imagem, mas isso nao faz parte da resposta final entregue.",
+        "faithful_but_unrecognized_by_v2": true,
+        "reviewer_notes": "Resposta final e claramente fiel e positiva ('...indicam um diagnostico de alta suspeita por melanoma'), mas usa 'suspeita POR melanoma' em vez de 'suspeita DE melanoma' -- v2 nao reconheceu por vocabulario. Caso registrado, vocabulario NAO ampliado nesta tarefa."
       }
     },
     {
@@ -276,17 +276,17 @@
       "not_evaluated_vs_evaluated_absent_check": null,
       "absence_vs_lesion_lacks_feature_check": null,
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "Resposta final (apos '<unused95>') atribui corretamente ABCD/Menzies/SPCL, inclusive a discrepancia de interpretacao de borda entre ABCD ('indistintas') e Menzies ('simetria'), tratada com cuidado sem confundir autoria.",
         "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
+        "fidelity_not_evaluated_vs_absent_notes": "Nao aplicavel -- cenario sem criterio 'nao avaliado'.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "So os 3 algoritmos reais.",
+        "summarizer_added_own_observation": false,
         "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
+        "summarizer_own_observation_notes": "Resposta final menciona 'e da imagem' genericamente mas nao adiciona um achado visual proprio distinto dos 3 pareceres -- o bloco de pensamento interno descreve a imagem com mais detalhe, mas isso nao chega na resposta final entregue.",
         "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "reviewer_notes": "v2 reconheceu corretamente (negativo), bate com categoria esperada. Mesma ressalva de vazamento de template do caso anterior: raw_response_text inclui a cadeia de pensamento completa antes da resposta final."
       }
     },
     {
@@ -322,17 +322,17 @@
       },
       "absence_vs_lesion_lacks_feature_check": null,
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
-        "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "Bloco de pensamento interno lista corretamente 'vasos_atipicos: Nao avaliado' para SPCL (preservando a distincao), mas a resposta FINAL entregue (apos '<unused95>') OMITE vasos_atipicos por completo -- nao o menciona nem o confunde com 'avaliado e ausente', apenas nao o repete. Nao e uma violacao de fidelidade (nao ha misrepresentacao), mas e uma perda de informacao da etapa de raciocinio para a resposta final.",
+        "fidelity_not_evaluated_vs_absent_correct": true,
+        "fidelity_not_evaluated_vs_absent_notes": "Nenhuma frase na resposta final trata vasos_atipicos como 'avaliado e ausente' -- o criterio e simplesmente omitido, nao misrepresentado.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "So os 3 algoritmos reais, nenhuma invencao.",
+        "summarizer_added_own_observation": false,
         "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
-        "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "summarizer_own_observation_notes": "Resposta final nao adiciona achado visual proprio distinto -- so sintetiza textualmente os 3 pareceres, apesar do bloco de pensamento descrever a imagem ('lesao em pele rosada... segmentada').",
+        "faithful_but_unrecognized_by_v2": false,
+        "reviewer_notes": "ALERTA: v2 classificou esta resposta como 'negativo', mas a resposta FINAL (apos '<unused95>') NAO chega a uma conclusao binaria clara -- ela preserva o conflito ('resultados que variam de benigno a melanoma e borderline') sem resolver para um lado. O bloco de pensamento interno (bem mais longo que a resposta final) menciona 'benigno' varias vezes durante o raciocinio -- e plausivel que a heuristica de 'regiao de conclusao final' do v2 (baseada em metade do documento por paragrafo) tenha pego texto do RACIOCINIO, nao da resposta final, dado o tamanho desproporcional do bloco de pensamento. Isto NAO e um caso de 'fiel mas nao reconhecido' -- e um caso de classificacao v2 possivelmente NAO CONFIAVEL para respostas com vazamento de template '<unused94>/<unused95>' como as do medgemma1.5. Achado tecnico novo, fora do escopo desta tarefa (parser congelado) -- registrado para o planejador central decidir proximos passos (ex.: pre-processar/remover o bloco de pensamento antes de classificar, ou nao usar v2 sobre texto bruto do medgemma sem esse tratamento)."
       }
     },
     {
@@ -364,17 +364,17 @@
         "likely_misrepresented_absence_as_lesion_lacks_feature": false
       },
       "fidelity_review_template": {
-        "fidelity_authorship_preserved": null,
-        "fidelity_authorship_notes": "",
-        "fidelity_not_evaluated_vs_absent_correct": null,
-        "fidelity_not_evaluated_vs_absent_notes": "",
-        "fidelity_no_fictional_third_parecer": null,
-        "fidelity_no_fictional_third_parecer_notes": "",
-        "summarizer_added_own_observation": null,
+        "fidelity_authorship_preserved": true,
+        "fidelity_authorship_notes": "Resposta final atribui corretamente ABCD e Menzies (ambos benignos, criterios batendo), e trata SPCL explicitamente como 'nao foi fornecido para analise' / 'parecer incompleto' -- sem inventar valores.",
+        "fidelity_not_evaluated_vs_absent_correct": true,
+        "fidelity_not_evaluated_vs_absent_notes": "SPCL ausente e descrito corretamente como parecer nao fornecido/incompleto, nunca como 'a lesao nao possui as caracteristicas do SPCL'. Heuristica de triagem tambem nao encontrou frase de risco.",
+        "fidelity_no_fictional_third_parecer": true,
+        "fidelity_no_fictional_third_parecer_notes": "SPCL permanece ausente, nenhuma invencao.",
+        "summarizer_added_own_observation": false,
         "summarizer_own_observation_clearly_marked_as_summarizer_own": null,
-        "summarizer_own_observation_notes": "",
+        "summarizer_own_observation_notes": "Resposta final nao adiciona achado visual proprio distinto -- so sintetiza ABCD/Menzies. Bloco de pensamento interno descreve a imagem, mas isso nao chega na resposta final.",
         "faithful_but_unrecognized_by_v2": null,
-        "reviewer_notes": ""
+        "reviewer_notes": "v2 reconheceu corretamente (negativo), bate com categoria esperada. Mesma ressalva de vazamento de template '<unused94>/<unused95>' -- aqui a classificacao parece confiavel porque a resposta final e curta e consistente com o bloco de pensamento, ao contrario do caso 'conflitante' do mesmo modelo."
       }
     }
   ],
