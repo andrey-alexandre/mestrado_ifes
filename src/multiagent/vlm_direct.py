@@ -111,7 +111,18 @@ from src.agents.schemas import (
 from src.evaluation.case_status import _KEYWORD_TO_STATUS, classify_case_status
 from src.evaluation.case_status_v2 import PARSER_VERSION as CASE_STATUS_V2_PARSER_VERSION
 from src.evaluation.case_status_v2 import classify_case_status_v2
+from src.evaluation.explicit_decision_contract import (
+    DECISAO_INDETERMINADO,
+    DECISAO_MELANOMA,
+    DECISAO_NAO_MELANOMA,
+    DECISION_STATUS_OK as DECISION_CONTRACT_STATUS_OK,
+    extract_decisao_final,
+)
 from src.models.model import convert_to_base64
+from src.multiagent.experimental_decision_contract import (
+    EXPERIMENTAL_VLM_DIRECT_TASK_INSTRUCTION,
+    build_experimental_summary_task_instruction,
+)
 from src.multiagent.presentation import images_are_effectively_equal
 
 # Vocabulário das 3 categorias de parecer válido, reusado tal como
@@ -152,24 +163,18 @@ STATUS_NOT_EXECUTED = "nao_executado"
 
 
 # ---------------------------------------------------------------------------
-# 1. Instrução de tarefa do VLM-direto -- DECISÃO FECHADA #1
+# 1. Instrução de tarefa do VLM-direto -- DECISÃO FECHADA #1 (histórica)
 # ---------------------------------------------------------------------------
-# Aprovado pelo pesquisador: mesmas 3 categorias/mesmo significado do
-# sumarizador. Texto livre (NÃO JSON), sem pedir aplicação de
-# ABCD/Menzies/SPCL -- o VLM-direto, por definição, não passa pelos 3
-# algoritmos. O texto bruto é preservado e reclassificado post-hoc pela
-# MESMA `classify_case_status` usada para o sumarizador (reuso unmodified,
-# já era assim e continua assim).
-#
-# NOTA DE REGISTRO (não é mudança de comportamento de código -- registro
-# exigido pelo pesquisador): o status "negativo" devolvido por
-# `classify_case_status` vem literalmente da palavra-chave "lesão
-# benigna" no texto. Nesta comparação A34, "negativo" está sendo usado
-# como PROXY do `binary_target` "não_melanoma" -- convenção já existente
-# no projeto (não introduzida por esta instrução de VLM-direto). Sempre
-# que o relatório discutir cobertura binária, "negativo" deve ser lido
-# como esse proxy, não como um diagnóstico literal de benignidade.
-VLM_DIRECT_TASK_INSTRUCTION = """
+# Texto ORIGINAL (aprovado pelo pesquisador na 2ª entrega da Etapa 5):
+# mesmas 3 categorias/mesmo significado do sumarizador. Texto livre (NÃO
+# JSON), sem pedir aplicação de ABCD/Menzies/SPCL -- o VLM-direto, por
+# definição, não passa pelos 3 algoritmos. Preservado aqui, VERBATIM, só
+# para rastreabilidade -- NÃO é mais usado como instrução padrão (ver
+# `VLM_DIRECT_TASK_INSTRUCTION` abaixo, trocada em
+# docs/reconstruction/26_decision_contract_official_pilot_criterion.md,
+# decisão do pesquisador de substituir o critério de leitura do veredito
+# por `decisao_final` também para este papel).
+VLM_DIRECT_TASK_INSTRUCTION_V1_HISTORICAL = """
 <-- Identidade do Agente -->
 Você está atuando como um sistema de apoio à pesquisa em análise de imagens dermatológicas.
 
@@ -185,6 +190,16 @@ automática da sua resposta):
 Se a imagem não sustentar uma decisão binária, use a categoria
 indeterminada -- isto é uma resposta válida, não uma recusa.
 """
+
+# OFICIAL (decisão do pesquisador, ver doc 26): a instrução padrão do
+# VLM-direto no piloto local passa a ser a do contrato de decisão
+# explícito (`decisao_final: melanoma|nao_melanoma|indeterminado`),
+# MESMA instrução já usada e validada nos controles de síntese reais
+# (docs 23-25) -- reusada aqui, não duplicada. `classify_case_status`/
+# `classify_case_status_v2` continuam computados sobre o texto bruto
+# resultante (ver `run_vlm_direct_call`), só para RASTREABILIDADE --
+# nunca mais a fonte do veredito oficial para este papel.
+VLM_DIRECT_TASK_INSTRUCTION = EXPERIMENTAL_VLM_DIRECT_TASK_INSTRUCTION
 
 
 # ---------------------------------------------------------------------------
@@ -458,6 +473,18 @@ class CallRecord:
     # scripts/run_local_vlm_pilot.py) nem para substituir
     # `classified_status` em nenhum relatório histórico.
     classified_status_v2: Optional[str] = None
+    # OFICIAL (decisão do pesquisador, ver
+    # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
+    # saída de `src.evaluation.explicit_decision_contract
+    # .extract_decisao_final` sobre o mesmo texto bruto, calculada só
+    # quando `call_status == STATUS_OK` (mesmo gate de
+    # `classified_status`/`classified_status_v2`). A partir desta
+    # entrega, `decisao_final` é a fonte OFICIAL do veredito para os
+    # papéis vlm_direto/summary no piloto local -- `classified_status`
+    # (v1) e `classified_status_v2` continuam computados e reportados,
+    # mas só para RASTREABILIDADE, nunca mais como fallback/desempate.
+    decision_status: Optional[str] = None
+    decisao_final: Optional[str] = None
 
     def to_flat_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
@@ -473,6 +500,8 @@ class CallRecord:
             "failure_cause": self.failure_cause,
             "classified_status": self.classified_status,
             "classified_status_v2": self.classified_status_v2,
+            "decision_status": self.decision_status,
+            "decisao_final": self.decisao_final,
         }
         for prefix, snap in (("mem_before", self.mem_before), ("mem_after", self.mem_after)):
             if snap is None:
@@ -510,9 +539,14 @@ def run_vlm_direct_call(
 
     status, cause, raw_text = classify_call_outcome(outcome)
     classified = classify_case_status({"validation": raw_text}) if status == STATUS_OK else None
-    # Aditivo: v2 calculado em paralelo, mesmo gate (status == STATUS_OK),
-    # mesmo texto bruto -- nunca substitui `classified` (v1) acima.
+    # Rastreabilidade só (v1/v2, nunca mais o veredito oficial para este
+    # papel -- ver doc 26): mesmo gate (status == STATUS_OK), mesmo texto
+    # bruto -- nunca substitui `classified`/`classified_v2` um pelo outro.
     classified_v2 = classify_case_status_v2({"validation": raw_text}) if status == STATUS_OK else None
+    # OFICIAL: contrato de decisão explícito, mesmo gate (status ==
+    # STATUS_OK), mesmo texto bruto -- nunca um fallback de v1/v2 nem
+    # vice-versa.
+    decision_result = extract_decisao_final(raw_text) if status == STATUS_OK else None
 
     return CallRecord(
         model_name=model_name,
@@ -529,6 +563,8 @@ def run_vlm_direct_call(
         failure_cause=cause,
         classified_status=classified,
         classified_status_v2=classified_v2,
+        decision_status=(decision_result.decision_status if decision_result else None),
+        decisao_final=(decision_result.decisao_final if decision_result else None),
     )
 
 
@@ -631,6 +667,93 @@ def run_multiagent_role_call(
         classified_status=classified,
         classified_status_v2=classified_v2,
     )
+    return record, state_update
+
+
+# ---------------------------------------------------------------------------
+# 9b. Papel sumarizador, caminho OFICIAL da matriz principal (decisão do
+#     pesquisador, ver
+#     docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
+#     usa a MESMA rota e configuração já validada pelos 8 controles de
+#     síntese reais com imagem real (docs 23-25) --
+#     `build_experimental_summary_task_instruction` + chamada direta ao
+#     ChatOllama -- em vez de `agent.summarize()` (que mantém o prompt
+#     OFICIAL de `src/agents/agents.py` intocado, ainda usado por
+#     `build_graph()`/produção e pelos controles de síntese HISTÓRICOS
+#     `run_synthesis_control`/`run_synthesis_control_real_image`, que
+#     continuam chamando `run_multiagent_role_call` acima sem alteração
+#     -- esta função NOVA é paralela e independente, nunca chamada por
+#     elas, nunca as chama).
+#
+#     Usada SÓ pelo papel `summary` na matriz principal do piloto local
+#     (`scripts/run_local_vlm_pilot.py`) a partir desta entrega --
+#     `run_multiagent_role_call` continua sendo o caminho do papel
+#     `summary` para qualquer outro chamador.
+# ---------------------------------------------------------------------------
+def run_summary_role_call_official_decision_contract(
+    model_name: str,
+    state: GraphState,
+    lesion_id: str,
+    image_id: str,
+    condition: str,
+    timeout_s: float = TIMEOUT_S,
+) -> tuple[CallRecord, dict[str, Any]]:
+    """Executa o papel sumarizador sobre ``state`` (mesmo GraphState já
+    populado com `seg_image_data`/`diagnosis_abcd`/`diagnosis_menzies`/
+    `diagnosis_spcl` que `run_multiagent_role_call` recebe), mas com a
+    instrução de tarefa do contrato de decisão explícito em vez do
+    prompt oficial de `SummaryAgent.summarize`. Devolve
+    ``(CallRecord, state_update_dict)`` no MESMO formato de
+    `run_multiagent_role_call` (``state_update_dict`` só com a chave
+    ``"validation"``, texto bruto como string -- nunca um objeto
+    Pydantic, igual ao caminho Ollama já existente), para o chamador
+    atualizar seu próprio estado acumulado por caso sem precisar saber
+    qual caminho foi usado.
+
+    `classified_status`/`classified_status_v2` (v1/v2) continuam
+    computados em paralelo, só para RASTREABILIDADE -- a fonte OFICIAL
+    do veredito aqui é `decision_status`/`decisao_final`.
+    """
+    text_prompt = build_experimental_summary_task_instruction(
+        diagnosis_abcd=state.diagnosis_abcd,
+        diagnosis_menzies=state.diagnosis_menzies,
+        diagnosis_spcl=state.diagnosis_spcl,
+    )
+    message = _image_message(state.seg_image_data, text_prompt)
+    llm = ChatOllama(model=model_name)
+
+    mem_before = capture_memory_snapshot() if psutil is not None else None
+    attempt_ts = datetime.now(timezone.utc).isoformat()
+    outcome = call_with_timeout(lambda: llm.invoke([message]).content, timeout_s=timeout_s)
+    mem_after = capture_memory_snapshot() if psutil is not None else None
+
+    status, cause, raw_text = classify_call_outcome(outcome)
+    classified = classify_case_status({"validation": raw_text}) if status == STATUS_OK else None
+    classified_v2 = classify_case_status_v2({"validation": raw_text}) if status == STATUS_OK else None
+    decision_result = extract_decisao_final(raw_text) if status == STATUS_OK else None
+
+    record = CallRecord(
+        model_name=model_name,
+        role=ROLE_SUMMARY,
+        condition=condition,
+        lesion_id=lesion_id,
+        image_id=image_id,
+        attempt_timestamp_utc=attempt_ts,
+        elapsed_s=outcome.elapsed_s,
+        mem_before=mem_before,
+        mem_after=mem_after,
+        raw_response_text=raw_text,
+        call_status=status,
+        failure_cause=cause,
+        classified_status=classified,
+        classified_status_v2=classified_v2,
+        decision_status=(decision_result.decision_status if decision_result else None),
+        decisao_final=(decision_result.decisao_final if decision_result else None),
+    )
+    # Mesma convenção de `run_multiagent_role_call`: `state_update` fica
+    # vazio em falha de chamada (timeout/exceção) -- o chamador nunca
+    # grava uma chave "validation" indefinida/parcial nesse caso.
+    state_update: dict[str, Any] = {"validation": raw_text} if status == STATUS_OK else {}
     return record, state_update
 
 
@@ -1463,6 +1586,21 @@ def classify_binary_coverage(classified_status: Optional[str]) -> Optional[bool]
     if classified_status == "positivo":
         return True
     if classified_status == "negativo":
+        return False
+    return None
+
+
+def classify_binary_coverage_from_decisao_final(decisao_final: Optional[str]) -> Optional[bool]:
+    """Equivalente a `classify_binary_coverage`, mas sobre o campo
+    OFICIAL do contrato de decisão explícito (`decisao_final`), não
+    sobre `classified_status`/`classified_status_v2` -- ver doc 26.
+    ``True`` se `DECISAO_MELANOMA`, ``False`` se `DECISAO_NAO_MELANOMA`,
+    ``None`` se `DECISAO_INDETERMINADO`/ausente/formato inválido
+    (cobertura binária exclui tudo que não seja melanoma/nao_melanoma,
+    mesma convenção de `classify_binary_coverage`)."""
+    if decisao_final == DECISAO_MELANOMA:
+        return True
+    if decisao_final == DECISAO_NAO_MELANOMA:
         return False
     return None
 

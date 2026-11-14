@@ -88,6 +88,13 @@ sys.path.insert(0, str(REPO_ROOT))
 from PIL import Image  # noqa: E402
 
 from src.evaluation import case_status_v2  # noqa: E402
+from src.evaluation.explicit_decision_contract import (  # noqa: E402
+    DECISAO_INDETERMINADO,
+    DECISAO_MELANOMA,
+    DECISAO_NAO_MELANOMA,
+    DECISION_STATUS_OK as DECISION_CONTRACT_STATUS_OK,
+    PARSER_VERSION as DECISION_CONTRACT_PARSER_VERSION,
+)
 from src.multiagent import vlm_direct as vd  # noqa: E402
 
 DEFAULT_MANIFEST_PATH = str(REPO_ROOT / "experiments" / "multiagent" / "pilot12_manifest.csv")
@@ -361,6 +368,24 @@ def _run_stage2_matrix(
         if role == vd.ROLE_VLM_DIRETO:
             image = _get_image(image_id, condition)
             record = vd.run_vlm_direct_call(model_name, image, lesion_id, image_id, timeout_s=args.timeout_s)
+        elif role == vd.ROLE_SUMMARY:
+            # OFICIAL a partir desta entrega (decisão do pesquisador, ver
+            # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
+            # usa a MESMA rota/configuração do contrato de decisão já
+            # validada nos 8 controles de síntese reais (docs 23-25),
+            # não `run_multiagent_role_call` (que mantém o prompt oficial
+            # de agents.py, ainda usado pelos controles de síntese
+            # históricos e pela produção fora do piloto).
+            key = (lesion_id, condition)
+            if key not in accumulated_state:
+                image = _get_image(image_id, condition)
+                accumulated_state[key] = vd.build_graph_state(image, f"{image_id}_{condition}").model_dump()
+            state = vd.GraphState(**accumulated_state[key])
+            record, state_update = vd.run_summary_role_call_official_decision_contract(
+                model_name, state, lesion_id, image_id, condition, timeout_s=args.timeout_s
+            )
+            for k, v in state_update.items():
+                accumulated_state[key][k] = v
         else:
             key = (lesion_id, condition)
             if key not in accumulated_state:
@@ -377,8 +402,8 @@ def _run_stage2_matrix(
         matrix_records.append(record)
         print(
             f"  [{role}/{condition}] lesion={lesion_id} image={image_id} "
-            f"status={record.call_status} classificado_v1={record.classified_status} "
-            f"classificado_v2={record.classified_status_v2}"
+            f"status={record.call_status} decisao_final={record.decisao_final} "
+            f"(v1_historico={record.classified_status} v2_historico={record.classified_status_v2})"
         )
 
     _write_full_report(
@@ -494,14 +519,20 @@ def _write_full_report(
                 d["ok"] += 1
 
     # DECISÃO FECHADA #9 (extensão): "zero parecer conclusivo" só se aplica
-    # a vlm_direto/summary -- únicos papéis com campo de diagnóstico
-    # categorizável por classify_case_status[_v2].
+    # a vlm_direto/summary -- únicos papéis com um veredito final
+    # categorizável.
     #
-    # GATE/COMPUTAÇÃO OFICIAL trocado para v2 (2026-11-14, decisão verbatim
-    # do pesquisador, ver docs/reconstruction/20_local_vlm_pilot.md §9c):
-    # esta contagem agora lê `classified_status_v2`, não `classified_status`
-    # (v1) -- aplicado IDENTICAMENTE para vlm_direto e sumarizador, sem caso
-    # especial por papel, mesma forma que o restante da troca de gate.
+    # GATE/COMPUTAÇÃO OFICIAL trocado para o contrato de decisão explícito
+    # (decisão verbatim do pesquisador, 2026-11-14, ver
+    # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
+    # esta contagem agora lê `decisao_final` (campo OFICIAL, lido via
+    # `src.evaluation.explicit_decision_contract.extract_decisao_final`),
+    # não `classified_status_v2` -- aplicado IDENTICAMENTE para vlm_direto
+    # e sumarizador, sem caso especial por papel. `classified_status_v2`
+    # (gate oficial ANTERIOR, 2026-11-14 §9c do doc 20) e `classified_status`
+    # (v1) continuam computados e reportados nos registros, só para
+    # RASTREABILIDADE -- ver `binary_coverage_v1_historical_informational`/
+    # `binary_coverage_v2_historical_informational` abaixo.
     _ROLES_WITH_CLASSIFIABLE_OUTPUT = {vd.ROLE_VLM_DIRETO, vd.ROLE_SUMMARY}
     roles_with_zero_conclusive: list[str] = []
     for key, d in by_role_condition.items():
@@ -509,7 +540,7 @@ def _write_full_report(
         if role not in _ROLES_WITH_CLASSIFIABLE_OUTPUT:
             continue
         has_conclusive = any(
-            r.classified_status_v2 in ("positivo", "negativo", "indeterminado")
+            r.decisao_final in (DECISAO_MELANOMA, DECISAO_NAO_MELANOMA, DECISAO_INDETERMINADO)
             for r in matrix_records
             if f"{r.role}__{r.condition}" == key
         )
@@ -525,20 +556,42 @@ def _write_full_report(
     n_valid_first_attempt = sum(1 for r in matrix_records if r.call_status == vd.STATUS_OK)
     valid_rate = n_valid_first_attempt / n_executed if n_executed else 0.0
 
-    # OFICIAL (2026-11-14): cobertura binária reportada agora vem do v2 --
-    # mesma troca de gate, "da mesma forma" para vlm_direto e sumarizador
-    # (não há ramificação por papel em classify_binary_coverage).
-    binary_statuses_v2 = [vd.classify_binary_coverage(r.classified_status_v2) for r in matrix_records]
-    n_positivo = sum(1 for b in binary_statuses_v2 if b is True)
-    n_negativo = sum(1 for b in binary_statuses_v2 if b is False)
+    # CRITÉRIO OFICIAL de "resposta válida" (decisão do pesquisador, ver
+    # doc 26): escopo SÓ vlm_direto/summary (únicos papéis com contrato
+    # de decisão) -- `decision_status == DECISION_CONTRACT_STATUS_OK`
+    # conta como válida INCLUSIVE quando `decisao_final == "indeterminado"`
+    # (indeterminado explícito é uma decisão válida, só não conta para
+    # cobertura binária -- ver `classify_binary_coverage_from_decisao_final`
+    # abaixo). Distinto de `valid_rate` acima (que é sobre TODOS os papéis
+    # e mede só sucesso de chamada, não formato do veredito).
+    classifiable_records = [r for r in matrix_records if r.role in _ROLES_WITH_CLASSIFIABLE_OUTPUT and r.call_status != vd.STATUS_NOT_EXECUTED]
+    n_decision_contract_valid = sum(1 for r in classifiable_records if r.decision_status == DECISION_CONTRACT_STATUS_OK)
+    decision_contract_valid_rate = (
+        n_decision_contract_valid / len(classifiable_records) if classifiable_records else 0.0
+    )
+
+    # OFICIAL (2026-11-14, doc 26): cobertura binária reportada agora vem
+    # do contrato de decisão explícito -- mesma forma para vlm_direto e
+    # sumarizador (não há ramificação por papel em
+    # `classify_binary_coverage_from_decisao_final`).
+    binary_statuses_decision_contract = [
+        vd.classify_binary_coverage_from_decisao_final(r.decisao_final) for r in matrix_records
+    ]
+    n_positivo = sum(1 for b in binary_statuses_decision_contract if b is True)
+    n_negativo = sum(1 for b in binary_statuses_decision_contract if b is False)
 
     # Rastreabilidade SÓ (nunca mais a fonte oficial dos números do
     # relatório): mesma contagem a partir de `classified_status` (v1,
-    # intocado) -- mantido para comparação histórica, nunca lido por
-    # nenhum gate/critério de aprovação.
+    # intocado) e `classified_status_v2` (v2, gate oficial ANTERIOR) --
+    # mantidos para comparação histórica, nunca lidos por nenhum
+    # gate/critério de aprovação a partir desta entrega.
     binary_statuses_v1_historical = [vd.classify_binary_coverage(r.classified_status) for r in matrix_records]
     n_positivo_v1_historical = sum(1 for b in binary_statuses_v1_historical if b is True)
     n_negativo_v1_historical = sum(1 for b in binary_statuses_v1_historical if b is False)
+
+    binary_statuses_v2_historical = [vd.classify_binary_coverage(r.classified_status_v2) for r in matrix_records]
+    n_positivo_v2_historical = sum(1 for b in binary_statuses_v2_historical if b is True)
+    n_negativo_v2_historical = sum(1 for b in binary_statuses_v2_historical if b is False)
 
     # Candidatos a recusa -- surfaced SEMPRE que houver qualquer
     # STATUS_REFUSAL na matriz, não só na 3ª consecutiva que dispara pausa
@@ -583,45 +636,85 @@ def _write_full_report(
         "n_calls_not_executed_due_to_pause": n_not_executed,
         "n_total_planned_calls_per_model": vd.N_TOTAL_PLANNED_CALLS_PER_MODEL,
         "valid_on_first_attempt_rate": valid_rate,
+        # CRITÉRIO OFICIAL de "≥95% de respostas válidas" do piloto
+        # (decisão do pesquisador, ver
+        # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
+        # taxa de leitura válida do contrato de decisão explícito, só
+        # vlm_direto/summary -- `indeterminado` explícito CONTA como
+        # resposta válida aqui (não é decisão binária, mas é uma leitura
+        # de formato bem-sucedida do campo `decisao_final`).
+        "decision_contract_valid_rate_official": decision_contract_valid_rate,
+        "decision_contract_valid_rate_note": (
+            "Fração de chamadas executadas de vlm_direto/summary com "
+            "decision_status == 'ok' (campo decisao_final lido com "
+            "sucesso -- melanoma/nao_melanoma/indeterminado contam todos "
+            "como válidos). Distinta de valid_on_first_attempt_rate "
+            "acima, que é sobre TODOS os papéis e mede só sucesso de "
+            "chamada (sem falha técnica/recusa/sem-resposta), não o "
+            "formato do veredito."
+        ),
         # GATE OFICIAL registrado explicitamente (decisão do pesquisador,
-        # 2026-11-14, ver docs/reconstruction/20_local_vlm_pilot.md §9c):
-        # a versão EXATA do parser de classificação usado para o
-        # gate/classificação oficial deste relatório -- nunca mantida
-        # silenciosamente quando o parser mudar (PARSER_VERSION é trocado
-        # junto, ver case_status_v2.py).
-        "official_classification_parser_version": case_status_v2.PARSER_VERSION,
+        # 2026-11-14, ver
+        # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
+        # o contrato de decisão explícito (`decisao_final`, lido via
+        # `src.evaluation.explicit_decision_contract.extract_decisao_final`)
+        # é agora a fonte OFICIAL de todo gate/classificação do veredito
+        # final reportado aqui -- binary_coverage,
+        # roles_with_zero_conclusive_opinion. `classified_status_v2`
+        # (v2, gate oficial ANTERIOR a esta entrega, ver
+        # docs/reconstruction/20_local_vlm_pilot.md §9c) e
+        # `classified_status` (v1) são mantidos só para RASTREABILIDADE
+        # (ver *_historical_informational abaixo e os dois campos em
+        # call_log_matriz_principal.jsonl) -- nunca usados como
+        # fallback/desempate.
+        "official_classification_parser_version": DECISION_CONTRACT_PARSER_VERSION,
         "official_classification_parser_note": (
-            "classify_case_status_v2 (v2, 'conclusão final') é o parser "
-            "OFICIAL de todo gate/classificação reportada aqui -- "
-            "binary_coverage, roles_with_zero_conclusive_opinion, e o gate "
-            "de parseabilidade dos controles de síntese do Estágio 1. v1 "
-            "(classify_case_status) é mantido só para RASTREABILIDADE (ver "
-            "binary_coverage_v1_historical_informational abaixo e "
-            "classified_status em call_log_matriz_principal.jsonl) -- "
-            "nunca usado como fallback/desempate."
+            "src.evaluation.explicit_decision_contract.extract_decisao_final "
+            "é o parser OFICIAL de todo gate/classificação reportada aqui -- "
+            "binary_coverage, roles_with_zero_conclusive_opinion e "
+            "decision_contract_valid_rate_official. v2 "
+            "(classify_case_status_v2) e v1 (classify_case_status) são "
+            "mantidos só para RASTREABILIDADE (ver "
+            "binary_coverage_v1_historical_informational/"
+            "binary_coverage_v2_historical_informational abaixo e "
+            "classified_status/classified_status_v2 em "
+            "call_log_matriz_principal.jsonl) -- nunca usados como "
+            "fallback/desempate. O gate de parseabilidade dos controles "
+            "de síntese do Estágio 1 (run_synthesis_control, imagem "
+            "placeholder) NÃO foi alterado por esta entrega -- continua "
+            "lendo classify_case_status_v2, por ser um gate de "
+            "parseabilidade pré-matriz estruturalmente anterior e "
+            "separado deste critério."
         ),
         "binary_coverage": {
             "positivo": n_positivo,
             "negativo": n_negativo,
-            "parser_version": case_status_v2.PARSER_VERSION,
+            "parser_version": DECISION_CONTRACT_PARSER_VERSION,
             "nota_proxy": (
-                "'negativo' aqui é o status 'negativo' de "
-                "classify_case_status_v2 (variantes de 'lesão benigna' na "
-                "região de conclusão final -- ver case_status_v2.py), usado "
-                "como PROXY de binary_target='não_melanoma' -- convenção "
-                "existente do projeto, não um diagnóstico literal de "
-                "benignidade."
+                "'positivo'/'negativo' aqui vêm de "
+                "classify_binary_coverage_from_decisao_final sobre o campo "
+                "OFICIAL decisao_final ('melanoma'/'nao_melanoma') -- "
+                "'indeterminado' explícito não conta para nenhum dos dois "
+                "lados (ver decision_contract_valid_rate_official para a "
+                "taxa de validade que O INCLUI)."
             ),
         },
         # RASTREABILIDADE SÓ (2026-11-14): mesma cobertura binária, mas a
         # partir do classificador v1 histórico (classify_case_status) --
-        # nunca mais a fonte oficial deste relatório (trocado para v2, ver
-        # "official_classification_parser_version" acima e
-        # docs/reconstruction/20_local_vlm_pilot.md §9c). Mantido só para
-        # comparação/auditoria entre versões do parser.
+        # nunca mais a fonte oficial deste relatório (trocado para o
+        # contrato de decisão explícito, ver
+        # "official_classification_parser_version" acima e doc 26).
+        # Mantido só para comparação/auditoria entre versões do parser.
         "binary_coverage_v1_historical_informational": {
             "positivo": n_positivo_v1_historical,
             "negativo": n_negativo_v1_historical,
+        },
+        # RASTREABILIDADE SÓ (ver nota acima) -- v2 foi o gate oficial
+        # ANTERIOR (2026-11-14 §9c do doc 20), agora também histórico.
+        "binary_coverage_v2_historical_informational": {
+            "positivo": n_positivo_v2_historical,
+            "negativo": n_negativo_v2_historical,
+            "parser_version": case_status_v2.PARSER_VERSION,
         },
         "by_role_condition": by_role_condition,
         "roles_with_zero_conclusive_opinion": roles_with_zero_conclusive,
@@ -654,14 +747,17 @@ def _write_full_report(
         f"- Total de chamadas planejadas por modelo (controles + matriz): {vd.N_TOTAL_PLANNED_CALLS_PER_MODEL}",
         f"- Chamadas efetivamente realizadas na matriz: {n_executed}",
         f"- Chamadas NÃO executadas (pausa por abstenção): {n_not_executed}",
-        f"- Taxa de validade na primeira tentativa: {valid_rate:.2%}",
-        f"- Parser OFICIAL de classificação/gate (decisão 2026-11-14): `{case_status_v2.PARSER_VERSION}` "
-        "(v1/`classify_case_status` mantido só para rastreabilidade -- nunca fallback/desempate)",
-        f"- Cobertura binária (OFICIAL, via classificador v2): positivo={n_positivo}, negativo={n_negativo} "
-        "('negativo' é proxy de não_melanoma via classify_case_status_v2, não diagnóstico literal de benignidade)",
+        f"- Taxa de validade na primeira tentativa (todos os papéis, sucesso de chamada): {valid_rate:.2%}",
+        f"- Taxa de validade do contrato de decisão (OFICIAL, só vlm_direto/summary, indeterminado conta como válido): {decision_contract_valid_rate:.2%}",
+        "- Parser OFICIAL de classificação/gate (decisão 2026-11-14, doc 26): "
+        "`src.evaluation.explicit_decision_contract.extract_decisao_final` "
+        "(v1/`classify_case_status` e v2/`classify_case_status_v2` mantidos só para rastreabilidade -- nunca fallback/desempate)",
+        f"- Cobertura binária (OFICIAL, via contrato de decisão): positivo={n_positivo}, negativo={n_negativo} "
+        "('negativo' é decisao_final=='nao_melanoma', não diagnóstico literal de benignidade)",
         f"- Cobertura binária (v1 histórico, só rastreabilidade): positivo={n_positivo_v1_historical}, negativo={n_negativo_v1_historical}",
+        f"- Cobertura binária (v2 histórico, gate oficial ANTERIOR, só rastreabilidade): positivo={n_positivo_v2_historical}, negativo={n_negativo_v2_historical}",
         "",
-        "## Papéis x condições sem nenhum parecer conclusivo (positivo/negativo/indeterminado via classified_status_v2 oficial) -- só vlm_direto/summary",
+        "## Papéis x condições sem nenhum parecer conclusivo (melanoma/nao_melanoma/indeterminado via decisao_final oficial) -- só vlm_direto/summary",
         "",
         f"{roles_with_zero_conclusive if roles_with_zero_conclusive else 'nenhum'}",
         "",

@@ -90,6 +90,13 @@ from src.evaluation.response_template_extraction import (
     extract_final_answer,
 )
 
+# Versão do parser -- trocada (nunca mantida silenciosamente) sempre que
+# o vocabulário fechado/a sintaxe/as variantes aceitas mudarem (mesma
+# convenção de `case_status_v2.PARSER_VERSION`). Usada por
+# `scripts/run_local_vlm_pilot.py` como `official_classification_parser_version`
+# a partir da troca de gate do doc 26.
+PARSER_VERSION = "explicit_decision_contract_v1_accented_nao_melanoma_variant_2026_11_14"
+
 # ---------------------------------------------------------------------------
 # Vocabulário fechado de decisão -- os 3 valores CANÔNICOS devolvidos em
 # `decisao_final` quando `decision_status == DECISION_STATUS_OK` (nunca a
