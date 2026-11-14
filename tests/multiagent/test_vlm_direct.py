@@ -499,6 +499,61 @@ def test_run_synthesis_control_unparseable_output_fails():
     assert result["passed"] is False
 
 
+# ---------------------------------------------------------------------------
+# GATE OFICIAL trocado para v2 (decisão do pesquisador, 2026-11-14 -- ver
+# docs/reconstruction/20_local_vlm_pilot.md §9c): "parseable"/"passed" de
+# `run_synthesis_control` devem refletir `classify_case_status_v2`, NUNCA
+# `classify_case_status` (v1) -- v1 continua computado e reportado, só
+# para rastreabilidade (`classified_status_v1_historical`), nunca como
+# fallback/desempate.
+# ---------------------------------------------------------------------------
+def test_run_synthesis_control_gate_uses_v2_real_regression_shape_um_parecer_ausente():
+    # Forma REAL do texto bruto do piloto qwen3-vl:8b-instruct-q4_K_M
+    # (Estágio 1, cenário um_parecer_ausente): o corpo menciona "Lesão
+    # Cutânea Benigna" (a palavra "Cutânea" quebra o substring "lesão
+    # benigna" exigido pelo v1) e o veredito final (depois de "---",
+    # metade final do documento) usa "BENIGNO" isolado, sem a palavra
+    # "lesão" -- v1 nunca reconhece nenhuma das duas formas
+    # (nao_reconhecido, não parseável); v2 extrai a região de conclusão
+    # final (o parágrafo com "✅") e casa a variante de palavra isolada
+    # "benigno" (negativo, parseável). Se o gate ainda fosse v1-driven,
+    # "passed" seria False aqui.
+    _FakeLLMForAgents.next_content = (
+        "Diagnóstico Consolidado: Lesão Cutânea Benigna — pode ser caracterizada "
+        "como um nevo melanocítico comum, de baixo risco.\n\n"
+        "Critérios analisados: assimetria leve, bordas regulares, cor única.\n\n"
+        "---\n\n"
+        "✅ Diagnóstico Consolidado: BENIGNO (Nevus com características típicas)"
+    )
+    result = vd.run_synthesis_control(MODEL_TAG, "um_parecer_ausente")
+    assert result["classified_status_v1_historical"] == "nao_reconhecido"
+    assert result["classified_status_v2"] == "negativo"
+    # GATE OFICIAL = v2: confirma que a troca realmente aconteceu (sob o
+    # gate antigo v1-driven, "passed" teria sido False).
+    assert result["parseable"] is True
+    assert result["passed"] is True
+    assert "official_classification_parser_version" in result
+    assert result["official_classification_parser_version"] == vd.CASE_STATUS_V2_PARSER_VERSION
+
+
+def test_run_synthesis_control_v2_failure_not_rescued_by_v1_fallback():
+    # Inverso do teste acima: v1 (varredura do corpo inteiro) ACHARIA
+    # "lesão benigna" e classificaria com sucesso, mas a região de
+    # conclusão final extraída pelo v2 não tem nenhum veredito
+    # reconhecível -- prova que NÃO existe fallback "v2_result or
+    # v1_result" em run_synthesis_control: a falha do v2 é definitiva
+    # mesmo quando v1 teria tido sucesso.
+    _FakeLLMForAgents.next_content = (
+        "Diagnóstico Consolidado: Lesão Benigna, segura.\n\n"
+        "Observação adicional sem conclusão categórica aqui."
+    )
+    result = vd.run_synthesis_control(MODEL_TAG, "unanime_negativo")
+    assert result["classified_status_v1_historical"] == "negativo"
+    assert result["classified_status_v2"] == "nao_reconhecido"
+    assert result["parseable"] is False
+    assert result["passed"] is False
+
+
 def test_run_synthesis_control_conflitante_includes_not_evaluated_check():
     _FakeLLMForAgents.next_content = "Lesão Indeterminada. Vasos atípicos não avaliados nesta análise."
     result = vd.run_synthesis_control(MODEL_TAG, "conflitante")

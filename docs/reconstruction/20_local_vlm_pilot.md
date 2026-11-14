@@ -556,3 +556,212 @@ python -m pytest tests/evaluation/test_case_status_v2.py -v
     9b.5) é documentado como conhecido e NÃO corrigido nesta entrega —
     decisão explícita de não generalizar sem mais dados reais, não um
     descuido.
+
+## 9c. Troca do gate oficial do Estágio 1 para o parser v2 (2026-11-14)
+
+STATUS: implementado, aguardando execução do pesquisador. Nada deste
+pacote foi executado pelo assistente que o escreveu
+(`feedback_no_autonomous_execution`) — nenhum `python`/`pytest`/`git`
+foi chamado.
+
+### 9c.1 Contexto real confirmado
+
+O pesquisador rodou `scripts/run_reclassify_pilot_with_v2_parser.py`
+(offline, sem repetir chamadas ao modelo) contra os dados reais já
+salvos de `qwen3-vl:8b-instruct-q4_K_M`. Resultado confirmado: o parser
+v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`) acerta
+4/4 dos cenários fixos de controle de síntese — `um_parecer_ausente`
+agora classifica `negativo` (era `nao_reconhecido` sob v1 — a correção
+esperada), `unanime_positivo` classifica `positivo` (igual a v1), e os
+outros 2 cenários (`unanime_negativo`, `conflitante`) permanecem
+inalterados e já concordavam com v1.
+
+### 9c.2 Decisão do pesquisador (verbatim)
+
+"Troque o gate oficial do Estágio 1 para o parser v2. Mantenha o v1
+apenas para rastreabilidade, sem usá-lo como fallback ou desempate. O
+v2 passou nos 4/4 controles de síntese da execução relatada, incluindo
+a conclusão afirmativa de suspeita de melanoma que ele perdia antes. A
+divergência em um_parecer_ausente é a correção esperada. No
+run_local_vlm_pilot.py, registre explicitamente a versão do parser
+usada no gate e aplique o v2 da mesma forma a todos os candidatos, tanto
+no VLM direto quanto no sumarizador. Se houver respostas brutas já
+salvas, reavalie-as sem repetir inferências e preserve o relatório
+original. Os 12 controles de imagem ficam fora da classificação
+diagnóstica, mas continuam obrigatórios na verificação visual. A troca
+do parser também não substitui a checagem de fidelidade da síntese nem
+os demais critérios de aprovação. Após o ajuste, rode a verificação do
+gate e congele o v2 antes do lote definitivo."
+
+### 9c.3 O que mudou (gate/computação oficial agora lê v2)
+
+- **`src/multiagent/vlm_direct.py::run_synthesis_control`** — `parseable`/
+  `passed` (o campo que o driver lê para `synthesis_overall_pass =
+  all(r["passed"] for r in synthesis_results)`) agora é calculado a
+  partir de `classify_case_status_v2`, não mais de `classify_case_status`
+  (v1). v1 continua computado, mas o campo do resultado foi renomeado
+  para `classified_status_v1_historical` (antes `classified_status`) —
+  nome deliberadamente distinto do campo oficial (`classified_status_v2`)
+  para deixar explícito que não é mais lido por nenhum gate. Novo campo
+  `official_classification_parser_version` no resultado (valor de
+  `case_status_v2.PARSER_VERSION`). **Confirmado por leitura de código**:
+  não existe, em lugar nenhum desta função, um padrão `v2_result or
+  v1_result` — se v2 disser `"nao_reconhecido"`, isso é final mesmo que
+  v1 teria tido sucesso (ver teste de regressão inverso na seção 9c.6).
+- **`scripts/run_local_vlm_pilot.py::_write_full_report`** —
+  `roles_with_zero_conclusive_opinion` agora lê `r.classified_status_v2`
+  (antes `r.classified_status`). `binary_coverage` (o bloco "oficial" do
+  relatório, usado nas contagens de cobertura binária de
+  positivo/negativo) agora é calculado a partir de
+  `r.classified_status_v2` (antes `r.classified_status`); o bloco
+  `binary_coverage_v2_informational` foi removido (v2 passou a ser o
+  próprio `binary_coverage` oficial) e substituído por um novo bloco
+  **inverso**, `binary_coverage_v1_historical_informational` — mesma
+  contagem, mas a partir de `classified_status` (v1), reportado só para
+  comparação/rastreabilidade, nunca lido por nenhum critério de
+  aprovação. Aplicado identicamente para `vlm_direto` e `summary`
+  (`classify_binary_coverage` não ramifica por papel).
+- **`_write_stop_report`** (Estágio 1, quando para nos controles de
+  imagem ou de síntese) e **`_write_full_report`** (Estágio 2) —
+  `summary.json` ganhou o campo
+  `"official_classification_parser_version"` (valor de
+  `case_status_v2.PARSER_VERSION`, ex.
+  `"v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14"`) e, no
+  caso de `_write_full_report`, também
+  `"official_classification_parser_note"` explicando por extenso o que é
+  oficial (v2) vs. só rastreabilidade (v1). Surfaced também em
+  `report.md` (linha "Parser OFICIAL de classificação/gate").
+- **Logs de console** (`_run_stage1_controls`, `_run_stage2_matrix`) —
+  as mensagens de print agora rotulam explicitamente
+  `classificado_v2_oficial=`/`classificado_v1_historico=` (controles de
+  síntese) e `classificado_v1=`/`classificado_v2=` (matriz principal, já
+  existia desde a entrega anterior) em vez de um `classificado=`
+  ambíguo.
+
+### 9c.4 O que permanece v1-SÓ (rastreabilidade, nunca fallback/desempate)
+
+- `CallRecord.classified_status` (v1) continua presente, calculado e
+  gravado em `call_log.jsonl`/`call_log_matriz_principal.jsonl` via
+  `CallRecord.to_flat_dict()` — nunca removido, só parou de DIRECIONAR os
+  números oficiais do relatório.
+- `binary_coverage_v1_historical_informational` em `summary.json` (ver
+  9c.3).
+- `classified_status_v1_historical` no resultado de `run_synthesis_control`.
+- Nenhum destes é lido por `AbstentionTracker`/pausa por abstenção (que
+  já só lia `call_status`, eixo tecnicamente distinto — recusa/falha
+  técnica/sem-resposta — nunca classificação de conteúdo; confirmado
+  inalterado, ver 9c.5).
+
+### 9c.5 Confirmações explícitas (não assumidas) — demais gates intocados
+
+- **Controles de envio de imagem** (`evaluate_image_sending_controls`/
+  `evaluate_image_sending_controls_for_role`) e o requisito do Estágio 1
+  de `image_controls_eval["overall_pass"] is True` antes de sequer tentar
+  os controles de síntese — confirmado por leitura de código: nenhuma das
+  duas funções referencia `classify_case_status`/`classify_case_status_v2`
+  em lugar nenhum (são controles de quadrante/cor do caminho multimodal,
+  eixo ortogonal à classificação diagnóstica — exatamente como o
+  pesquisador descreveu: "Os 12 controles de imagem ficam fora da
+  classificação diagnóstica, mas continuam obrigatórios na verificação
+  visual"). Intocados por esta entrega.
+- **Checagem de fidelidade da síntese** —
+  `_check_not_evaluated_not_misrepresented_as_absent` e
+  `_check_absence_not_misrepresented_as_lesion_lacks_feature` continuam
+  chamadas exatamente como antes dentro de `run_synthesis_control`
+  (para os cenários `conflitante`/`um_parecer_ausente` respectivamente),
+  operando sobre a mesma `justificativa` extraída de `validation` — a
+  troca do critério de parseabilidade (v1→v2) não as toca; permanecem
+  heurísticas de triagem reportadas sempre, nunca gate automático,
+  exatamente como a decisão fechada #4 já estabelecia.
+- **Gate de revisão manual de achado novo** (dois estágios:
+  `build_synthesis_manual_review_template`/`evaluate_manual_review_file`/
+  a exigência de `--synthesis-manual-review-file` no Estágio 2) —
+  inalterado: o Estágio 1 ainda escreve o template e PARA sempre após os
+  4 controles de síntese parseáveis (agora via v2); o Estágio 2 ainda
+  exige que TODOS os 4 cenários tenham
+  `manual_review_verdict == "sem_achado_novo"` antes de prosseguir à
+  matriz principal. A troca de parser não remove nem afrouxa este gate —
+  só muda QUAL classificador decide "parseável" como pré-requisito para
+  chegar a ele.
+- **Abstenção/pausa sistemática** (`AbstentionTracker.register`, 3
+  contadores por papel) — confirmado por leitura de código: lê só
+  `record.call_status` (saída de `classify_call_outcome` — recusa/falha
+  técnica/sem-resposta), nunca `classified_status`/`classified_status_v2`.
+  Eixo ortogonal, intocado.
+
+### 9c.6 Testes (`tests/multiagent/test_vlm_direct.py`)
+
+Dois testes novos, ambos usando o formato REAL do texto bruto do piloto
+(não hipotético):
+
+- `test_run_synthesis_control_gate_uses_v2_real_regression_shape_um_parecer_ausente`
+  — texto no formato real de `um_parecer_ausente` ("Lesão Cutânea
+  Benigna" no corpo + "BENIGNO" isolado no veredito final, depois de
+  "---"): v1 recomputado = `nao_reconhecido` (não parseável), v2 =
+  `negativo` (parseável) — confirma `passed is True`, provando que o
+  gate realmente passou a ler v2 (sob o gate antigo v1-driven, `passed`
+  teria sido `False` para este mesmo texto).
+- `test_run_synthesis_control_v2_failure_not_rescued_by_v1_fallback` —
+  inverso: texto onde v1 (varredura do corpo inteiro) classificaria com
+  sucesso (`negativo`, via "lesão benigna" no corpo), mas a região de
+  conclusão final extraída pelo v2 não tem veredito reconhecível
+  (`nao_reconhecido`) — confirma `passed is False`, provando que NÃO há
+  fallback `v2_result or v1_result` em `run_synthesis_control`: a falha
+  do v2 é definitiva mesmo quando v1 teria tido sucesso.
+
+Testes já existentes (`test_run_synthesis_control_passed_reflects_only_parseability_not_novel_terms`,
+`test_run_synthesis_control_unparseable_output_fails`) foram revisados
+por leitura/raciocínio e permanecem válidos sem modificação — nos dois
+casos, o texto de teste produz o MESMO resultado de parseabilidade sob
+v1 e v2 (indeterminado-parseável e nao_reconhecido-não-parseável,
+respectivamente), então a troca de gate não altera seu comportamento
+esperado.
+
+**Lacuna pré-existente confirmada (não construída nesta entrega)**: não
+existe nenhum arquivo de teste cobrindo
+`scripts/run_local_vlm_pilot.py` diretamente (nem antes desta entrega,
+nem depois) — a convenção do projeto até agora testou só
+`src/multiagent/vlm_direct.py` e `src/evaluation/case_status_v2.py`. A
+troca de `roles_with_zero_conclusive_opinion`/`binary_coverage` para
+`classified_status_v2` dentro de `_write_full_report` foi verificada por
+leitura de código (ver 9c.3), não por um teste automatizado novo —
+registrado aqui como lacuna, não como item resolvido.
+
+Comando:
+
+```
+python -m pytest tests/multiagent/test_vlm_direct.py -v
+```
+
+### 9c.7 Comando para confirmar o gate na prática (Estágio 1 real)
+
+O pesquisador já confirmou offline (reclassificação, 9c.1) que o gate v2
+teria passado para a execução real já coletada. Para confirmar isto
+"de verdade" (reexecutando o Estágio 1 completo — 12 controles de
+imagem + 4 controles de síntese reais, não uma reclassificação offline)
+com o gate agora trocado:
+
+```
+python scripts/run_local_vlm_pilot.py --model-tag qwen3-vl:8b-instruct-q4_K_M
+```
+
+Nada muda em COMO rodar isto (mesmo comando de sempre, Estágio 1, sem
+`--synthesis-manual-review-file`) — só a lógica interna do gate mudou.
+Resultado esperado: `synthesis_overall_pass=True` (antes `False`, por
+causa só de `um_parecer_ausente`) e um novo
+`synthesis_manual_review_template.json` é escrito para o pesquisador
+revisar manualmente os 4 cenários antes do Estágio 2 (matriz principal
+de 92 chamadas), exatamente como o fluxo de 2 estágios já previa — essa
+exigência de revisão manual não é removida pela troca de parser (ver
+9c.5).
+
+### 9c.8 Interpretações de design novas introduzidas nesta entrega (sem confirmação explícita)
+
+20. O nome exato dos campos novos/renomeados
+    (`classified_status_v1_historical`, `official_classification_parser_version`,
+    `official_classification_parser_note`,
+    `binary_coverage_v1_historical_informational`) — escolha de
+    convenção de nomenclatura deste assistente para deixar o
+    oficial/rastreabilidade inequívoco; não foi ditado literalmente pelo
+    pesquisador (que só pediu "um campo claramente nomeado" e "registre
+    explicitamente a versão do parser").

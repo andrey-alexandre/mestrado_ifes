@@ -226,10 +226,18 @@ def _run_stage1_controls(args: argparse.Namespace, output_dir: Path, model_name:
         result = vd.run_synthesis_control(model_name, scenario_name, timeout_s=args.timeout_s)
         all_records.append(result["call_record"])
         synthesis_results.append({k: v for k, v in result.items() if k != "call_record"})
-        print(f"  cenário={scenario_name} parseavel(passed)={result['passed']} classificado={result['classified_status']} achado_novo_candidatos={result['novel_clinical_terms_candidates']}")
+        print(
+            f"  cenário={scenario_name} parseavel(passed)={result['passed']} "
+            f"classificado_v2_oficial={result['classified_status_v2']} "
+            f"classificado_v1_historico={result['classified_status_v1_historical']} "
+            f"achado_novo_candidatos={result['novel_clinical_terms_candidates']}"
+        )
 
     synthesis_overall_pass = all(r["passed"] for r in synthesis_results)
-    print(f"controles de síntese (critério automatizável -- parseável pela A34): overall_pass={synthesis_overall_pass}")
+    print(
+        f"controles de síntese (gate oficial 2026-11-14 -- parseável pela A34 via parser "
+        f"v2 '{case_status_v2.PARSER_VERSION}', v1 só rastreabilidade): overall_pass={synthesis_overall_pass}"
+    )
 
     if not synthesis_overall_pass:
         _write_stop_report(
@@ -408,6 +416,13 @@ def _write_stop_report(
         "model_info": model_info,
         "stopped_before_main_matrix": True,
         "stopped_at_stage": stage,
+        # GATE OFICIAL registrado explicitamente (decisão do pesquisador,
+        # 2026-11-14, ver docs/reconstruction/20_local_vlm_pilot.md §9c):
+        # versão EXATA do parser de classificação que decidiu "parseable"/
+        # "passed" dos controles de síntese (quando esta etapa os
+        # alcançou) -- v1 (classify_case_status) é mantido só para
+        # rastreabilidade, nunca como fallback/desempate.
+        "official_classification_parser_version": case_status_v2.PARSER_VERSION,
         "controls": _serialize_controls(controls),
         "n_calls_executed_total": len(records),
         "n_total_planned_calls_per_model": vd.N_TOTAL_PLANNED_CALLS_PER_MODEL,
@@ -423,6 +438,8 @@ def _write_stop_report(
         "- Matriz principal de 92 chamadas: NÃO tentada.",
         f"- Log de chamadas (controles): `{log_path}`",
         f"- Total de chamadas planejadas por modelo (controles + matriz, teto operacional de 4h): {vd.N_TOTAL_PLANNED_CALLS_PER_MODEL}",
+        f"- Parser OFICIAL de classificação/gate (decisão 2026-11-14): `{case_status_v2.PARSER_VERSION}` "
+        "(v1/`classify_case_status` mantido só para rastreabilidade -- nunca fallback/desempate)",
         "",
     ]
     if extra_summary_fields and "synthesis_manual_review_template_path" in extra_summary_fields:
@@ -478,7 +495,13 @@ def _write_full_report(
 
     # DECISÃO FECHADA #9 (extensão): "zero parecer conclusivo" só se aplica
     # a vlm_direto/summary -- únicos papéis com campo de diagnóstico
-    # categorizável por classify_case_status.
+    # categorizável por classify_case_status[_v2].
+    #
+    # GATE/COMPUTAÇÃO OFICIAL trocado para v2 (2026-11-14, decisão verbatim
+    # do pesquisador, ver docs/reconstruction/20_local_vlm_pilot.md §9c):
+    # esta contagem agora lê `classified_status_v2`, não `classified_status`
+    # (v1) -- aplicado IDENTICAMENTE para vlm_direto e sumarizador, sem caso
+    # especial por papel, mesma forma que o restante da troca de gate.
     _ROLES_WITH_CLASSIFIABLE_OUTPUT = {vd.ROLE_VLM_DIRETO, vd.ROLE_SUMMARY}
     roles_with_zero_conclusive: list[str] = []
     for key, d in by_role_condition.items():
@@ -486,7 +509,7 @@ def _write_full_report(
         if role not in _ROLES_WITH_CLASSIFIABLE_OUTPUT:
             continue
         has_conclusive = any(
-            r.classified_status in ("positivo", "negativo", "indeterminado")
+            r.classified_status_v2 in ("positivo", "negativo", "indeterminado")
             for r in matrix_records
             if f"{r.role}__{r.condition}" == key
         )
@@ -502,16 +525,20 @@ def _write_full_report(
     n_valid_first_attempt = sum(1 for r in matrix_records if r.call_status == vd.STATUS_OK)
     valid_rate = n_valid_first_attempt / n_executed if n_executed else 0.0
 
-    binary_statuses = [vd.classify_binary_coverage(r.classified_status) for r in matrix_records]
-    n_positivo = sum(1 for b in binary_statuses if b is True)
-    n_negativo = sum(1 for b in binary_statuses if b is False)
-
-    # Aditivo/INFORMATIVO: mesma contagem, mas usando classified_status_v2
-    # (src.evaluation.case_status_v2) -- nunca substitui binary_coverage
-    # (v1) acima, que continua sendo o campo histórico/real do relatório.
+    # OFICIAL (2026-11-14): cobertura binária reportada agora vem do v2 --
+    # mesma troca de gate, "da mesma forma" para vlm_direto e sumarizador
+    # (não há ramificação por papel em classify_binary_coverage).
     binary_statuses_v2 = [vd.classify_binary_coverage(r.classified_status_v2) for r in matrix_records]
-    n_positivo_v2 = sum(1 for b in binary_statuses_v2 if b is True)
-    n_negativo_v2 = sum(1 for b in binary_statuses_v2 if b is False)
+    n_positivo = sum(1 for b in binary_statuses_v2 if b is True)
+    n_negativo = sum(1 for b in binary_statuses_v2 if b is False)
+
+    # Rastreabilidade SÓ (nunca mais a fonte oficial dos números do
+    # relatório): mesma contagem a partir de `classified_status` (v1,
+    # intocado) -- mantido para comparação histórica, nunca lido por
+    # nenhum gate/critério de aprovação.
+    binary_statuses_v1_historical = [vd.classify_binary_coverage(r.classified_status) for r in matrix_records]
+    n_positivo_v1_historical = sum(1 for b in binary_statuses_v1_historical if b is True)
+    n_negativo_v1_historical = sum(1 for b in binary_statuses_v1_historical if b is False)
 
     # Candidatos a recusa -- surfaced SEMPRE que houver qualquer
     # STATUS_REFUSAL na matriz, não só na 3ª consecutiva que dispara pausa
@@ -556,26 +583,45 @@ def _write_full_report(
         "n_calls_not_executed_due_to_pause": n_not_executed,
         "n_total_planned_calls_per_model": vd.N_TOTAL_PLANNED_CALLS_PER_MODEL,
         "valid_on_first_attempt_rate": valid_rate,
+        # GATE OFICIAL registrado explicitamente (decisão do pesquisador,
+        # 2026-11-14, ver docs/reconstruction/20_local_vlm_pilot.md §9c):
+        # a versão EXATA do parser de classificação usado para o
+        # gate/classificação oficial deste relatório -- nunca mantida
+        # silenciosamente quando o parser mudar (PARSER_VERSION é trocado
+        # junto, ver case_status_v2.py).
+        "official_classification_parser_version": case_status_v2.PARSER_VERSION,
+        "official_classification_parser_note": (
+            "classify_case_status_v2 (v2, 'conclusão final') é o parser "
+            "OFICIAL de todo gate/classificação reportada aqui -- "
+            "binary_coverage, roles_with_zero_conclusive_opinion, e o gate "
+            "de parseabilidade dos controles de síntese do Estágio 1. v1 "
+            "(classify_case_status) é mantido só para RASTREABILIDADE (ver "
+            "binary_coverage_v1_historical_informational abaixo e "
+            "classified_status em call_log_matriz_principal.jsonl) -- "
+            "nunca usado como fallback/desempate."
+        ),
         "binary_coverage": {
             "positivo": n_positivo,
             "negativo": n_negativo,
+            "parser_version": case_status_v2.PARSER_VERSION,
             "nota_proxy": (
-                "'negativo' aqui é o status 'negativo' de classify_case_status "
-                "(palavra-chave 'lesão benigna'), usado como PROXY de "
-                "binary_target='não_melanoma' -- convenção existente do "
-                "projeto, não um diagnóstico literal de benignidade."
+                "'negativo' aqui é o status 'negativo' de "
+                "classify_case_status_v2 (variantes de 'lesão benigna' na "
+                "região de conclusão final -- ver case_status_v2.py), usado "
+                "como PROXY de binary_target='não_melanoma' -- convenção "
+                "existente do projeto, não um diagnóstico literal de "
+                "benignidade."
             ),
         },
-        # Aditivo/INFORMATIVO (nunca usado por nenhum gate/critério de
-        # pass-fail do piloto): mesma cobertura binária, mas a partir do
-        # classificador v2 "conclusão final"
-        # (src.evaluation.case_status_v2.PARSER_VERSION). Ver
-        # docs/reconstruction/20_local_vlm_pilot.md para a motivação e as
-        # limitações aproximadas do v2.
-        "binary_coverage_v2_informational": {
-            "parser_version": case_status_v2.PARSER_VERSION,
-            "positivo": n_positivo_v2,
-            "negativo": n_negativo_v2,
+        # RASTREABILIDADE SÓ (2026-11-14): mesma cobertura binária, mas a
+        # partir do classificador v1 histórico (classify_case_status) --
+        # nunca mais a fonte oficial deste relatório (trocado para v2, ver
+        # "official_classification_parser_version" acima e
+        # docs/reconstruction/20_local_vlm_pilot.md §9c). Mantido só para
+        # comparação/auditoria entre versões do parser.
+        "binary_coverage_v1_historical_informational": {
+            "positivo": n_positivo_v1_historical,
+            "negativo": n_negativo_v1_historical,
         },
         "by_role_condition": by_role_condition,
         "roles_with_zero_conclusive_opinion": roles_with_zero_conclusive,
@@ -609,10 +655,13 @@ def _write_full_report(
         f"- Chamadas efetivamente realizadas na matriz: {n_executed}",
         f"- Chamadas NÃO executadas (pausa por abstenção): {n_not_executed}",
         f"- Taxa de validade na primeira tentativa: {valid_rate:.2%}",
-        f"- Cobertura binária: positivo={n_positivo}, negativo={n_negativo} "
-        "('negativo' é proxy de não_melanoma via classify_case_status, não diagnóstico literal de benignidade)",
+        f"- Parser OFICIAL de classificação/gate (decisão 2026-11-14): `{case_status_v2.PARSER_VERSION}` "
+        "(v1/`classify_case_status` mantido só para rastreabilidade -- nunca fallback/desempate)",
+        f"- Cobertura binária (OFICIAL, via classificador v2): positivo={n_positivo}, negativo={n_negativo} "
+        "('negativo' é proxy de não_melanoma via classify_case_status_v2, não diagnóstico literal de benignidade)",
+        f"- Cobertura binária (v1 histórico, só rastreabilidade): positivo={n_positivo_v1_historical}, negativo={n_negativo_v1_historical}",
         "",
-        "## Papéis x condições sem nenhum parecer conclusivo (positivo/negativo/indeterminado) -- só vlm_direto/summary",
+        "## Papéis x condições sem nenhum parecer conclusivo (positivo/negativo/indeterminado via classified_status_v2 oficial) -- só vlm_direto/summary",
         "",
         f"{roles_with_zero_conclusive if roles_with_zero_conclusive else 'nenhum'}",
         "",

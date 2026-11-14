@@ -109,6 +109,7 @@ from src.agents.schemas import (
     SummaryAnswer,
 )
 from src.evaluation.case_status import _KEYWORD_TO_STATUS, classify_case_status
+from src.evaluation.case_status_v2 import PARSER_VERSION as CASE_STATUS_V2_PARSER_VERSION
 from src.evaluation.case_status_v2 import classify_case_status_v2
 from src.models.model import convert_to_base64
 from src.multiagent.presentation import images_are_effectively_equal
@@ -1218,6 +1219,20 @@ def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float 
     critério automatizável (parsing bem-sucedido pela A34); os heurísticos
     lexicais (achado novo + as 2 checagens de "não avaliado") são
     reportados sempre, nunca usados para aprovar/reprovar sozinhos.
+
+    GATE OFICIAL (decisão do pesquisador, 2026-11-14, verbatim em
+    `docs/reconstruction/20_local_vlm_pilot.md` §9c): "parseable"/"passed"
+    abaixo são definidos SÓ pelo classificador v2 ("conclusão final",
+    `src.evaluation.case_status_v2.classify_case_status_v2`) -- v2 passou
+    4/4 nos controles de síntese reais deste piloto (incluindo a correção
+    esperada de `um_parecer_ausente`, antes `nao_reconhecido`/reprovado
+    pelo v1, e a conclusão afirmativa de suspeita de melanoma de
+    `unanime_positivo` que v2 perdia antes da extensão de 2026-11-14). v1
+    (`classify_case_status`) continua computado e reportado ao lado --
+    SÓ para rastreabilidade (campo `classified_status_v1_historical`
+    abaixo) -- NUNCA como fallback/desempate: se v2 disser
+    `"nao_reconhecido"`, isto é final, mesmo que v1 diria outra coisa
+    (não há nenhum `v2_result or v1_result` nesta função).
     """
     state = build_synthesis_control_state(scenario_name)
     record, state_update = run_multiagent_role_call(
@@ -1226,13 +1241,13 @@ def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float 
         condition="controle_sintese", timeout_s=timeout_s,
     )
     validation = state_update.get("validation")
-    classified = classify_case_status({"validation": validation})
-    # Aditivo: v2 reportado ao lado do v1 para os 4 cenários fixos de
-    # síntese também (mesma chamada, mesmo texto bruto) -- "passed"/
-    # "parseable" abaixo continuam definidos só pelo v1 (nenhum gate
-    # existente passa a depender do v2).
+    # Rastreabilidade APENAS -- nunca lido para decidir "parseable"/"passed"
+    # abaixo, nunca usado como fallback/desempate do resultado v2.
+    classified_v1_historical = classify_case_status({"validation": validation})
+    # GATE OFICIAL (ver docstring acima) -- "parseable"/"passed" dependem
+    # só deste resultado.
     classified_v2 = classify_case_status_v2({"validation": validation})
-    parseable = classified not in ("ausente", "nao_reconhecido")
+    parseable = classified_v2 not in ("ausente", "nao_reconhecido")
 
     justificativa = ""
     if validation is not None:
@@ -1242,14 +1257,18 @@ def run_synthesis_control(model_name: str, scenario_name: str, timeout_s: float 
     result: dict[str, Any] = {
         "scenario": scenario_name,
         "call_record": record,
-        "classified_status": classified,
+        # Gate oficial (ver docstring) -- fonte de "parseable"/"passed".
         "classified_status_v2": classified_v2,
+        "official_classification_parser_version": CASE_STATUS_V2_PARSER_VERSION,
+        # Rastreabilidade só -- nunca usado para decidir passed/parseable,
+        # nunca fallback/desempate do v2.
+        "classified_status_v1_historical": classified_v1_historical,
         "parseable": parseable,
         "justificativa": justificativa,
         "novel_clinical_terms_candidates": novel_terms,
         "no_novel_terms_detected": len(novel_terms) == 0,
-        # "passed" automatizado = só parsing A34 -- achado novo é triagem,
-        # nunca gate automático (decisão fechada #4).
+        # "passed" automatizado = só parsing A34 pelo v2 -- achado novo é
+        # triagem, nunca gate automático (decisão fechada #4).
         "passed": parseable,
         "requires_manual_review": True,
     }
