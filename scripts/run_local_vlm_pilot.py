@@ -566,9 +566,26 @@ def _write_full_report(
     # e mede só sucesso de chamada, não formato do veredito).
     classifiable_records = [r for r in matrix_records if r.role in _ROLES_WITH_CLASSIFIABLE_OUTPUT and r.call_status != vd.STATUS_NOT_EXECUTED]
     n_decision_contract_valid = sum(1 for r in classifiable_records if r.decision_status == DECISION_CONTRACT_STATUS_OK)
+    n_decision_contract_applicable = len(classifiable_records)
     decision_contract_valid_rate = (
-        n_decision_contract_valid / len(classifiable_records) if classifiable_records else 0.0
+        n_decision_contract_valid / n_decision_contract_applicable if n_decision_contract_applicable else 0.0
     )
+
+    # Detalhe de toda chamada vlm_direto/summary que NÃO contou como
+    # "válida" acima -- falha de chamada (call_status != OK) OU chamada
+    # OK mas campo de formato inválido/ausente/repetido
+    # (decision_status != DECISION_CONTRACT_STATUS_OK) -- sempre com
+    # papel/condição/lesão/imagem explícitos, para o pesquisador revisar
+    # por modelo (1 modelo por execução deste script) x papel x condição.
+    decision_contract_failures_detail = [
+        {
+            "role": r.role, "condition": r.condition, "lesion_id": r.lesion_id, "image_id": r.image_id,
+            "call_status": r.call_status, "failure_cause": r.failure_cause,
+            "decision_status": r.decision_status, "decisao_final": r.decisao_final,
+        }
+        for r in classifiable_records
+        if not (r.call_status == vd.STATUS_OK and r.decision_status == DECISION_CONTRACT_STATUS_OK)
+    ]
 
     # OFICIAL (2026-11-14, doc 26): cobertura binária reportada agora vem
     # do contrato de decisão explícito -- mesma forma para vlm_direto e
@@ -644,6 +661,9 @@ def _write_full_report(
         # resposta válida aqui (não é decisão binária, mas é uma leitura
         # de formato bem-sucedida do campo `decisao_final`).
         "decision_contract_valid_rate_official": decision_contract_valid_rate,
+        "decision_contract_valid_count": n_decision_contract_valid,
+        "decision_contract_applicable_count": n_decision_contract_applicable,
+        "decision_contract_failures_detail": decision_contract_failures_detail,
         "decision_contract_valid_rate_note": (
             "Fração de chamadas executadas de vlm_direto/summary com "
             "decision_status == 'ok' (campo decisao_final lido com "
@@ -748,7 +768,10 @@ def _write_full_report(
         f"- Chamadas efetivamente realizadas na matriz: {n_executed}",
         f"- Chamadas NÃO executadas (pausa por abstenção): {n_not_executed}",
         f"- Taxa de validade na primeira tentativa (todos os papéis, sucesso de chamada): {valid_rate:.2%}",
-        f"- Taxa de validade do contrato de decisão (OFICIAL, só vlm_direto/summary, indeterminado conta como válido): {decision_contract_valid_rate:.2%}",
+        f"- Taxa de validade do contrato de decisão (OFICIAL, só vlm_direto/summary, indeterminado conta como válido): "
+        f"{decision_contract_valid_rate:.2%} ({n_decision_contract_valid}/{n_decision_contract_applicable})",
+        f"- Falhas detalhadas (chamada ou formato) de vlm_direto/summary: {len(decision_contract_failures_detail)} "
+        "(ver decision_contract_failures_detail no summary.json -- por papel/condição/lesão/imagem)",
         "- Parser OFICIAL de classificação/gate (decisão 2026-11-14, doc 26): "
         "`src.evaluation.explicit_decision_contract.extract_decisao_final` "
         "(v1/`classify_case_status` e v2/`classify_case_status_v2` mantidos só para rastreabilidade -- nunca fallback/desempate)",
