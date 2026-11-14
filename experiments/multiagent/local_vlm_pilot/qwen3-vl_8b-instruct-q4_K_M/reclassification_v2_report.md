@@ -2,11 +2,12 @@
 
 NUNCA repetiu chamadas ao modelo -- reprocessamento puramente offline do `call_log.jsonl`/`call_log_matriz_principal.jsonl` já existentes. `call_log.jsonl`, `call_log_matriz_principal.jsonl`, `summary.json` e `report.md` originais NÃO foram tocados por este script.
 
-- Versão do parser v2: `v2_conclusion_line_2026_11_13`
+- Versão do parser v2: `v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`
 - Registros totais lidos: 16
-- Registros com classificação aplicável (v1 e/ou v2): 16
-- Divergências v1 vs v2: 2
-- v1 recomputado difere do histórico salvo (deveria ser SEMPRE 0 -- confirma que v1/case_status.py não foi alterado): 12
+- Registros com classificação aplicável (v1 e/ou v2): 4
+- Registros de controle de envio de imagem excluídos da classificação (nunca têm `classified_status` aplicável -- ver `run_image_sending_control_call`): 12
+- Divergências v1 vs v2 (só entre registros aplicáveis): 1
+- v1 recomputado difere do histórico salvo (deveria ser SEMPRE 0 -- confirma que v1/case_status.py não foi alterado; controles de envio de imagem EXCLUÍDOS deste contador -- correção 2026-11-14, ver `reclassify_record`): 0
 
 ## Confirmação explícita -- cenário real `um_parecer_ausente`
 
@@ -17,7 +18,7 @@ NUNCA repetiu chamadas ao modelo -- reprocessamento puramente offline do `call_l
 - v1 histórico (já salvo no log original): `nao_reconhecido`
 - v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
 - v1 recomputado == histórico? **True**
-- v2 (`v2_conclusion_line_2026_11_13`): `negativo`
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `negativo`
 - v2 variante casada: `benigno` (categoria `negativo`)
 - v2 heurística de extração usada: `marker_in_final_half`
 - v1 e v2 concordam? **False**
@@ -136,18 +137,13 @@ A análise dos três pareceres técnicos fornecidos — ABCD, Menzies e SPCL —
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-superior-esquerdo, vermelho
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_vlm_direto'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -161,18 +157,13 @@ superior-esquerdo, vermelho
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-inferior-direito, azul
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_vlm_direto'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -186,18 +177,13 @@ inferior-direito, azul
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-Não há imagem anexada a esta mensagem, portanto não é possível determinar em qual quadrante estaria um quadrado colorido nem de qual cor ele seria. A resposta é: **não há imagem para análise**.
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_vlm_direto'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -211,18 +197,13 @@ Não há imagem anexada a esta mensagem, portanto não é possível determinar e
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-superior-esquerdo, vermelho
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_abcd'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -236,18 +217,13 @@ superior-esquerdo, vermelho
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-inferior-direito, azul
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_abcd'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -261,18 +237,13 @@ inferior-direito, azul
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-Não há imagem anexada a esta mensagem, portanto não é possível determinar em qual quadrante estaria um quadrado colorido nem de qual cor ele seria. A resposta seria: **nenhum quadrante definido, pois não há imagem para analisar.**
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_abcd'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -286,18 +257,13 @@ Não há imagem anexada a esta mensagem, portanto não é possível determinar e
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-superior-esquerdo, vermelho
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_menzies'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -311,18 +277,13 @@ superior-esquerdo, vermelho
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-inferior-direito, azul
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_menzies'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -336,18 +297,13 @@ inferior-direito, azul
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-Não há imagem anexada a esta mensagem, portanto não é possível determinar em qual quadrante estaria um quadrado colorido nem qual seria a sua cor. Resposta: **Não há imagem para análise.**
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_menzies'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -361,18 +317,13 @@ Não há imagem anexada a esta mensagem, portanto não é possível determinar e
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-superior-esquerdo, vermelho
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_spcl'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -386,18 +337,13 @@ superior-esquerdo, vermelho
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-inferior-direito, azul
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_spcl'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -411,18 +357,13 @@ inferior-direito, azul
 - Arquivo fonte: `call_log.jsonl`
 - `call_status`: `ok`
 - v1 histórico (já salvo no log original): `None`
-- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
-- v1 recomputado == histórico? **False**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
+- v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `None`
+- v1 recomputado == histórico? **None**
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `None`
 - v2 variante casada: `None` (categoria `None`)
-- v2 heurística de extração usada: `last_paragraph`
-- v1 e v2 concordam? **True**
-
-Região de conclusão final extraída pelo v2 (texto literal):
-
-```
-Não há imagem anexada a esta mensagem, portanto não é possível determinar em qual quadrante estaria um quadrado colorido nem de que cor ele seria. A resposta seria: **não há imagem para análise**.
-```
+- v2 heurística de extração usada: `None`
+- v1 e v2 concordam? **None**
+- nota: não aplicável -- controle de envio de imagem (role='controle_imagem_diagnostic_spcl'), nunca classificado por A34: run_image_sending_control_call grava classified_status=None por design (controle de quadrante/cor do caminho multimodal, não um parecer diagnóstico). Nenhuma reclassificação v1/v2 tentada; excluído de ambos os contadores de divergência do relatório.
 
 <details><summary>Texto bruto completo (literal, do log original)</summary>
 
@@ -438,10 +379,10 @@ Não há imagem anexada a esta mensagem, portanto não é possível determinar e
 - v1 histórico (já salvo no log original): `positivo`
 - v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `positivo`
 - v1 recomputado == histórico? **True**
-- v2 (`v2_conclusion_line_2026_11_13`): `nao_reconhecido`
-- v2 variante casada: `None` (categoria `None`)
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `positivo`
+- v2 variante casada: `suspeita clara e consistente de melanoma` (categoria `positivo`)
 - v2 heurística de extração usada: `marker_in_final_half`
-- v1 e v2 concordam? **False**
+- v1 e v2 concordam? **True**
 
 Região de conclusão final extraída pelo v2 (texto literal):
 
@@ -542,7 +483,7 @@ Não é possível fornecer diagnóstico clínico. Porém, **é imperativo que a 
 - v1 histórico (já salvo no log original): `negativo`
 - v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `negativo`
 - v1 recomputado == histórico? **True**
-- v2 (`v2_conclusion_line_2026_11_13`): `negativo`
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `negativo`
 - v2 variante casada: `benigna` (categoria `negativo`)
 - v2 heurística de extração usada: `marker_in_final_half`
 - v1 e v2 concordam? **True**
@@ -640,7 +581,7 @@ Este sistema **não fornece diagnóstico clínico**. A análise é baseada somen
 - v1 histórico (já salvo no log original): `positivo`
 - v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `positivo`
 - v1 recomputado == histórico? **True**
-- v2 (`v2_conclusion_line_2026_11_13`): `positivo`
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `positivo`
 - v2 variante casada: `suspeita de melanoma` (categoria `positivo`)
 - v2 heurística de extração usada: `marker_in_final_half`
 - v1 e v2 concordam? **True**
@@ -788,7 +729,7 @@ Região de conclusão final extraída pelo v2 (texto literal):
 - v1 histórico (já salvo no log original): `nao_reconhecido`
 - v1 recomputado agora (deve ser idêntico ao histórico -- confirma que v1 não foi alterado): `nao_reconhecido`
 - v1 recomputado == histórico? **True**
-- v2 (`v2_conclusion_line_2026_11_13`): `negativo`
+- v2 (`v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14`): `negativo`
 - v2 variante casada: `benigno` (categoria `negativo`)
 - v2 heurística de extração usada: `marker_in_final_half`
 - v1 e v2 concordam? **False**
