@@ -1,0 +1,277 @@
+{
+  "source_results_json": "experiments/multiagent/synthesis_controls_real_image/results.json",
+  "n_cases_total": 8,
+  "n_before_vs_stored_mismatches": 0,
+  "n_before_after_disagreements": 0,
+  "cases": [
+    {
+      "model_name": "qwen3-vl:8b-instruct-q4_K_M",
+      "scenario": "unanime_positivo",
+      "expected_category": "positivo",
+      "expected_category_rationale": "Os 3 pareceres fixos (ABCD, Menzies, SPCL) concordam unanimemente em suspeita de melanoma (ver FIXED_SYNTHESIS_SCENARIOS['unanime_positivo'] em src/multiagent/vlm_direct.py) -- um sumarizador fiel que apenas integra os 3 pareceres sem inventar nada deveria concluir 'positivo'.",
+      "extraction": {
+        "final_answer_text": "**Diagnóstico Consolidado e Fundamentado**\n\n---\n\n### **Conclusão Geral**\n\nCom base na análise integrada dos três algoritmos dermatológicos (ABCD, Menzies e SPCL), a lesão cutânea apresenta **padrões de alto risco para neoplasia maligna**, sendo o diagnóstico mais consistente com **melanoma suspeito**. Embora os critérios individuais tenham nuances, a **concorrência de múltiplas características atípicas em todos os sistemas de avaliação** implica um risco significativo e justifica a necessidade de avaliação clínica e, idealmente, biópsia.\n\n---\n\n### **Análise Comparativa dos Algoritmos**\n\n#### **1️⃣ ABCD – Escore 5.45+**\n- **Assimetria (2):** Lesão claramente irregular em ambos os eixos.\n- **Bordas (7):** Bordas nítidas em quase todos os quadrantes — indica **ausência de bordas suaves ou arredondadas**, que seria mais compatível com lesões benignas.\n- **Cor (5):** Presença de múltiplas cores — vermelho/rosa, marrom claro, marrom escuro, preto — uma característica que aumenta significativamente o risco.\n- **Estruturas (4):** Rede pigmentada, linhas ramificadas e pontos — elementos típicos de lesões malignas.\n- **Interpretação:** Escore acima de 5.45 indica lesão maligna pelo critério ABCD — **confiável e consistente com lesão neoplásica**.\n\n> **Observação:** O critério \"bordas\" (7) é inusitado, pois bordas nítidas geralmente são associadas a lesões benignas (como nevos com bordas definidas). No entanto, em contexto de múltiplas outras características atípicas (assimetria, múltiplas cores), o sistema ABCD ainda identifica como maligna — um ponto de atenção, mas não contrapõe a conclusão global.\n\n#### **2️⃣ Menzies – Resultado Positivo para Melanoma**\n- **Características positivas (7):** Veu azul/branco, múltiplos pontos marrons, pseudopodes, pontos pretos periféricos, múltiplas cores — todas estão presentes.\n- **Características negativas (0):** Não há simetria e não há cor única — critérios de proteção para lesões benignas.\n- **Interpretação:** Múltiplas características positivas e nenhuma negativa — **diagnóstico de melanoma pelo Método Menzies**.\n\n> **Observação:** O Menzies é um dos algoritmos mais sensíveis para detecção de melanoma, especialmente em lesões com complexidade morfológica. A presença do “veu azul/branco” (ainda que irregular), pseudopodes e pontos pretos periféricos — todos visíveis na imagem — é altamente significativa.\n\n#### **3️⃣ SPCL (Seven Point Checklist) – Pontuação 7**\n- **Padrão de pigmentação atípico:** Sim — padrão não homogêneo.\n- **Veu azul/branco irregular:** Sim — presença de véu irregular (vermelho/rosa com transição abrupta).\n- **Padrão de retículo irregular:** Sim — estruturas de rede mal organizadas.\n- **Padrão de globulos irregulares:** Sim — pontos pigmentados em distribuição irregular.\n- **Hiperpigmentação localizada:** Sim — áreas de pigmentação mais intensa.\n- **Regressão:** Não — o que não reduz o risco, mas também não afeta a suspeita.\n- **Interpretação:** Pontuação 7 — acima do limiar de 3 — **suspeita confirmada pelo SPCL.**\n\n> **Observação:** SPCL é um sistema que avalia estruturas morfológicas detalhadas. A pontuação de 7 indica um padrão altamente atípico, compatível com lesão neoplásica.\n\n---\n\n### **Conflitos e Concorrências**\n\n- **Concorrência completa entre os três sistemas:** Todos os algoritmos concluem que a lesão possui características que sugerem melanoma.\n- **Divergência significativa no Menzies:** A presença de “pseudopodes” e “veu azul/branco” é um dos critérios mais específicos de melanoma, e seu registro no Menzies é mais robusto do que os outros.\n- **Diferença no ABCD:** A classificação \"bordas nítidas\" como 7 (em vez de 1 ou 2, que seria mais típico) é um ponto crítico, mas a lesão ainda é classificada como maligna por causa das outras características (assimetria, múltiplas cores, estruturas atípicas).\n- **Concordância no SPCL:** A pontuação 7 — com padrões de retículo irregular, globulos irregulares e hiperpigmentação — é coerente com a imagem e não permite dúvidas.\n\n---\n\n### **Justificativa Final com Base na Imagem**\n\n- A imagem mostra uma lesão com **assimetria clara**, **múltiplas cores** (vermelho/rosa, marrom escuro, preto), **bordas irregulares** (ainda que nítidas em alguns pontos), **rede pigmentada com ramificações** e **pontos pigmentados distribuídos de forma irregular**.\n- **Nenhuma característica benigna** é observada — como bordas suaves, uniformidade de cor, ausência de pseudopodes e véu azul/branco (embora este último não seja observável com clareza na imagem, os pontos pretos periféricos são visíveis).\n- O fato de **todos os três sistemas concluir que a lesão é maligna** — mesmo com pequenas discrepâncias nos parâmetros — reforça a gravidade da lesão.\n\n---\n\n### **Recomendação Clínica**\n\nA lesão apresenta um padrão clínico altamente suspeito de melanoma. A **integração dos três algoritmos** reforça o risco e justifica a necessidade de:\n\n- **Avaliação clínica imediata por dermatologista**.\n- **Biópsia da lesão** para exame histopatológico.\n- **Possível monitoramento com fotografia digital** para acompanhar crescimento e mudança morfológica.\n\n---\n\n### **Diagnóstico Consolidado**\n\n> **Lesão cutânea com padrão de alto risco para melanoma — confirmado por três sistemas de avaliação dermatológica (ABCD, Menzies e SPCL). Recomenda-se biópsia e avaliação clínica imediata.**",
+        "template_removed": false,
+        "status": "no_template_detected",
+        "delimiter_pair_used": null
+      },
+      "before_stored_classified_status_v2": "nao_reconhecido",
+      "before_recomputed": {
+        "status": "nao_reconhecido",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": null,
+        "matched_category": null,
+        "extraction_region_text": "### **Diagnóstico Consolidado**\n\n> **Lesão cutânea com padrão de alto risco para melanoma — confirmado por três sistemas de avaliação dermatológica (ABCD, Menzies e SPCL). Recomenda-se biópsia e avaliação clínica imediata.**",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "nao_reconhecido",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": null,
+        "matched_category": null,
+        "extraction_region_text": "### **Diagnóstico Consolidado**\n\n> **Lesão cutânea com padrão de alto risco para melanoma — confirmado por três sistemas de avaliação dermatológica (ABCD, Menzies e SPCL). Recomenda-se biópsia e avaliação clínica imediata.**",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    },
+    {
+      "model_name": "qwen3-vl:8b-instruct-q4_K_M",
+      "scenario": "unanime_negativo",
+      "expected_category": "negativo",
+      "expected_category_rationale": "Os 3 pareceres fixos concordam unanimemente em lesão benigna -- um sumarizador fiel deveria concluir 'negativo'.",
+      "extraction": {
+        "final_answer_text": "**Diagnóstico Consolidado: Lesão Benigna – Alta Concorrência entre Algoritmos**\n\n---\n\n### Análise Integrada dos Três Pareceres Técnicos:\n\n1. **Algoritmo ABCD**:\n   - Resultado: **Benigno**.\n   - Justificativa: Soma ponderada bem abaixo de 4.75.\n   - Pontos críticos: “Bordas indistintas” e “cor apenas marrom claro” são descritos, mas sem mencionar estruturas atípicas ou assimetria. O algoritmo é conservador, e os critérios observados estão dentro da faixa de lesões comuns e benignas.\n\n2. **Algoritmo Menzies**:\n   - Resultado: **Benigno**.\n   - Justificativa: Nenhuma característica positiva e ambas as negativas (simetria e cor única) estão presentes.\n   - Importante: Este algoritmo considera apenas critérios específicos de alta suspeita (como pseudopodes, streaming radial, etc.). Como todas as características positivas estão ausentes e as negativas estão presentes, o resultado é unânime e robusto.\n\n3. **Algoritmo SPCL (Seven Point Checklist)**:\n   - Resultado: **Benigno**.\n   - Justificativa: Pontuação 0, abaixo do limiar de 3.\n   - Todos os sete itens foram negados, ou seja, não há presença de qualquer padrão de alto risco. Este algoritmo é sensível e tem alta especificidade, e sua ausência de pontuação é fortemente indicativa de benignidade.\n\n---\n\n### Grau de Concordância:\n\n✅ **100% de concordância entre os três algoritmos**: Todos indicam **lesão benigna**. Não há divergência entre os resultados.\n\n---\n\n### Avaliação de Padrões de Alto Risco (Critérios Comuns):\n\n- **Assimetria**: Não observada (ABC).\n- **Bordas Irregulares**: Observadas no ABCD, mas descritas como “indistintas”, que em contextos de diagnóstico dermatológico são consideradas leves e não alarmantes.\n- **Múltiplas Cores**: Não detectadas (Menzies e SPCL).\n- **Estruturas Atípicas**: Não observadas em nenhuma das análises (ABC, Menzies, SPCL).\n- **Risco de Melanoma**: Não evidenciado em nenhum dos algoritmos.\n\n---\n\n### Conclusão Final:\n\n- A lesão apresenta **caraterísticas clínicas e morfológicas consistentes com lesões benignas**.\n- Os algoritmos ABCD, Menzies e SPCL, todos independentes e com base em critérios distintos, estão em **total concordância**.\n- A imagem não revela sinais de alta suspeita: ausência de assimetria, bordas irregulares agressivas, múltiplas cores, ou estruturas atípicas — elementos que poderiam sugerir malignidade.\n\n---\n\n> **Diagnóstico Consolidado**:  \n> **Lesão Benigna — Alta Concorrência entre Algoritmos**  \n> **Recomendação**: Monitoramento clínico periódico conforme protocolos dermatológicos de vigilância de nevos, sem indicação imediata de biópsia ou intervenção cirúrgica.\n\n---\n\n**Nota importante**: Esta análise é baseada nos resultados dos algoritmos e na imagem fornecida. Não substitui a avaliação clínica completa por um dermatologista. A lesão permanece classificada como benigna, e nenhuma característica sugere risco significativo ou necessidade de interrupção do protocolo de monitoramento.\n\n---  \n✔️ *Todos os algoritmos concordam: Lesão Benigna.*  \n✔️ *Nenhum critério de alto risco foi ativado.*  \n✔️ *Diagnóstico com alta confiança com base em evidência multimodal.*",
+        "template_removed": false,
+        "status": "no_template_detected",
+        "delimiter_pair_used": null
+      },
+      "before_stored_classified_status_v2": "negativo",
+      "before_recomputed": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "### Conclusão Final:\n\n- A lesão apresenta **caraterísticas clínicas e morfológicas consistentes com lesões benignas**.\n- Os algoritmos ABCD, Menzies e SPCL, todos independentes e com base em critérios distintos, estão em **total concordância**.\n- A imagem não revela sinais de alta suspeita: ausência de assimetria, bordas irregulares agressivas, múltiplas cores, ou estruturas atípicas — elementos que poderiam sugerir malignidade.\n\n---\n\n> **Diagnóstico Consolidado**:  \n> **Lesão Benigna — Alta Concorrência entre Algoritmos**  \n> **Recomendação**: Monitoramento clínico periódico conforme protocolos dermatológicos de vigilância de nevos, sem indicação imediata de biópsia ou intervenção cirúrgica.\n\n---\n\n**Nota importante**: Esta análise é baseada nos resultados dos algoritmos e na imagem fornecida. Não substitui a avaliação clínica completa por um dermatologista. A lesão permanece classificada como benigna, e nenhuma característica sugere risco significativo ou necessidade de interrupção do protocolo de monitoramento.\n\n---  \n✔️ *Todos os algoritmos concordam: Lesão Benigna.*  \n✔️ *Nenhum critério de alto risco foi ativado.*  \n✔️ *Diagnóstico com alta confiança com base em evidência multimodal.*",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "### Conclusão Final:\n\n- A lesão apresenta **caraterísticas clínicas e morfológicas consistentes com lesões benignas**.\n- Os algoritmos ABCD, Menzies e SPCL, todos independentes e com base em critérios distintos, estão em **total concordância**.\n- A imagem não revela sinais de alta suspeita: ausência de assimetria, bordas irregulares agressivas, múltiplas cores, ou estruturas atípicas — elementos que poderiam sugerir malignidade.\n\n---\n\n> **Diagnóstico Consolidado**:  \n> **Lesão Benigna — Alta Concorrência entre Algoritmos**  \n> **Recomendação**: Monitoramento clínico periódico conforme protocolos dermatológicos de vigilância de nevos, sem indicação imediata de biópsia ou intervenção cirúrgica.\n\n---\n\n**Nota importante**: Esta análise é baseada nos resultados dos algoritmos e na imagem fornecida. Não substitui a avaliação clínica completa por um dermatologista. A lesão permanece classificada como benigna, e nenhuma característica sugere risco significativo ou necessidade de interrupção do protocolo de monitoramento.\n\n---  \n✔️ *Todos os algoritmos concordam: Lesão Benigna.*  \n✔️ *Nenhum critério de alto risco foi ativado.*  \n✔️ *Diagnóstico com alta confiança com base em evidência multimodal.*",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    },
+    {
+      "model_name": "qwen3-vl:8b-instruct-q4_K_M",
+      "scenario": "conflitante",
+      "expected_category": null,
+      "expected_category_rationale": "NÃO HÁ categoria 'correta' única por desenho deste cenário: ABCD indica benigno, Menzies indica melanoma, e SPCL fica abaixo do limiar de suspeita (pontuação 1 de 3), com o critério vasos_atipicos explicitamente marcado como 'não avaliado' (nunca 'avaliado e ausente'). O propósito deste cenário é testar se o sumarizador PRESERVA a divergência real entre os 3 algoritmos e a distinção 'não avaliado' vs 'avaliado e ausente' -- não se ele chega a uma conclusão específica. Por isso 'expected_category' é deliberadamente None aqui: a revisão de fidelidade deste cenário deve avaliar COMO o sumarizador resolveu/relatou o conflito e se preservou a autoria/divergência dos 3 pareceres, nunca comparar contra um rótulo esperado único. Registro histórico (não tratado como gabarito): em execuções reais anteriores deste piloto com imagem placeholder, o modelo concluiu algo como 'Suspeita de Melanoma segundo critério Menzies' -- uma resolução fiel possível, mas não a única logicamente válida para este cenário.",
+      "extraction": {
+        "final_answer_text": "**Diagnóstico Consolidado e Fundamentado**\n\n---\n\n**Concordância entre os algoritmos:**\n\nA análise dos três pareceres revela **conflito significativo** entre os critérios avaliados. Nenhum dos métodos está em total acordo com os demais, o que gera uma situação de **alta ambiguidade diagnóstica**. A seguir, a integração e comparação dos resultados:\n\n---\n\n**1️⃣ ABCD – Resultado: Benigno (Soma ponderada < 4.75)**  \n- **Assimetria:** Não observada.  \n- **Bordas:** Indistintas (valor 2) — critério de alerta, mas não suficiente para alterar o resultado.  \n- **Cor:** Apenas marrom claro — ausência de variação cromática.  \n- **Estruturas:** Rede pigmentada regular — padrão benigno.  \n✅ **Interpretação:** Este método considera a lesão como benigna, baseando-se na ausência de características de alto risco e na presença de padrões regulares.\n\n---\n\n**2️⃣ Menzies – Resultado: Melanoma (Múltiplas características positivas)**  \n- **Características positivas observadas:**  \n  - Veu azul-branco: **1**  \n  - Pontos marrons múltiplos: **1**  \n  - Pseudopodes: **1**  \n  - Streaming radial: **1**  \n  - Pontos pretos periféricos: **1**  \n  - Múltiplas cores: **1**  \n- **Características negativas:**  \n  - Simetria: não observada (não um fator negativo em Menzies, mas não é um indicador de benignidade)  \n  - Cor única: ausente (mas não é um critério negativo de forma direta)  \n✅ **Interpretação:** Este método identifica a lesão como melanoma, baseando-se na presença de múltiplos critérios de alto risco, como pseudopodes, streaming radial e variações de cor — padrões que são fortemente associados a melanoma maligno.\n\n---\n\n**3️⃣ SPCL (Seven Point Checklist) – Resultado: Sem suspeita (Pontuação 1 < limiar 3)**  \n- **Ponto positivo:** padrão de retículo irregular — **Sim** (valor 1).  \n- **Pontos negativos:**  \n  - Padrão de pigmentação atípico: Não  \n  - Veu azul-branco irregular: Não  \n  - Vasos atípicos: Não avaliado  \n  - Globulos irregulares: Não  \n  - Hiperpigmentação localizada: Não  \n  - Regressão: Não  \n✅ **Interpretação:** O SPCL atribui apenas 1 ponto de risco (o retículo irregular), o que não atinge o limiar de 3, considerando a lesão como sem suspeita — o que é compatível com o ABCD, mas contrasta com Menzies.\n\n---\n\n**Análise de Conflito e Gravidade Potencial:**\n\n- **Conflito principal:** Menzies identifica **múltiplos sinais de melanoma**, enquanto ABCD e SPCL classificam a lesão como benigna ou sem suspeita.\n- **Críticas aos critérios de Menzies:**\n  - O “veu azul-branco” e “pseudopodes” são critérios de alto risco, mas sua presença deve ser verificada com precisão microscópica (histopatologia). A imagem atualmente disponível não permite validar essas características com certeza.\n  - O “streaming radial” é um padrão que pode ser mal interpretado em imagens de baixa resolução.\n- **Críticas aos critérios de ABCD e SPCL:**\n  - O ABCD atribui “bordas indistintas” — o que é um critério de alerta, mas não suficiente para alterar o diagnóstico.\n  - SPCL avalia apenas um ponto de risco (retículo irregular) — embora isso seja um sinal de atipia, o limite de 3 pontos não é ultrapassado.\n  - A lesão apresenta um aspecto de pigmento difuso e desigual, que pode sugerir irregularidade de estrutura — algo que os métodos ABCD e SPCL não captaram adequadamente.\n\n---\n\n**Integração com a imagem:**\n\nA imagem mostra:\n\n- Uma lesão com tonalidades variadas (marrom e vermelho), sugerindo variações cromáticas — **critério positivo para Menzies**.\n- Contornos que não são nítidos ou “indistintos” — **critério de alerta para ABCD**.\n- Estrutura que parece irregular, com áreas de pigmento desigual — **critério de atipia no SPCL (retículo irregular)**.\n- Ausência de veu azul-branco e pseudopodes visíveis — **critério negativo para Menzies (não confirmado)**.\n\n---\n\n**Conclusão e Diagnóstico Consolidado:**\n\nApesar da concordância parcial dos algoritmos ABCD e SPCL em considerar a lesão como benigna, o **Método Menzies identifica múltiplas características atípicas** que são fortemente associadas a melanoma maligno. No entanto, **os critérios positivos do Menzies não são confirmados pela análise visual da imagem**, o que pode indicar **interpretação subjetiva ou limitações da resolução da imagem.**\n\n---\n\n**Diagnóstico Consolidado:**\n\n> **Suspeita de melanoma maligno com base no Método Menzies, mas não confirmada visualmente com confiabilidade pela imagem fornecida.**\n\n> **Recomendação: Avaliação clínica com biópsia e exame histopatológico.**\n\n> **Justificativa:** A lesão apresenta características clínicas (como variações cromáticas, contornos indistintos e padrão de pigmentação atípico) que são consistentes com critérios de alto risco. Embora o ABCD e o SPCL não identifiquem risco, os critérios de Menzies são altamente sensíveis à identificação de melanoma, e sua aplicação deve ser considerada prioritária. O diagnóstico definitivo exige confirmação histopatológica.\n\n---\n\n**Nota Final:**\n\nEsta análise não substitui a avaliação clínica, nem substitui o diagnóstico por um profissional de saúde qualificado. Os métodos descritos aqui são ferramentas de suporte, e a decisão clínica final deve considerar a avaliação do médico, o histórico clínico e, se necessário, a biópsia.\n\n✅ **Ação Recomendada: Reforçar avaliação clínica e realizar biópsia da lesão para confirmação histopatológica.**\n\n---",
+        "template_removed": false,
+        "status": "no_template_detected",
+        "delimiter_pair_used": null
+      },
+      "before_stored_classified_status_v2": "positivo",
+      "before_recomputed": {
+        "status": "positivo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "suspeita de melanoma",
+        "matched_category": "positivo",
+        "extraction_region_text": "**Conclusão e Diagnóstico Consolidado:**\n\nApesar da concordância parcial dos algoritmos ABCD e SPCL em considerar a lesão como benigna, o **Método Menzies identifica múltiplas características atípicas** que são fortemente associadas a melanoma maligno. No entanto, **os critérios positivos do Menzies não são confirmados pela análise visual da imagem**, o que pode indicar **interpretação subjetiva ou limitações da resolução da imagem.**\n\n---\n\n**Diagnóstico Consolidado:**\n\n> **Suspeita de melanoma maligno com base no Método Menzies, mas não confirmada visualmente com confiabilidade pela imagem fornecida.**\n\n> **Recomendação: Avaliação clínica com biópsia e exame histopatológico.**\n\n> **Justificativa:** A lesão apresenta características clínicas (como variações cromáticas, contornos indistintos e padrão de pigmentação atípico) que são consistentes com critérios de alto risco. Embora o ABCD e o SPCL não identifiquem risco, os critérios de Menzies são altamente sensíveis à identificação de melanoma, e sua aplicação deve ser considerada prioritária. O diagnóstico definitivo exige confirmação histopatológica.\n\n---\n\n**Nota Final:**\n\nEsta análise não substitui a avaliação clínica, nem substitui o diagnóstico por um profissional de saúde qualificado. Os métodos descritos aqui são ferramentas de suporte, e a decisão clínica final deve considerar a avaliação do médico, o histórico clínico e, se necessário, a biópsia.\n\n✅ **Ação Recomendada: Reforçar avaliação clínica e realizar biópsia da lesão para confirmação histopatológica.**\n\n---",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "positivo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "suspeita de melanoma",
+        "matched_category": "positivo",
+        "extraction_region_text": "**Conclusão e Diagnóstico Consolidado:**\n\nApesar da concordância parcial dos algoritmos ABCD e SPCL em considerar a lesão como benigna, o **Método Menzies identifica múltiplas características atípicas** que são fortemente associadas a melanoma maligno. No entanto, **os critérios positivos do Menzies não são confirmados pela análise visual da imagem**, o que pode indicar **interpretação subjetiva ou limitações da resolução da imagem.**\n\n---\n\n**Diagnóstico Consolidado:**\n\n> **Suspeita de melanoma maligno com base no Método Menzies, mas não confirmada visualmente com confiabilidade pela imagem fornecida.**\n\n> **Recomendação: Avaliação clínica com biópsia e exame histopatológico.**\n\n> **Justificativa:** A lesão apresenta características clínicas (como variações cromáticas, contornos indistintos e padrão de pigmentação atípico) que são consistentes com critérios de alto risco. Embora o ABCD e o SPCL não identifiquem risco, os critérios de Menzies são altamente sensíveis à identificação de melanoma, e sua aplicação deve ser considerada prioritária. O diagnóstico definitivo exige confirmação histopatológica.\n\n---\n\n**Nota Final:**\n\nEsta análise não substitui a avaliação clínica, nem substitui o diagnóstico por um profissional de saúde qualificado. Os métodos descritos aqui são ferramentas de suporte, e a decisão clínica final deve considerar a avaliação do médico, o histórico clínico e, se necessário, a biópsia.\n\n✅ **Ação Recomendada: Reforçar avaliação clínica e realizar biópsia da lesão para confirmação histopatológica.**\n\n---",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    },
+    {
+      "model_name": "qwen3-vl:8b-instruct-q4_K_M",
+      "scenario": "um_parecer_ausente",
+      "expected_category": "negativo",
+      "expected_category_rationale": "O parecer SPCL está ausente (diagnosis_spcl=None, status_spcl=AgentStatus(status='sem_resposta', causa='controle_sintetico_parecer_ausente')) -- reusa o mecanismo real de ausência A05 (src/agents/schemas.py::AgentStatus), não um caso especial deste piloto. Os 2 pareceres DISPONÍVEIS (ABCD e Menzies) concordam em lesão benigna; um sumarizador fiel que integra só o que de fato recebeu (sem inventar um 3º parecer SPCL) deveria concluir 'negativo' a partir dos 2 disponíveis.",
+      "extraction": {
+        "final_answer_text": "**Diagnóstico Consolidado e Fundamentado**\n\n---\n\n**Conclusão Geral**:  \n**Lesão benigna**, conforme os critérios dos três algoritmos avaliados. Não há evidência suficiente para suspeitar de malignidade com base nas características observadas.\n\n---\n\n**Análise Integrada dos Três Pareceres:**\n\n1. **Algoritmo ABCD**  \n   - Resultado: **Benigno** (soma ponderada < 4.75)  \n   - Justificativa:  \n     - **Assimetria**: 0 – sem indícios de assimetria.  \n     - **Bordas**: 1 – bordas indistintas (não indica agressividade).  \n     - **Cor**: 1 – apenas marrom claro (uniforme e não multicolorido).  \n     - **Estruturas**: 1 – rede pigmentada regular (padrão benigno).  \n   → *Interpretação:* A lesão atende aos parâmetros de benignidade do ABCD, embora a borda indistinta seja um sinal de atenção (mas não de alerta máximo).\n\n2. **Algoritmo Menzies**  \n   - Resultado: **Benigno**  \n   - Justificativa:  \n     - **Positivos**: 0 – ausência de qualquer característica de alto risco (veu azul-branco, pseudopodes, streaming radial, etc.).  \n     - **Negativos**: 2 (simetria e cor única) – ambos são critérios de benignidade nesse método.  \n     → *Interpretação:* O Menzies é um algoritmo focado em detectar **características atípicas**, e a lesão não apresenta nenhuma delas. Os critérios negativos (simetria e cor única) são, nesse contexto, indicadores de benignidade, não de risco.\n\n3. **Algoritmo SPCL (Seven Point Checklist)**  \n   - Resultado: **Nenhum parecer fornecido**  \n   - Justificativa:  \n     Não há dados ou descrição do SPCL, então ele não contribui para a análise. Sua ausência não afeta o diagnóstico consolidado, pois os dois algoritmos disponíveis estão em plena concordância.\n\n---\n\n**Conflito ou Divergência?**  \nNão há divergência entre os algoritmos disponíveis. Ambos os critérios (ABCD e Menzies) classificam a lesão como **benigna**. A ausência de dados do SPCL não altera esse resultado, pois os dois algoritmos concordam.\n\n---\n\n**Características Relevantes Observadas (com base na imagem):**  \n- A lesão é **de cor homogênea** (marrom claro), sem variações de tonalidade.  \n- As bordas são **indistintas**, mas sem irregularidades agressivas (como “pseudopodes” ou “streaming radial”).  \n- Não há sinais de **despigmentação**, **múltiplas cores** ou **pontos pretos periféricos**.  \n- A estrutura é regular, e não apresenta assemelhança de padrões atípicos.\n\n---\n\n**Conclusão Final:**  \nOs algoritmos ABCD e Menzies são **coerentes entre si** e indicam uma lesão benigna. A imagem visualmente confirma a uniformidade de cor, ausência de padrões atípicos e estruturas que poderiam sugerir malignidade. A lesão atende aos critérios de benignidade de ambos os sistemas.\n\n**Diagnóstico consolidado: Lesão benigna.**\n\n*(Sem diagnóstico clínico, apenas análise baseada nos algoritmos fornecidos.)*",
+        "template_removed": false,
+        "status": "no_template_detected",
+        "delimiter_pair_used": null
+      },
+      "before_stored_classified_status_v2": "negativo",
+      "before_recomputed": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "**Conclusão Final:**  \nOs algoritmos ABCD e Menzies são **coerentes entre si** e indicam uma lesão benigna. A imagem visualmente confirma a uniformidade de cor, ausência de padrões atípicos e estruturas que poderiam sugerir malignidade. A lesão atende aos critérios de benignidade de ambos os sistemas.\n\n**Diagnóstico consolidado: Lesão benigna.**\n\n*(Sem diagnóstico clínico, apenas análise baseada nos algoritmos fornecidos.)*",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "**Conclusão Final:**  \nOs algoritmos ABCD e Menzies são **coerentes entre si** e indicam uma lesão benigna. A imagem visualmente confirma a uniformidade de cor, ausência de padrões atípicos e estruturas que poderiam sugerir malignidade. A lesão atende aos critérios de benignidade de ambos os sistemas.\n\n**Diagnóstico consolidado: Lesão benigna.**\n\n*(Sem diagnóstico clínico, apenas análise baseada nos algoritmos fornecidos.)*",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    },
+    {
+      "model_name": "medgemma1.5:4b-it-q4_K_M",
+      "scenario": "unanime_positivo",
+      "expected_category": "positivo",
+      "expected_category_rationale": "Os 3 pareceres fixos (ABCD, Menzies, SPCL) concordam unanimemente em suspeita de melanoma (ver FIXED_SYNTHESIS_SCENARIOS['unanime_positivo'] em src/multiagent/vlm_direct.py) -- um sumarizador fiel que apenas integra os 3 pareceres sem inventar nada deveria concluir 'positivo'.",
+      "extraction": {
+        "final_answer_text": "Análise Integrada dos Pareceres:\n\nTodos os três algoritmos (ABCD, Menzies, SPCL) identificam características de alta preocupação na lesão.\n\n1.  **ABCD:** Pontuação alta (>5.45) devido à assimetria, múltiplas cores (5) e estruturas atípicas (rede, linhas ramificadas, pontos/glóbulos).\n2.  **Menzies:** Múltiplos critérios positivos (veu azul-branco, múltiplos pontos marrons, pseudopodes, pontos pretóricos, múltiplas cores) e ausência de critérios negativos, indicando alta probabilidade de melanoma.\n3.  **SPCL:** Pontuação alta (7 pontos) com múltiplos critérios específicos (padrão de pigmentação atípico, véu irregular, padrão de retículo irregular, glóbulos irregulares, hiperpigmentação localizada), indicando alta suspeita.\n\n**Conclusão:** A lesão apresenta uma combinação de características altamente sugestivas de melanoma, confirmadas por múltiplos algoritmos com diferentes abordagens. A presença de múltiplos critérios positivos no Método Menzies e a pontuação alta no SPCL, juntamente com os achados do ABCD, indicam um **diagnóstico de alta suspeita por melanoma**.",
+        "template_removed": true,
+        "status": "extracted_ok",
+        "delimiter_pair_used": [
+          "<unused94>thought",
+          "<unused95>"
+        ]
+      },
+      "before_stored_classified_status_v2": "nao_reconhecido",
+      "before_recomputed": {
+        "status": "nao_reconhecido",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": null,
+        "matched_category": null,
+        "extraction_region_text": "**Conclusão:** A lesão apresenta uma combinação de características altamente sugestivas de melanoma, confirmadas por múltiplos algoritmos com diferentes abordagens. A presença de múltiplos critérios positivos no Método Menzies e a pontuação alta no SPCL, juntamente com os achados do ABCD, indicam um **diagnóstico de alta suspeita por melanoma**.",
+        "extraction_fallback_used": "last_paragraph"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "nao_reconhecido",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": null,
+        "matched_category": null,
+        "extraction_region_text": "**Conclusão:** A lesão apresenta uma combinação de características altamente sugestivas de melanoma, confirmadas por múltiplos algoritmos com diferentes abordagens. A presença de múltiplos critérios positivos no Método Menzies e a pontuação alta no SPCL, juntamente com os achados do ABCD, indicam um **diagnóstico de alta suspeita por melanoma**.",
+        "extraction_fallback_used": "last_paragraph"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    },
+    {
+      "model_name": "medgemma1.5:4b-it-q4_K_M",
+      "scenario": "unanime_negativo",
+      "expected_category": "negativo",
+      "expected_category_rationale": "Os 3 pareceres fixos concordam unanimemente em lesão benigna -- um sumarizador fiel deveria concluir 'negativo'.",
+      "extraction": {
+        "final_answer_text": "## Diagnóstico Consolidado\n\nOs três pareceres técnicos concordam fortemente em que a lesão cutânea apresenta características benignas.\n\n*   **ABCD:** Sugere benignidade com base na ausência de assimetria, bordas indistintas (que podem ser interpretadas como falta de regularidade), cor única e estruturas pigmentadas regulares. O baixo somatório ponderado (< 4.75) é consistente com uma lesão benigna.\n*   **Menzies:** Confirma a benignidade por ausência de características positivas (veu azul-branco, múltiplos pontos marrons, pseudopodes, streaming radial, etc.) e presença de características negativas (simetria, cor única).\n*   **SPCL:** Conclui a ausência de suspeita por pontuação total de 0, indicando a ausência de características atípicas específicas (padrão de pigmentação atípico, veu azul-branco irregular, vasos atípicos, padrão de retículo irregular, etc.).\n\n**Síntese:**\n\nTodos os três algoritmos, juntamente com a análise da imagem, apontam para uma lesão com características benignas. As principais características que sustentam essa conclusão são:\n\n1.  **Ausência de Estruturas Atypicas:** Não há evidências de estruturas dermoscópicas específicas que sejam consideradas suspeitas (ABCD, Menzies, SPCL).\n2.  **Cor Única:** A lesão apresenta predominantemente uma cor (marrom claro), conforme observado por Menzies e SPCL.\n3.  **Estrutura Regular:** A rede pigmentada parece regular, conforme observado por ABCD e SPCL.\n4.  **Simetria:** A lesão tem uma forma geral que pode ser considerada simétrica (Menzies, SPCL).\n\nA diferença no julgamento das bordas entre o critério ABCD (indistintas) e o critério Menzies (simétricas) é mínima e não altera a conclusão geral de benignidade. A descrição de \"bordas indistintas\" no ABCD parece refletir melhor a transição gradual da cor na imagem do que a afirmação de \"simetria\" no Menzies, que pode ser uma avaliação mais geral da estrutura.\n\n**Conclusão:**\n\nCom base na análise conjunta dos três pareceres e da imagem, a lesão cutânea é classificada como **benigna**, sem suspeita de malignidade.",
+        "template_removed": true,
+        "status": "extracted_ok",
+        "delimiter_pair_used": [
+          "<unused94>thought",
+          "<unused95>"
+        ]
+      },
+      "before_stored_classified_status_v2": "negativo",
+      "before_recomputed": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "This thought process systematically breaks down the problem, analyzes the inputs, compares them, integrates the information, and builds a coherent and justified conclusion while adhering to the specified constraints.<unused95>## Diagnóstico Consolidado\n\nOs três pareceres técnicos concordam fortemente em que a lesão cutânea apresenta características benignas.\n\n*   **ABCD:** Sugere benignidade com base na ausência de assimetria, bordas indistintas (que podem ser interpretadas como falta de regularidade), cor única e estruturas pigmentadas regulares. O baixo somatório ponderado (< 4.75) é consistente com uma lesão benigna.\n*   **Menzies:** Confirma a benignidade por ausência de características positivas (veu azul-branco, múltiplos pontos marrons, pseudopodes, streaming radial, etc.) e presença de características negativas (simetria, cor única).\n*   **SPCL:** Conclui a ausência de suspeita por pontuação total de 0, indicando a ausência de características atípicas específicas (padrão de pigmentação atípico, veu azul-branco irregular, vasos atípicos, padrão de retículo irregular, etc.).\n\n**Síntese:**\n\nTodos os três algoritmos, juntamente com a análise da imagem, apontam para uma lesão com características benignas. As principais características que sustentam essa conclusão são:\n\n1.  **Ausência de Estruturas Atypicas:** Não há evidências de estruturas dermoscópicas específicas que sejam consideradas suspeitas (ABCD, Menzies, SPCL).\n2.  **Cor Única:** A lesão apresenta predominantemente uma cor (marrom claro), conforme observado por Menzies e SPCL.\n3.  **Estrutura Regular:** A rede pigmentada parece regular, conforme observado por ABCD e SPCL.\n4.  **Simetria:** A lesão tem uma forma geral que pode ser considerada simétrica (Menzies, SPCL).\n\nA diferença no julgamento das bordas entre o critério ABCD (indistintas) e o critério Menzies (simétricas) é mínima e não altera a conclusão geral de benignidade. A descrição de \"bordas indistintas\" no ABCD parece refletir melhor a transição gradual da cor na imagem do que a afirmação de \"simetria\" no Menzies, que pode ser uma avaliação mais geral da estrutura.\n\n**Conclusão:**\n\nCom base na análise conjunta dos três pareceres e da imagem, a lesão cutânea é classificada como **benigna**, sem suspeita de malignidade.",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "Com base na análise conjunta dos três pareceres e da imagem, a lesão cutânea é classificada como **benigna**, sem suspeita de malignidade.",
+        "extraction_fallback_used": "last_paragraph"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    },
+    {
+      "model_name": "medgemma1.5:4b-it-q4_K_M",
+      "scenario": "conflitante",
+      "expected_category": null,
+      "expected_category_rationale": "NÃO HÁ categoria 'correta' única por desenho deste cenário: ABCD indica benigno, Menzies indica melanoma, e SPCL fica abaixo do limiar de suspeita (pontuação 1 de 3), com o critério vasos_atipicos explicitamente marcado como 'não avaliado' (nunca 'avaliado e ausente'). O propósito deste cenário é testar se o sumarizador PRESERVA a divergência real entre os 3 algoritmos e a distinção 'não avaliado' vs 'avaliado e ausente' -- não se ele chega a uma conclusão específica. Por isso 'expected_category' é deliberadamente None aqui: a revisão de fidelidade deste cenário deve avaliar COMO o sumarizador resolveu/relatou o conflito e se preservou a autoria/divergência dos 3 pareceres, nunca comparar contra um rótulo esperado único. Registro histórico (não tratado como gabarito): em execuções reais anteriores deste piloto com imagem placeholder, o modelo concluiu algo como 'Suspeita de Melanoma segundo critério Menzies' -- uma resolução fiel possível, mas não a única logicamente válida para este cenário.",
+      "extraction": {
+        "final_answer_text": "Ok, vamos integrar os pareceres fornecidos para construir um diagnóstico consolidado.\n\n**Análise dos Pareceres:**\n\n1.  **ABCD:** Indica uma lesão benigna com pontuação baixa (< 4.75). As características mencionadas (rede pigmentada regular, marrom claro) são geralmente associadas a nevos benignos. A borda indistinta (Borda: 2) é um ponto de atenção, mas a pontuação geral é baixa.\n2.  **Menzies:** Indica melanoma devido à presença de múltiplas características positivas altamente suspeitas (veu azul-branco, múltiplos pontos marrons, pseudopodes, streaming radial, pontos pretos periféricos, múltiplas cores e padrão de retículo irregular). A pontuação geral é baixa, mas a presença de múltiplas características positivas é um forte sinal de alerta.\n3.  **SPCL:** Indica uma lesão borderline (pontuação total 1) com um padrão de retículo irregular sendo uma característica positiva. Embora a pontuação geral seja baixa, o padrão de retículo irregular é um achado relevante e suspeito.\n\n**Integração e Diagnóstico Consolidado:**\n\nOs pareceres apresentam resultados significativamente divergentes. O critério ABCD interpreta a lesão como benigna, enquanto o critério Menzies aponta para melanoma devido à presença de múltiplas características positivas altamente suspeitas. O critério SPCL classifica a lesão como borderline, com um padrão de retículo irregular sendo uma característica positiva.\n\nConsiderando a combinação de múltiplos achados suspeitos (Menzies) e um achado borderline (SPCL), juntamente com a interpretação benigna (ABCD), a análise sugere que a lesão apresenta características que exigem avaliação aprofundada. A presença de características como \"veu azul-branco\", \"streaming radial\", \"pontos pretos periféricos\" e \"padrão de retículo irregular\" (Menzies) é altamente preocupante. Embora o critério SPCL seja borderline, a pontuação geral de Menzies é baixa. Dado o conflito entre os algoritmos, especialmente entre Menzies e ABCD, a análise sugere que a lesão apresenta características que exigem avaliação aprofundada, dada a combinação de achados suspeitos.\n\n**Conclusão:** A lesão apresenta características que são discordantemente interpretadas pelos diferentes algoritmos, com resultados que variam de benigno (ABCD) a melanoma (Menzies) e borderline (SPCL). A presença de múltiplas características de alto risco (Menzies) e um achado borderline (SPCL) é um ponto crítico.",
+        "template_removed": true,
+        "status": "extracted_ok",
+        "delimiter_pair_used": [
+          "<unused94>thought",
+          "<unused95>"
+        ]
+      },
+      "before_stored_classified_status_v2": "negativo",
+      "before_recomputed": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigno",
+        "matched_category": "negativo",
+        "extraction_region_text": "*   *Initial thought:* \"Menzies says melanoma, ABCD says benign. SPCL is borderline. Menzies has more suspicious features.\"\n    *   *Refinement:* \"Os pareceres apresentam resultados significativamente divergentes. O critério ABCD indica uma lesão benigna, enquanto o critério Menzies aponta para melanoma devido à presença de múltiplas características positivas altamente suspeitas (veu azul-branco, múltiplos pontos marrons, pseudopodes, streaming radial, pontos pretos periféricos, múltiplas cores e padrão de retículo irregular). O critério SPCL classifica a lesão como borderline, com um padrão de retículo irregular sendo uma característica positiva, mas a pontuação geral é baixa. Considerando a combinação de múltiplas características de alto risco (Menzies) e uma característica borderline (SPCL), que contrastam fortemente com a interpretação benigna (ABCD), a análise aponta para uma lesão com características suspeitas.\"\n    *   *Final Polish:* Add a concluding sentence emphasizing the need for further action based on these conflicting results. \"A combinação de múltiplos achados suspeitos (Menzies) e um achado borderline (SPCL), juntamente com a interpretação benigna (ABCD), cria um quadro complexo. A presença de características como 'veu azul-branco', 'streaming radial', 'pontos pretos periféricos' e 'padrão de retículo irregular' (Menzies) é altamente preocupante. Embora o critério SPCL seja borderline, a pontuação geral de Menzies é baixa. Dado o conflito entre os algoritmos, especialmente entre Menzies e ABCD, a análise sugere que a lesão apresenta características que exigem avaliação aprofundada, dada a combinação de achados suspeitos.\"<unused95>Ok, vamos integrar os pareceres fornecidos para construir um diagnóstico consolidado.\n\n**Análise dos Pareceres:**\n\n1.  **ABCD:** Indica uma lesão benigna com pontuação baixa (< 4.75). As características mencionadas (rede pigmentada regular, marrom claro) são geralmente associadas a nevos benignos. A borda indistinta (Borda: 2) é um ponto de atenção, mas a pontuação geral é baixa.\n2.  **Menzies:** Indica melanoma devido à presença de múltiplas características positivas altamente suspeitas (veu azul-branco, múltiplos pontos marrons, pseudopodes, streaming radial, pontos pretos periféricos, múltiplas cores e padrão de retículo irregular). A pontuação geral é baixa, mas a presença de múltiplas características positivas é um forte sinal de alerta.\n3.  **SPCL:** Indica uma lesão borderline (pontuação total 1) com um padrão de retículo irregular sendo uma característica positiva. Embora a pontuação geral seja baixa, o padrão de retículo irregular é um achado relevante e suspeito.\n\n**Integração e Diagnóstico Consolidado:**\n\nOs pareceres apresentam resultados significativamente divergentes. O critério ABCD interpreta a lesão como benigna, enquanto o critério Menzies aponta para melanoma devido à presença de múltiplas características positivas altamente suspeitas. O critério SPCL classifica a lesão como borderline, com um padrão de retículo irregular sendo uma característica positiva.\n\nConsiderando a combinação de múltiplos achados suspeitos (Menzies) e um achado borderline (SPCL), juntamente com a interpretação benigna (ABCD), a análise sugere que a lesão apresenta características que exigem avaliação aprofundada. A presença de características como \"veu azul-branco\", \"streaming radial\", \"pontos pretos periféricos\" e \"padrão de retículo irregular\" (Menzies) é altamente preocupante. Embora o critério SPCL seja borderline, a pontuação geral de Menzies é baixa. Dado o conflito entre os algoritmos, especialmente entre Menzies e ABCD, a análise sugere que a lesão apresenta características que exigem avaliação aprofundada, dada a combinação de achados suspeitos.\n\n**Conclusão:** A lesão apresenta características que são discordantemente interpretadas pelos diferentes algoritmos, com resultados que variam de benigno (ABCD) a melanoma (Menzies) e borderline (SPCL). A presença de múltiplas características de alto risco (Menzies) e um achado borderline (SPCL) é um ponto crítico.",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigno",
+        "matched_category": "negativo",
+        "extraction_region_text": "**Integração e Diagnóstico Consolidado:**\n\nOs pareceres apresentam resultados significativamente divergentes. O critério ABCD interpreta a lesão como benigna, enquanto o critério Menzies aponta para melanoma devido à presença de múltiplas características positivas altamente suspeitas. O critério SPCL classifica a lesão como borderline, com um padrão de retículo irregular sendo uma característica positiva.\n\nConsiderando a combinação de múltiplos achados suspeitos (Menzies) e um achado borderline (SPCL), juntamente com a interpretação benigna (ABCD), a análise sugere que a lesão apresenta características que exigem avaliação aprofundada. A presença de características como \"veu azul-branco\", \"streaming radial\", \"pontos pretos periféricos\" e \"padrão de retículo irregular\" (Menzies) é altamente preocupante. Embora o critério SPCL seja borderline, a pontuação geral de Menzies é baixa. Dado o conflito entre os algoritmos, especialmente entre Menzies e ABCD, a análise sugere que a lesão apresenta características que exigem avaliação aprofundada, dada a combinação de achados suspeitos.\n\n**Conclusão:** A lesão apresenta características que são discordantemente interpretadas pelos diferentes algoritmos, com resultados que variam de benigno (ABCD) a melanoma (Menzies) e borderline (SPCL). A presença de múltiplas características de alto risco (Menzies) e um achado borderline (SPCL) é um ponto crítico.",
+        "extraction_fallback_used": "marker_in_final_half"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    },
+    {
+      "model_name": "medgemma1.5:4b-it-q4_K_M",
+      "scenario": "um_parecer_ausente",
+      "expected_category": "negativo",
+      "expected_category_rationale": "O parecer SPCL está ausente (diagnosis_spcl=None, status_spcl=AgentStatus(status='sem_resposta', causa='controle_sintetico_parecer_ausente')) -- reusa o mecanismo real de ausência A05 (src/agents/schemas.py::AgentStatus), não um caso especial deste piloto. Os 2 pareceres DISPONÍVEIS (ABCD e Menzies) concordam em lesão benigna; um sumarizador fiel que integra só o que de fato recebeu (sem inventar um 3º parecer SPCL) deveria concluir 'negativo' a partir dos 2 disponíveis.",
+      "extraction": {
+        "final_answer_text": "Ok, vamos integrar as análises para chegar a um diagnóstico consolidado.\n\n**Análise dos pareceres:**\n\n1.  **ABCD:** Indica que a lesão é benigna, com pontuação < 4.75. As características notadas são bordas indistintas, cor marrom claro e rede pigmentada regular. Não há características positivas identificadas.\n2.  **Menzies:** Indica que a lesão é benigna. As características notadas são a ausência de características positivas (todas são 0) e a presença de características negativas (Simetria e Cor Única).\n3.  **SPCL:** Este parecer não foi fornecido para análise.\n\n**Integração e Comparação:**\n\n*   **Concordância:** Há uma forte concordância entre os dois pareceres fornecidos (ABCD e Menzies). Ambos concluem que a lesão é benigna.\n*   **Características Chave:**\n    *   **Ausência de Características Positivas:** Ambos os pareceres (ABCD e Menzies) concordam que *não há características positivas* observadas. Isso é um ponto muito importante para a benignidade.\n    *   **Características Negativas:** Menzies identifica a presença de características negativas (\"Simetria\" e \"Cor Única\"). O parecer ABCD também nota características que podem ser interpretadas como negativas ou, pelo menos, não como positivas: \"bordas indistintas\" e \"cor marrom claro\".\n*   **Falta de Informação:** O parecer SPCL está incompleto e não pode ser usado para este caso específico.\n\n**Conclusão Consolidada:**\n\nCom base na integração dos três pareceres, a lesão apresenta características que a classificam como **benigna**.\n\n*   **Justificativa:**\n    *   Ambos os algoritmos (ABCD e Menzies) concordam na conclusão de benignidade.\n    *   O ponto principal de concordância é a **ausência de características positivas** (como véu azul-branco, múltiplos pontos marrons, pseudópodes, streaming radial, rede atípica, etc.).\n    *   As características observadas (bordas indistintas, cor marrom claro, rede regular) são geralmente consideradas menos preocupantes do que as características positivas.\n    *   A presença de características negativas (Simetria, Cor Única) também apoia a conclusão de benignidade.\n    *   O parecer SPCL não oferece informações adicionais para avaliar o risco nesta lesão.\n\nPortanto, a análise combinada aponta fortemente para uma lesão benigna.",
+        "template_removed": true,
+        "status": "extracted_ok",
+        "delimiter_pair_used": [
+          "<unused94>thought",
+          "<unused95>"
+        ]
+      },
+      "before_stored_classified_status_v2": "negativo",
+      "before_recomputed": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "Portanto, a análise combinada aponta fortemente para uma lesão benigna.",
+        "extraction_fallback_used": "last_paragraph"
+      },
+      "before_recomputed_matches_stored": true,
+      "after": {
+        "status": "negativo",
+        "parser_version": "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14",
+        "matched_variant": "benigna",
+        "matched_category": "negativo",
+        "extraction_region_text": "Portanto, a análise combinada aponta fortemente para uma lesão benigna.",
+        "extraction_fallback_used": "last_paragraph"
+      },
+      "after_skipped_reason": null,
+      "before_after_agree": true
+    }
+  ],
+  "note": "Gerado por reprocessamento OFFLINE -- zero chamadas novas de modelo. 'before_*' usa classify_case_status_v2_detailed sobre o raw_response_text ORIGINAL (deve bater com classified_status_v2 já salvo em results.json -- ver n_before_vs_stored_mismatches). 'after' usa o mesmo classificador sobre a resposta final extraida por extract_final_answer, SOMENTE quando a extracao nao reportou um status de problema. src/evaluation/case_status_v2.py e os prompts reais (src/agents/agents.py) NAO foram modificados nesta tarefa."
+}
