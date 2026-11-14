@@ -26,16 +26,33 @@ formato
 
     decisao_final: <valor>
 
-onde ``<valor>`` deve ser EXATAMENTE um de ``"melanoma"``,
-``"nao_melanoma"`` ou ``"indeterminado"`` (comparação case-insensitive
-só quanto à CAIXA do valor -- "Melanoma"/"MELANOMA" são aceitos,
-"melanoma." com ponto final ou "suspeita de melanoma" como valor NÃO
-são -- nenhuma correspondência fuzzy/aproximada é feita aqui, ao
-contrário do v2). A chave ``decisao_final`` é comparada case-
-insensitive e sem acentos/cedilha (já é a forma como foi escrita nas
-instruções experimentais). Markdown em torno da linha (negrito,
-marcadores de lista) NÃO é reconhecido por desenho -- a linha deve
-estar exatamente como instruído.
+onde ``<valor>`` deve ser um de ``"melanoma"``, ``"nao_melanoma"`` ou
+``"indeterminado"`` (comparação case-insensitive só quanto à CAIXA do
+valor -- "Melanoma"/"MELANOMA" são aceitos, "melanoma." com ponto
+final ou "suspeita de melanoma" como valor NÃO são -- nenhuma
+correspondência fuzzy/aproximada é feita aqui, ao contrário do v2). A
+chave ``decisao_final`` é comparada case-insensitive e sem acentos
+(já é a forma como foi escrita nas instruções experimentais). Markdown
+em torno da linha (negrito, marcadores de lista) NÃO é reconhecido por
+desenho -- a linha deve estar exatamente como instruído.
+
+EXCEÇÃO EXPLÍCITA, única e documentada (adicionada após a 1ª execução
+real com imagem real, ver
+`docs/reconstruction/25_accent_variant_and_reprocessing.md`):
+``"não_melanoma"`` (grafia correta em português, com "ã") é aceito como
+VARIANTE LITERAL de ``"nao_melanoma"`` -- só essa forma específica, só
+para esse valor. Observado em 2 das 8 respostas reais do medgemma1.5
+(`decisao_final: não_melanoma`), que a comparação estritamente ASCII
+original rejeitava como `invalid_value` mesmo sendo uma decisão
+inequívoca e corretamente grafada. Isto NÃO reabre a porta para
+correspondência fuzzy: é uma entrada FECHADA e SÓ-OBSERVADA na tabela
+`_VALUE_VARIANTS` abaixo (mesmo espírito do vocabulário fechado de
+`_KNOWN_TEMPLATE_DELIMITER_PAIRS` em `response_template_extraction.py`)
+-- qualquer outra grafia (com ou sem acento, de qualquer um dos 3
+valores) que não esteja explicitamente listada ali continua caindo em
+`invalid_value`, nunca aceita por aproximação. A exceção se aplica
+IDENTICAMENTE ao VLM-direto e ao sumarizador, porque os dois usam esta
+mesma função.
 
 Este módulo é PURO e ISOLADO:
   - roda ESTRUTURALMENTE APÓS `src.evaluation.response_template_extraction
@@ -74,9 +91,10 @@ from src.evaluation.response_template_extraction import (
 )
 
 # ---------------------------------------------------------------------------
-# Vocabulário fechado de decisão -- as 3 ÚNICAS strings aceitas como valor
-# válido do campo `decisao_final` (comparação após `.strip().lower()`,
-# nunca fuzzy).
+# Vocabulário fechado de decisão -- os 3 valores CANÔNICOS devolvidos em
+# `decisao_final` quando `decision_status == DECISION_STATUS_OK` (nunca a
+# string literal da variante aceita -- ver `_VALUE_VARIANTS` abaixo, que
+# sempre normaliza de volta para um destes 3).
 # ---------------------------------------------------------------------------
 DECISAO_MELANOMA = "melanoma"
 DECISAO_NAO_MELANOMA = "nao_melanoma"
@@ -87,6 +105,39 @@ ALL_DECISIONS: tuple[str, ...] = (
     DECISAO_NAO_MELANOMA,
     DECISAO_INDETERMINADO,
 )
+
+# ---------------------------------------------------------------------------
+# Variantes literais ACEITAS por valor canônico -- vocabulário FECHADO e
+# SÓ-OBSERVADO (nenhuma entrada hipotética). Cada chave é um valor de
+# `ALL_DECISIONS`; cada tupla contém o próprio valor canônico (sempre
+# aceito) e, quando observada em dados reais, uma grafia alternativa
+# EXATA. Comparação feita após `.strip().lower()` do valor capturado pela
+# regex -- nunca uma segunda rodada de regex/fuzzy aqui.
+#
+# Entrada real observada (2026-11-14, 1ª execução real com imagem real,
+# ver docs/reconstruction/25_accent_variant_and_reprocessing.md): o
+# medgemma1.5:4b-it-q4_K_M escreveu `decisao_final: não_melanoma` (com
+# "ã", grafia correta em português) em 2 das 4 respostas, em vez do
+# token ASCII `nao_melanoma` pedido literalmente na instrução
+# experimental. Adicionada como variante aceita SÓ para
+# `DECISAO_NAO_MELANOMA` -- `"melanoma"`/`"indeterminado"` não têm
+# variante conhecida (nenhuma observada ainda; se uma for observada no
+# futuro, deve ser adicionada aqui pelo mesmo processo, nunca por uma
+# regra geral de "remover acentos").
+_VALUE_VARIANTS: dict[str, tuple[str, ...]] = {
+    DECISAO_MELANOMA: (DECISAO_MELANOMA,),
+    DECISAO_NAO_MELANOMA: (DECISAO_NAO_MELANOMA, "não_melanoma"),
+    DECISAO_INDETERMINADO: (DECISAO_INDETERMINADO,),
+}
+
+# Mapa inverso (variante literal -> valor canônico), construído uma vez a
+# partir de `_VALUE_VARIANTS` -- nunca duplicado manualmente em outro
+# lugar do módulo.
+_VARIANT_TO_CANONICAL: dict[str, str] = {
+    variant: canonical
+    for canonical, variants in _VALUE_VARIANTS.items()
+    for variant in variants
+}
 
 DECISION_FIELD_KEY = "decisao_final"
 
@@ -199,10 +250,16 @@ def extract_decisao_final(raw_text: Optional[str]) -> DecisionContractResult:
       3. 0 ocorrências -> `DECISION_STATUS_FIELD_ABSENT`.
          >1 ocorrências -> `DECISION_STATUS_FIELD_REPEATED` (mesmo se os
          valores coincidirem).
-         Exatamente 1 ocorrência, valor fora de `ALL_DECISIONS` (após
-         `.strip().lower()`) -> `DECISION_STATUS_INVALID_VALUE`.
+         Exatamente 1 ocorrência, valor (após `.strip().lower()`) fora
+         de `_VARIANT_TO_CANONICAL` (os 3 valores canônicos + a única
+         variante acentuada aceita, ver docstring do módulo) ->
+         `DECISION_STATUS_INVALID_VALUE`.
          Exatamente 1 ocorrência válida -> `DECISION_STATUS_OK`,
-         `decisao_final` = valor normalizado (`.strip().lower()`).
+         `decisao_final` = o valor CANÔNICO correspondente (nunca a
+         variante literal capturada -- ex.: "não_melanoma" normaliza
+         para `"nao_melanoma"` em `decisao_final`, mas o texto
+         originalmente capturado continua disponível em
+         `matched_raw_values` para auditoria).
 
     Nunca deduz a decisão a partir da justificativa/corpo do texto --
     só lê a linha declarada. Nunca usa nenhum outro parser (v1/v2) como
@@ -233,12 +290,13 @@ def extract_decisao_final(raw_text: Optional[str]) -> DecisionContractResult:
         decisao_final = None
     else:
         normalized = matched_raw_values[0].lower()
-        if normalized not in ALL_DECISIONS:
+        canonical = _VARIANT_TO_CANONICAL.get(normalized)
+        if canonical is None:
             decision_status = DECISION_STATUS_INVALID_VALUE
             decisao_final = None
         else:
             decision_status = DECISION_STATUS_OK
-            decisao_final = normalized
+            decisao_final = canonical
 
     return DecisionContractResult(
         raw_response_text=raw_text,

@@ -156,6 +156,33 @@ SCENARIO_5_TEMPLATE_BLOCK_DIFFERENT_LABEL_THAN_FINAL_ANSWER = (
     "decisao_final: nao_melanoma"
 )
 
+# ---------------------------------------------------------------------------
+# Cenário 6 -- achado real da 1ª execução com imagem real (ver
+# docs/reconstruction/25_accent_variant_and_reprocessing.md): o
+# medgemma1.5 declarou `decisao_final: não_melanoma` (grafia correta em
+# português, com "ã") em vez do token ASCII `nao_melanoma` pedido na
+# instrução. Esta variante literal foi adicionada como EXCEÇÃO FECHADA
+# em `_VALUE_VARIANTS` -- esperado: `ok`/`nao_melanoma` (normalizado
+# para o valor CANÔNICO, nunca a variante literal).
+# ---------------------------------------------------------------------------
+SCENARIO_6_ACCENTED_VARIANT_ACCEPTED = """Os três pareceres convergem para benignidade, sem características de
+alto risco.
+
+decisao_final: não_melanoma"""
+
+# ---------------------------------------------------------------------------
+# Cenário 7 -- pedido explícito do pesquisador: a palavra "não_melanoma"
+# aparecendo dentro da JUSTIFICATIVA (corpo do texto), SEM a linha
+# dedicada `decisao_final`, continua sendo falha de formato
+# (`field_absent`) -- a exceção de grafia do cenário 6 vale SÓ para o
+# valor capturado pela linha do campo, nunca para texto livre no corpo.
+# Nenhuma variante aceita em `_VALUE_VARIANTS` reabre a leitura do corpo
+# do texto.
+# ---------------------------------------------------------------------------
+SCENARIO_7_ACCENTED_WORD_IN_BODY_WITHOUT_FIELD_STILL_ABSENT = """A integração dos três pareceres aponta para não_melanoma como conclusão
+mais provável, mas nenhuma linha de decisão formal foi declarada nesta
+resposta -- o modelo só mencionou a palavra no meio da justificativa."""
+
 
 SCENARIOS: list[dict] = [
     {
@@ -226,6 +253,28 @@ SCENARIOS: list[dict] = [
         "raw_text": SCENARIO_5_TEMPLATE_BLOCK_DIFFERENT_LABEL_THAN_FINAL_ANSWER,
         "expected_decision_status": DECISION_STATUS_OK,
         "expected_decisao_final": DECISAO_NAO_MELANOMA,
+    },
+    {
+        "name": "6_variante_acentuada_aceita",
+        "description": (
+            "decisao_final: não_melanoma (grafia com 'ã', achado real do "
+            "medgemma1.5) -- aceito como variante fechada, normalizado "
+            "para o valor canônico nao_melanoma."
+        ),
+        "raw_text": SCENARIO_6_ACCENTED_VARIANT_ACCEPTED,
+        "expected_decision_status": DECISION_STATUS_OK,
+        "expected_decisao_final": DECISAO_NAO_MELANOMA,
+    },
+    {
+        "name": "7_palavra_acentuada_no_corpo_sem_campo_continua_ausente",
+        "description": (
+            "'não_melanoma' aparece na justificativa, sem a linha "
+            "decisao_final declarada -- a exceção de grafia não reabre "
+            "a leitura do corpo do texto."
+        ),
+        "raw_text": SCENARIO_7_ACCENTED_WORD_IN_BODY_WITHOUT_FIELD_STILL_ABSENT,
+        "expected_decision_status": DECISION_STATUS_FIELD_ABSENT,
+        "expected_decisao_final": None,
     },
 ]
 
