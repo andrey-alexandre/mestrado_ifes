@@ -174,6 +174,81 @@ Não é possível fornecer diagnóstico clínico. Porém, **é imperativo que a 
 
 **Atenção: este parecer é baseado em análise de imagem segmentada e critérios diagnósticos. Não substitui avaliação clínica, exame de biópsia ou consulta com especialista.**"""
 
+# Texto bruto REAL da SEGUNDA execução real do Estágio 1 (gate v2 oficial,
+# ver docs/reconstruction/20_local_vlm_pilot.md §9d), mesmo cenário de
+# controle `unanime_positivo`, modelo qwen3-vl:8b-instruct-q4_K_M --
+# inferência local via Ollama não é determinística, então o modelo deu
+# uma resposta DIFERENTE da primeira execução (REAL_RAW_TEXT_UNANIME_POSITIVO
+# acima). Copiado verbatim de
+# experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M/report.md
+# (campo "justificativa" do cenário "unanime_positivo").
+REAL_RAW_TEXT_UNANIME_POSITIVO_SEGUNDA_EXECUCAO = """**Diagnóstico Consolidado – Lesão Cutânea Suspeita de Melanoma**
+
+---
+
+**1. Conclusão Integrada:**
+
+Baseado na análise dos três algoritmos (ABCD, Menzies e SPCL), **a lesão apresenta múltiplas características clínicas de alto risco, consistentes entre os critérios, sugerindo uma lesão maligna com alta probabilidade de ser melanoma.**
+
+Os três pareceres convergem em sua conclusão crítica:
+✅ **ABCD:** Escore > 5,45 — indica lesão maligna.
+✅ **Menzies:** Múltiplas características positivas (veu azul-branco, pontos marrons, pseudopodes, pontos pretos, múltiplas cores) sem negativas — confirma diagnóstico de melanoma.
+✅ **SPCL:** Pontuação 7 (acima de 3) — indica suspeita significativa de melanoma.
+
+---
+
+**2. Análise de Concorrência e Conflito:**
+
+Não há conflito significativo entre os algoritmos.
+Todos os métodos identificaram:
+- **Assimetria e bordas irregulares** (ABCD; Menzies com pseudopodes e bordas não simétricas; SPCL com padrão de retículo irregular),
+- **Múltiplas cores** (ABCD: 5 cores; Menzies: múltiplas cores; SPCL: hiperpigmentação localizada),
+- **Estruturas atípicas** (ABCD: rede pigmentada, glóbulos; Menzies: pseudopodes; SPCL: padrão de globulos e retículo irregulares).
+
+A **concordância entre os algoritmos é quase perfeita** em relação aos padrões mais importantes do melanoma.
+
+---
+
+**3. Padrões de Alto Risco Identificados (Reforçados por Todos os Algoritmos):**
+
+- **Assimetria extrema** (ABCD: 2/2; Menzies: simetria ausente; SPCL: padrão atípico).
+- **Bordas irregulares** (ABCD: 7/7 bordas nítidas, mas com contorno irregular; Menzies: pseudopodes; SPCL: véu irregular).
+- **Múltiplas cores** (ABCD: 5 cores; Menzies: múltiplas cores; SPCL: hiperpigmentação + cores implícitas).
+- **Estruturas atípicas** (ABCD: rede, glóbulos; Menzies: pseudopodes; SPCL: retículo irregular + globulos).
+- **Presença de pontos pretos periféricos** (Menzies; SPCL sugere regressão ausente, mas não contradiz a presença de pontos).
+- **Pseudopodes e streaming radial ausente?** — Menzies não registrou streaming radial, mas registrou pseudopodes, o que é marcador importante.
+
+---
+
+**4. Considerações sobre a Imagem (Se disponível):**
+
+*Nota: A imagem segmentada foi mencionada como fornecida, mas não está visível em meu ambiente atual. Contudo, considero que os três algoritmos foram consistentemente aplicados com base na lesão visualmente segmentada. Se a imagem revelasse características que contradizem os padrões identificados (ex: lesão completamente simétrica ou sem bordas irregulares), poderia haver reconsideração — mas, **não há indícios de tal discordância nos relatórios fornecidos**.*
+
+---
+
+**5. Recomendação Clínica (Não diagnóstica, apenas orientação):**
+
+📌 **A lesão apresenta comportamento atípico consistentemente descrito por três critérios independentes e robustos.**
+
+🔍 **Avaliação por um dermatologista com experiência em melanoma é urgente.**
+
+🩺 **Recomenda-se biópsia de todo o lesão com margem adequada, preferencialmente por excisão completa, seguida de avaliação histopatológica com análise de bordas e microscopia.**
+
+📌 **O uso de algoritmos como Menzies e SPCL, além do ABCD, aumenta a confiança diagnóstica, mesmo que o método ABCD seja mais amplamente utilizado.**
+
+---
+
+**Resumo Final:**
+
+> 📌 **Lesão cutânea com comportamento atípico característico de melanoma.**
+> 📌 **Todos os três algoritmos confirmam suspeita diagnóstica de melanoma.**
+> 📌 **Avaliação clínica imediata por dermatologista é essencial.**
+> 📌 **Biópsia com excisão completa é a próxima etapa terapêutica recomendada.**
+
+---
+
+*Este relatório é uma síntese da análise de critérios clínicos, não um diagnóstico. A confirmação histopatológica é indispensável.*"""
+
 REAL_RAW_TEXT_CONFLITANTE = """**Diagnóstico Consolidado: Lesão de Baixo Risco com Suspeita Discordante de Alta Gravidade (Avaliação Integrada)**
 
 ---
@@ -357,6 +432,45 @@ def test_real_unanime_positivo_v2_now_classifies_positivo():
 
 
 # ---------------------------------------------------------------------------
+# 2b2. Caso real "unanime_positivo", SEGUNDA execução real (gate v2
+#      oficial, ver docs/reconstruction/20_local_vlm_pilot.md §9d).
+#      Inferência local via Ollama não é determinística -- o modelo deu
+#      um texto bruto DIFERENTE desta vez, com "suspeita diagnóstica de
+#      melanoma" no "Resumo Final". Este é um teste de regressão
+#      DISTINTO de `test_real_unanime_positivo_v2_now_classifies_positivo`
+#      (que usa REAL_RAW_TEXT_UNANIME_POSITIVO, a primeira execução,
+#      "suspeita clara e consistente de melanoma") -- ambos são reais e
+#      válidos, cobrindo duas paráfrases reais distintas que o modelo já
+#      produziu para o mesmo cenário de controle.
+# ---------------------------------------------------------------------------
+def test_real_unanime_positivo_segunda_execucao_v1_still_positivo():
+    """v1 (intocado) continua acertando "positivo" por coincidência de
+    substring no TÍTULO desta segunda resposta real ("Diagnóstico
+    Consolidado – Lesão Cutânea Suspeita de Melanoma")."""
+    assert classify_case_status({"validation": REAL_RAW_TEXT_UNANIME_POSITIVO_SEGUNDA_EXECUCAO}) == POSITIVO
+
+
+def test_real_unanime_positivo_segunda_execucao_v2_now_classifies_positivo():
+    """Teste de regressão do gap real encontrado na SEGUNDA execução real
+    do piloto (texto bruto diferente da primeira execução, mesmo
+    cenário): a extensão do vocabulário fechado com "diagnóstica"/
+    "clínica" (qualificadores, não intensificadores -- decisão verbatim
+    do pesquisador) deve reconhecer "suspeita diagnóstica de melanoma"
+    como afirmação inequívoca, usando a REGIÃO DE CONCLUSÃO FINAL (o
+    "Resumo Final", não o título, que fica fora da metade final do
+    documento)."""
+    result = classify_case_status_v2_detailed({"validation": REAL_RAW_TEXT_UNANIME_POSITIVO_SEGUNDA_EXECUCAO})
+    assert result.status == POSITIVO
+    assert result.parser_version == PARSER_VERSION
+    assert "suspeita" in result.matched_variant
+    assert "melanoma" in result.matched_variant
+    assert "diagnóstica" in result.matched_variant
+    # confirma que o match usado foi dentro do "Resumo Final" (região de
+    # conclusão final), não do título fora da metade final do documento.
+    assert "resumo final" in result.extraction.region_text.lower()
+
+
+# ---------------------------------------------------------------------------
 # 2c. Extensão POSITIVO 2026-11-14 -- casos de rejeição explícitos pedidos
 #     pelo pesquisador (sintéticos).
 # ---------------------------------------------------------------------------
@@ -366,6 +480,31 @@ def test_sem_suspeita_de_melanoma_is_not_positivo():
     text = "### Conclusão Final\n\nSem suspeita de melanoma; achados compatíveis com lesão comum."
     result = classify_case_status_v2_detailed({"validation": text})
     assert result.status != POSITIVO
+
+
+def test_sem_suspeita_diagnostica_de_melanoma_is_not_positivo():
+    """Pedido explícito do pesquisador: "sem suspeita diagnóstica de
+    melanoma" NÃO deve ser positivo -- "sem" está imediatamente antes de
+    "suspeita", independentemente da palavra qualificadora
+    ("diagnóstica") que aparece DEPOIS, entre "suspeita" e "de melanoma".
+    `_is_sem_prefixed` olha só as palavras ANTES do início do match
+    ("suspeita"), então o qualificador no meio não deveria precisar de
+    nenhuma mudança de código para continuar bloqueado -- este teste
+    confirma isso na prática, com o vocabulário novo já em vigor."""
+    text = "### Conclusão Final\n\nSem suspeita diagnóstica de melanoma; achados compatíveis com lesão comum."
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status != POSITIVO
+
+
+def test_suspeita_clinica_de_melanoma_is_positivo():
+    """Variante explícita pedida pelo pesquisador: "suspeita clínica de
+    melanoma" deve ser aceita como positivo -- "clínica" é um
+    qualificador, não um intensificador, mas a suspeita é afirmativa e
+    inequívoca na conclusão final (mesma regra já aprovada)."""
+    text = "### Conclusão Final\n\nHá suspeita clínica de melanoma com base nos três algoritmos."
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status == POSITIVO
+    assert "clínica" in result.matched_variant
 
 
 def test_melanoma_nao_pode_ser_descartado_is_not_positivo():
@@ -411,6 +550,49 @@ def test_differential_diagnosis_listing_known_residual_risk():
     )
     result = classify_case_status_v2_detailed({"validation": text})
     assert result.status == POSITIVO  # risco residual conhecido, não uma correção pedida
+
+
+def test_differential_diagnosis_listing_with_qualifier_outside_final_region_is_not_positivo():
+    """Pedido explícito do pesquisador (2026-11-14, segunda rodada):
+    "uma menção apenas no diagnóstico diferencial [não deve ser]
+    classificada como positiva" -- com a NOVA palavra qualificadora
+    ("diagnóstica") que motivou esta entrega.
+
+    Raciocínio sobre a heurística de REGIÃO (não um guarda novo, ver
+    docstring de `_extract_final_conclusion_region`): no corpo real de
+    uma resposta, uma listagem de diagnóstico diferencial tipicamente
+    aparece numa seção de "Análise"/"Discussão", ANTES do marcador de
+    conclusão final (ex. "Conclusão Final"/"Diagnóstico Consolidado"), e
+    portanto fica FORA da região extraída -- a heurística de extração já
+    protege este caso sem precisar de um guarda textual dedicado
+    ("diagnóstico diferencial inclui ..."). Este teste confirma isso na
+    prática: a listagem aparece num parágrafo anterior ao marcador de
+    conclusão, e o parecer final não repete a suspeita.
+
+    RISCO RESIDUAL AINDA NÃO CORRIGIDO (ver
+    `test_differential_diagnosis_listing_known_residual_risk`, acima): SE
+    um modelo escrever a listagem de diferencial DENTRO do próprio
+    parágrafo de conclusão final (como naquele teste), o parser ainda
+    classifica positivo -- a proteção aqui vem inteiramente da heurística
+    de extração de região, não de uma análise de contexto de listagem.
+    Isto NÃO está corrigido nesta entrega (não foi pedido um guarda
+    textual; generalizar sem mais dados reais seria arriscado) e
+    permanece documentado como risco conhecido, não coberto para todo
+    estilo de resposta possível."""
+    text = (
+        "### Análise\n\n"
+        "O diagnóstico diferencial inclui suspeita diagnóstica de melanoma, "
+        "nevo atípico e ceratose seborreica, a confirmar com biópsia.\n\n"
+        "### Conclusão Final\n\n"
+        "A lesão apresenta padrão benigno, compatível com nevo comum."
+    )
+    result = classify_case_status_v2_detailed({"validation": text})
+    assert result.status != POSITIVO
+    assert result.status == NEGATIVO
+    # confirma que a listagem de diferencial ficou FORA da região de
+    # conclusão final extraída -- é essa exclusão, não uma análise de
+    # contexto, que evita o falso-positivo aqui.
+    assert "diagnóstico diferencial" not in result.extraction.region_text.lower()
 
 
 # ---------------------------------------------------------------------------

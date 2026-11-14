@@ -765,3 +765,243 @@ exigência de revisão manual não é removida pela troca de parser (ver
     oficial/rastreabilidade inequívoco; não foi ditado literalmente pelo
     pesquisador (que só pediu "um campo claramente nomeado" e "registre
     explicitamente a versão do parser").
+
+## 9d. Segunda extensão do vocabulário fechado POSITIVO -- "suspeita diagnóstica/clínica de melanoma" (2026-11-14)
+
+STATUS: implementado, aguardando execução do pesquisador. Nada deste
+pacote foi executado pelo assistente que o escreveu
+(`feedback_no_autonomous_execution`) — nenhum `python`/`pytest`/`git`
+foi chamado.
+
+### 9d.1 Contexto real confirmado
+
+O pesquisador reexecutou de fato o Estágio 1 de
+`qwen3-vl:8b-instruct-q4_K_M` sob o gate v2 OFICIAL (decisão §9c, já em
+produção). Inferência local via Ollama não é determinística (já
+documentado repetidamente neste projeto) — o modelo deu um texto bruto
+DIFERENTE da execução anterior para o MESMO cenário de controle.
+Resultado real desta segunda execução: 3/4 cenários de síntese passaram
+sob v2, incluindo `um_parecer_ausente` (o alvo original da correção —
+confirmando que a troca de gate funciona corretamente). `unanime_positivo`
+FALHOU nesta execução: o "Resumo Final" real (preservado em
+`experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M/
+report.md`, campo `justificativa` do cenário `unanime_positivo`) contém:
+
+```
+📌 Todos os três algoritmos confirmam suspeita diagnóstica de melanoma.
+```
+
+A palavra **"diagnóstica"** fica entre "suspeita" e "de melanoma" e NÃO
+estava no vocabulário fechado `_AFFIRMATIVE_INTENSIFIER_WORDS`
+(`clara, claro, consistente, forte, elevada, alta, significativa,
+importante, evidente, real, concreta, moderada, considerável,
+considerada, e`) — o regex
+`_AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN` não bateu, e v2 devolveu
+`nao_reconhecido`. v1 (`classify_case_status`) acertou por coincidência
+de substring: o TÍTULO da mesma resposta usa a frase literal "Lesão
+Cutânea Suspeita de Melanoma" (fora da região de conclusão final que v2
+examina) — v1 NÃO é usado como fallback, conforme decisão já fechada
+em §9c (`passed`/`official_classification_parser_version` em
+`run_synthesis_control` leem só v2).
+
+### 9d.2 Decisão do pesquisador (verbatim, implementada)
+
+"Escolha a opção 1. Aceite 'suspeita diagnóstica de melanoma' e
+'suspeita clínica de melanoma' como variantes explícitas. 'Diagnóstica'
+e 'clínica' são qualificadores, não intensificadores: a classificação
+como positiva vem da suspeita afirmativa na conclusão final, conforme a
+regra já aprovada. Peça ao chat técnico para manter a lista fechada e
+aplicar a mesma regra ao VLM direto e ao sumarizador. Inclua testes em
+que 'sem suspeita diagnóstica de melanoma', 'melanoma não pode ser
+descartado' e uma menção apenas no diagnóstico diferencial não sejam
+classificados como positivos. Registre a revisão do parser e reaplique-a
+às respostas brutas já salvas, sem repetir inferências. Se os testes de
+regressão passarem, use essa revisão no gate oficial para todos os
+candidatos."
+
+### 9d.3 Implementação (`src/evaluation/case_status_v2.py`)
+
+- `PARSER_VERSION` trocado para
+  `"v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14"`
+  (nunca mantido silenciosamente — rastreável por este campo em cada
+  registro reclassificado).
+- `_AFFIRMATIVE_INTENSIFIER_WORDS` renomeado para
+  `_AFFIRMATIVE_QUALIFIER_WORDS` (só clareza conceitual — o pesquisador
+  distingue explicitamente "qualificador" de "intensificador"; o
+  MECANISMO não mudou: ainda um vocabulário FECHADO de palavras aceitas
+  entre "suspeita" e "de melanoma", mesmo regex
+  `_AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN`, mesmo escopo de
+  cláusula/negação/"sem"-prefixo/hedge). Adicionadas 4 entradas:
+  `"diagnóstica"`, `"diagnostica"`, `"clínica"`, `"clinica"` (formas
+  acentuada e sem acento, mesmo padrão já usado para as palavras
+  anteriores do vocabulário, que não têm variante sem acento porque
+  nenhuma delas tinha acento).
+- Nenhuma mudança em `_is_sem_prefixed`/`_is_hedged_uncertain`/
+  `_is_negated`/`_extract_final_conclusion_region`/`LABEL_VARIANTS_V2` —
+  o pedido foi estritamente de vocabulário, não de mecanismo.
+
+### 9d.4 Confirmação explícita — `_is_sem_prefixed` continua bloqueando com o qualificador no meio
+
+Verificado por leitura de código, não assumido: `_is_sem_prefixed`
+examina só as palavras na cláusula atual ANTES do índice onde o match
+começa (`match_start`, que é o índice de "suspeita" tanto para a frase
+literal quanto para o padrão regex novo). A palavra qualificadora
+("diagnóstica"/"clínica") aparece DEPOIS de "suspeita" dentro do próprio
+match — nunca entra na janela de busca de "sem", que olha só para
+trás. Portanto "sem suspeita diagnóstica de melanoma" continua bloqueado
+sem precisar de nenhuma mudança de código. Confirmado por um teste NOVO
+e explícito (`test_sem_suspeita_diagnostica_de_melanoma_is_not_positivo`
+em `tests/evaluation/test_case_status_v2.py`) — esta frase exata não
+tinha teste antes desta entrega (o teste existente só cobria "sem
+suspeita de melanoma", sem a palavra qualificadora no meio).
+
+"Melanoma não pode ser descartado" permanece `nao_reconhecido`
+(inalterado, nenhum match possível — não contém a palavra "suspeita" em
+nenhum lugar, então nenhum padrão, antigo ou novo, dispara); já havia
+teste cobrindo esta frase exata
+(`test_melanoma_nao_pode_ser_descartado_is_not_positivo`), confirmado
+sem modificação por leitura/raciocínio.
+
+### 9d.5 Risco residual de listagem de diagnóstico diferencial — o que É e NÃO É coberto
+
+Pedido explícito do pesquisador: "uma menção apenas no diagnóstico
+diferencial [não deve ser] classificada como positiva". Isto foi
+investigado, não assumido, contra a heurística de EXTRAÇÃO DE REGIÃO já
+existente (`_extract_final_conclusion_region`) — nenhum guarda textual
+novo (ex.: detectar "diagnóstico diferencial inclui ..." como contexto
+de listagem) foi implementado, por decisão já fechada na entrega
+anterior (§9b.9, item 19) de não generalizar sem mais dados reais.
+
+**O que É coberto** (teste novo
+`test_differential_diagnosis_listing_with_qualifier_outside_final_region_is_not_positivo`):
+quando a listagem de diagnóstico diferencial aparece numa seção ANTES do
+marcador de conclusão final (o padrão típico de uma resposta estruturada
+— análise/discussão primeiro, conclusão depois), a heurística de
+extração de região JÁ exclui essa listagem da região examinada — mesmo
+com a palavra qualificadora nova ("suspeita diagnóstica de melanoma")
+dentro da listagem, o resultado não é positivo, porque a região de
+conclusão final extraída nem contém a frase. Esta proteção vem
+inteiramente do mecanismo de extração de região já existente (não
+tocado nesta entrega), não de uma análise de contexto de listagem.
+
+**O que NÃO é coberto — risco residual ainda aberto**: o teste
+pré-existente `test_differential_diagnosis_listing_known_residual_risk`
+(entrega anterior, §9b.9 item 19) já documentava e FIXAVA como
+comportamento conhecido que, SE a listagem de diferencial aparecer
+DENTRO do próprio parágrafo de conclusão final (ex.: um modelo que
+escreva "Conclusão: diagnóstico diferencial inclui suspeita de melanoma,
+nevo atípico..." como seu veredito literal), o parser classifica
+positivo mesmo assim — a frase bate dentro da região extraída. Esta
+entrega NÃO resolve esse caso (não foi pedido um guarda textual
+específico, e eis o motivo documentado: distinguir "listagem dentro da
+conclusão" de "veredito real que menciona melanoma entre outras
+alternativas descartadas" exigiria uma heurística de contexto nova,
+arriscada de acertar sem mais exemplos reais de como um VLM local
+escreve isso). **Não afirmamos cobertura total** — se um modelo real
+produzir uma listagem de diferencial dentro da região de conclusão
+final em uma execução futura, o comportamento documentado (positivo) se
+aplica, e permanece um risco residual conhecido, não uma lacuna
+silenciosa.
+
+### 9d.6 Aplicação idêntica a VLM-direto e sumarizador
+
+Confirmado por leitura de código (não assumido): `run_vlm_direct_call`
+(`src/multiagent/vlm_direct.py`, linha 515) e `run_multiagent_role_call`
+(linha 615, só para `role == ROLE_SUMMARY`) chamam
+`classify_case_status_v2({"validation": raw_text})` — a MESMA função,
+sem nenhuma ramificação por papel. `run_synthesis_control` (linha 1249)
+também chama a mesma função. A extensão de vocabulário desta entrega
+está dentro de `case_status_v2.py`, reusada identicamente pelas três
+chamadas — nenhuma mudança de código foi necessária fora de
+`case_status_v2.py` para propagar a extensão a VLM-direto/sumarizador.
+
+### 9d.7 Arquivos alterados nesta entrega
+
+- `src/evaluation/case_status_v2.py` — `PARSER_VERSION` novo;
+  `_AFFIRMATIVE_INTENSIFIER_WORDS` renomeado para
+  `_AFFIRMATIVE_QUALIFIER_WORDS`, com as 4 entradas novas
+  (`diagnóstica`/`diagnostica`/`clínica`/`clinica`); comentários
+  atualizados com o caso real da segunda execução.
+- `tests/evaluation/test_case_status_v2.py` — nova fixture
+  `REAL_RAW_TEXT_UNANIME_POSITIVO_SEGUNDA_EXECUCAO` (texto bruto REAL,
+  verbatim, da segunda execução real, copiado de `report.md` — DISTINTO
+  da fixture `REAL_RAW_TEXT_UNANIME_POSITIVO` já existente, que é a
+  primeira execução); testes novos:
+  `test_real_unanime_positivo_segunda_execucao_v1_still_positivo`,
+  `test_real_unanime_positivo_segunda_execucao_v2_now_classifies_positivo`,
+  `test_sem_suspeita_diagnostica_de_melanoma_is_not_positivo`,
+  `test_suspeita_clinica_de_melanoma_is_positivo`,
+  `test_differential_diagnosis_listing_with_qualifier_outside_final_region_is_not_positivo`.
+  Testes já existentes (`test_melanoma_nao_pode_ser_descartado_is_not_positivo`,
+  `test_differential_diagnosis_listing_known_residual_risk`, todos os
+  demais) confirmados inalterados por leitura/raciocínio.
+
+Não alterados nesta entrega: `scripts/run_reclassify_pilot_with_v2_parser.py`
+(já importa `PARSER_VERSION`/`classify_case_status_v2_detailed` por
+import — a nova versão do parser é usada automaticamente na próxima
+execução, nenhuma mudança funcional necessária, confirmado por leitura),
+`src/multiagent/vlm_direct.py`, `scripts/run_local_vlm_pilot.py`,
+`src/evaluation/case_status.py`, `src/agents/agents.py`,
+`src/agents/schemas.py`, `src/multiagent/presentation.py`. O gate
+oficial (v2-como-oficial, decisão §9c) em si não muda nesta entrega —
+só o VOCABULÁRIO que v2 aceita é estendido.
+
+### 9d.8 Comando de reclassificação (reexecutar com o vocabulário novo)
+
+```
+python scripts/run_reclassify_pilot_with_v2_parser.py \
+    --output-dir experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M
+```
+
+Produz um NOVO `reclassification_v2_results.json`/`reclassification_v2_report.md`
+no mesmo diretório (sobrescrevendo só estes dois arquivos de
+reclassificação — nunca `call_log.jsonl`/`call_log_matriz_principal.jsonl`/
+`summary.json`/`report.md` originais). Resultado esperado: o registro
+`image=controle_unanime_positivo`/`role=summary` passa a ter
+`v2_classified_status: "positivo"` (antes `"nao_reconhecido"` sob o
+parser anterior) e `v2_parser_version:
+"v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14"`.
+Para comparar com a execução anterior sem perder o "antes": copiar os
+dois arquivos atuais para um nome `..._before_2026_11_14_qualificadores`
+antes de rodar de novo (o script não faz isso automaticamente).
+
+### 9d.9 Comando de testes
+
+```
+python -m pytest tests/evaluation/test_case_status_v2.py -v
+```
+
+### 9d.10 Confirmação explícita — demais gates/critérios intocados
+
+- O gate oficial v2-como-oficial (decisão §9c) não é revisitado nesta
+  entrega — só o vocabulário que `classify_case_status_v2` aceita como
+  POSITIVO foi estendido. `run_synthesis_control`/`_write_full_report`/
+  `_write_stop_report` continuam lendo exatamente os mesmos campos
+  (`classified_status_v2`, `official_classification_parser_version`)
+  descritos em §9c.3 — nenhuma mudança de leitura de campo foi
+  necessária.
+- Checagem de fidelidade da síntese
+  (`_check_not_evaluated_not_misrepresented_as_absent`/
+  `_check_absence_not_misrepresented_as_lesion_lacks_feature`) — não
+  tocada, conforme §9c.5 (eixo ortogonal à classificação de status).
+- Controles de envio de imagem e gate de revisão manual de achado
+  novo — não tocados, conforme §9c.5 (eixos ortogonais).
+- Abstenção/pausa sistemática (`AbstentionTracker`) — lê só
+  `call_status`, nunca `classified_status`/`classified_status_v2`; não
+  tocada.
+
+### 9d.11 Interpretações de design novas introduzidas nesta entrega (sem confirmação explícita)
+
+21. As 4 formas adicionadas (`diagnóstica`/`diagnostica`/`clínica`/
+    `clinica`) cobrem o caso real observado (`unanime_positivo`, segunda
+    execução), mas continuam sendo uma lista fechada de conveniência —
+    não confirmada contra outras formas possíveis de um VLM expressar
+    suspeita afirmativa (ex.: "suspeita presumida", "suspeita
+    diagnosticada" — não observadas ainda em dados reais, não
+    adicionadas preventivamente).
+22. A escolha de proteger o risco de listagem de diferencial SOMENTE via
+    a heurística de extração de região já existente (sem um guarda
+    textual novo) é uma decisão explícita de não generalizar sem mais
+    dados reais — mantém o risco residual já documentado em §9b.9 item
+    19 em aberto para o caso em que a listagem aparece DENTRO da região
+    de conclusão final.

@@ -63,7 +63,7 @@ from src.evaluation.case_status import (
     POSITIVO,
 )
 
-PARSER_VERSION = "v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14"
+PARSER_VERSION = "v2_conclusion_line_positivo_suspeita_melanoma_qualificadores_2026_11_14"
 
 # Entrega 2026-11-14 (ver docs/reconstruction/20_local_vlm_pilot.md §9b):
 # decisão verbatim do pesquisador -- "Escolha a opção 1, mas não aceite
@@ -77,6 +77,36 @@ PARSER_VERSION = "v2_conclusion_line_positivo_suspeita_melanoma_2026_11_14"
 # com palavras intensificadoras no meio). O PARSER_VERSION foi trocado
 # (nunca mantido silenciosamente) para que resultados antigos e novos
 # sejam rastreáveis a qual versão do parser os produziu.
+#
+# Entrega 2026-11-14 (segunda rodada, ver
+# docs/reconstruction/20_local_vlm_pilot.md §9d): o pesquisador rodou de
+# verdade o Estágio 1 sob o gate v2 oficial (decisão §9c) e o modelo deu
+# uma resposta bruta DIFERENTE da rodada anterior para o MESMO cenário
+# de controle `unanime_positivo` (inferência local via Ollama não é
+# determinística -- já documentado repetidamente neste projeto). A nova
+# resposta real tem, no "Resumo Final" (região de conclusão final
+# extraída corretamente por v2):
+#   "Todos os três algoritmos confirmam suspeita diagnóstica de
+#   melanoma."
+# A palavra "diagnóstica" fica entre "suspeita" e "de melanoma" e NÃO
+# estava no vocabulário fechado `_AFFIRMATIVE_INTENSIFIER_WORDS` (agora
+# `_AFFIRMATIVE_QUALIFIER_WORDS`, ver seção 1b) -- o regex não bateu e v2
+# devolveu `nao_reconhecido` para este caso. v1 acertou por coincidência
+# (o TÍTULO da mesma resposta usa a frase literal "Lesão Cutânea
+# Suspeita de Melanoma", fora da região de conclusão final que v2
+# examina -- v1 não é fallback, por decisão já fechada em §9c).
+#
+# Decisão do pesquisador (verbatim): "Escolha a opção 1. Aceite 'suspeita
+# diagnóstica de melanoma' e 'suspeita clínica de melanoma' como
+# variantes explícitas. 'Diagnóstica' e 'clínica' são qualificadores, não
+# intensificadores: a classificação como positiva vem da suspeita
+# afirmativa na conclusão final, conforme a regra já aprovada." --
+# "diagnóstica"/"diagnostica"/"clínica"/"clinica" adicionadas ao MESMO
+# vocabulário fechado (renomeado de "intensificador" para "qualificador e
+# intensificador", só por clareza conceitual -- o MECANISMO (regex de
+# vocabulário fechado entre "suspeita" e "de melanoma", mesmo
+# escopo/negação/"sem"-prefixo/hedge) não mudou. PARSER_VERSION trocado
+# de novo (nunca mantido silenciosamente).
 
 # ---------------------------------------------------------------------------
 # 1. Mapeamento explícito e versionado de variantes de rótulo aceitas --
@@ -163,40 +193,63 @@ _CLAUSE_BOUNDARY_CHARS = (".", "!", "?", ";", ",", ":", "\n")
 
 # ---------------------------------------------------------------------------
 # 1b. Extensão POSITIVO 2026-11-14 -- "suspeita ... melanoma" com palavras
-#     intensificadoras/descritivas entre "suspeita" e "de melanoma", desde
-#     que a conclusão final expresse suspeita AFIRMATIVA E INEQUÍVOCA
-#     (decisão verbatim do pesquisador, ver `PARSER_VERSION` acima).
+#     QUALIFICADORAS/intensificadoras/descritivas entre "suspeita" e "de
+#     melanoma", desde que a conclusão final expresse suspeita AFIRMATIVA
+#     E INEQUÍVOCA (decisão verbatim do pesquisador, ver `PARSER_VERSION`
+#     acima).
 #
-#     Caso real de regressão (`unanime_positivo`, Estágio 1,
-#     qwen3-vl:8b-instruct-q4_K_M): a região de conclusão final real é
-#     "Há suspeita clara e consistente de melanoma maligno com base em
-#     três algoritmos..." -- a frase literal "suspeita de melanoma" NÃO
-#     aparece como substring (as palavras "clara e consistente" quebram
-#     o match), mas o veredito é inequivocamente afirmativo. v1 acertou
-#     "positivo" só porque o TÍTULO do documento ("Diagnóstico
-#     Consolidado: Suspeita de Melanoma Maligno") contém a frase literal
-#     -- v1 varre o corpo inteiro, v2 (corretamente, por design) só olha
-#     a região de conclusão final, que não repete a frase literal.
+#     Caso real de regressão #1 (`unanime_positivo`, Estágio 1,
+#     qwen3-vl:8b-instruct-q4_K_M, primeira execução real): a região de
+#     conclusão final real é "Há suspeita clara e consistente de
+#     melanoma maligno com base em três algoritmos..." -- a frase
+#     literal "suspeita de melanoma" NÃO aparece como substring (as
+#     palavras "clara e consistente" quebram o match), mas o veredito é
+#     inequivocamente afirmativo. v1 acertou "positivo" só porque o
+#     TÍTULO do documento ("Diagnóstico Consolidado: Suspeita de
+#     Melanoma Maligno") contém a frase literal -- v1 varre o corpo
+#     inteiro, v2 (corretamente, por design) só olha a região de
+#     conclusão final, que não repete a frase literal.
+#
+#     Caso real de regressão #2 (`unanime_positivo`, mesmo cenário de
+#     controle, SEGUNDA execução real do Estágio 1 sob o gate v2 oficial
+#     -- inferência local via Ollama não é determinística, o modelo deu
+#     um texto bruto DIFERENTE desta vez): o "Resumo Final" real é
+#     "Todos os três algoritmos confirmam suspeita diagnóstica de
+#     melanoma." -- a palavra "diagnóstica" entre "suspeita" e "de
+#     melanoma" não estava no vocabulário fechado original (que só tinha
+#     intensificadores como "clara"/"forte"). Decisão verbatim do
+#     pesquisador: "'Diagnóstica' e 'clínica' são qualificadores, não
+#     intensificadores: a classificação como positiva vem da suspeita
+#     afirmativa na conclusão final, conforme a regra já aprovada." --
+#     adicionadas ao MESMO vocabulário fechado (renomeado "qualificador e
+#     intensificador" só por clareza conceitual; mecanismo inalterado).
 #
 #     Regra implementada (NÃO "contém as duas palavras em qualquer
 #     lugar da cláusula" -- isso seria arriscado demais, pegaria listas
-#     de diagnóstico diferencial): exige literalmente a palavra
-#     "suspeita", seguida de 0 a 6 palavras de um vocabulário FECHADO de
-#     intensificadores/conectivos (`_AFFIRMATIVE_INTENSIFIER_WORDS`),
-#     seguida de "de melanoma". A ausência de pontuação entre as palavras
-#     do vocabulário fechado (regex exige espaço, nunca vírgula/ponto)
-#     já restringe o match à MESMA cláusula, no mesmo espírito de
-#     `_CLAUSE_BOUNDARY_CHARS` usado pelo resto do módulo -- qualquer
-#     vírgula/ponto entre "suspeita" e "de melanoma" quebra o match
-#     (ex.: "suspeita, segundo o laudo, de melanoma" NÃO casa).
+#     de diagnóstico diferencial, ver risco residual conhecido na seção
+#     4 do pedido/testes): exige literalmente a palavra "suspeita",
+#     seguida de 0 a 6 palavras de um vocabulário FECHADO de
+#     qualificadores/intensificadores/conectivos
+#     (`_AFFIRMATIVE_QUALIFIER_WORDS`), seguida de "de melanoma". A
+#     ausência de pontuação entre as palavras do vocabulário fechado
+#     (regex exige espaço, nunca vírgula/ponto) já restringe o match à
+#     MESMA cláusula, no mesmo espírito de `_CLAUSE_BOUNDARY_CHARS`
+#     usado pelo resto do módulo -- qualquer vírgula/ponto entre
+#     "suspeita" e "de melanoma" quebra o match (ex.: "suspeita, segundo
+#     o laudo, de melanoma" NÃO casa).
 # ---------------------------------------------------------------------------
-_AFFIRMATIVE_INTENSIFIER_WORDS = (
+_AFFIRMATIVE_QUALIFIER_WORDS = (
     "clara", "claro", "consistente", "forte", "elevada", "alta",
     "significativa", "importante", "evidente", "real", "concreta",
     "moderada", "considerável", "considerada", "e",
+    # NOVO 2026-11-14 (segunda rodada) -- qualificadores, não
+    # intensificadores (decisão verbatim do pesquisador acima); caso real
+    # motivador: "suspeita diagnóstica de melanoma" (unanime_positivo,
+    # 2ª execução real do Estágio 1).
+    "diagnóstica", "diagnostica", "clínica", "clinica",
 )
 _AFFIRMATIVE_SUSPEITA_MELANOMA_PATTERN = re.compile(
-    r"suspeita(?:\s+(?:" + "|".join(_AFFIRMATIVE_INTENSIFIER_WORDS) + r")){0,6}\s+de\s+melanoma"
+    r"suspeita(?:\s+(?:" + "|".join(_AFFIRMATIVE_QUALIFIER_WORDS) + r")){0,6}\s+de\s+melanoma"
 )
 
 # "sem suspeita de melanoma" -- REJEITAR. Decisão explícita do
