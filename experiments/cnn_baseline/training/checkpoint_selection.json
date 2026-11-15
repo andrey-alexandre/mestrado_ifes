@@ -1,0 +1,30 @@
+{
+  "selected_epoch": 19,
+  "selected_val_auc": 0.8568916847041848,
+  "rule": "melhor AUC-ROC de validacao (maior valor); em caso de empate, a epoca mais cedo",
+  "config": {
+    "architecture": "efficientnet_v2_s",
+    "pretrained_weights": "IMAGENET1K_V1",
+    "epochs": 20,
+    "batch_size": 32,
+    "lr": 0.0001,
+    "seed_treino": 42,
+    "device": "mps",
+    "num_workers": 10,
+    "optimizer": "AdamW",
+    "loss": "BCEWithLogitsLoss",
+    "augmentation": "RandomHorizontalFlip(p=0.5), somente no split de treino",
+    "binary_target_to_label": {
+      "melanoma": 1,
+      "nao_melanoma": 0
+    },
+    "manifest_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/cnn_baseline/bcn20000_split_manifest.csv",
+    "manifest_sha256": "66ccaead92e97b5690f1ab9c7a41c924444da5a238b46f62b54cd75d60675ab0",
+    "data_split_seed": 20261107,
+    "data_split_partition_policy": "apenas_train",
+    "data_split_val_fraction_requested": 0.2,
+    "checkpoint_selection_rule": "melhor AUC-ROC de validacao (maior valor; empate: epoca mais cedo)",
+    "n_train_images": 9912,
+    "n_val_images": 2501
+  }
+}
