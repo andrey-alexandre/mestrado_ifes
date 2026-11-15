@@ -1,0 +1,11 @@
+{
+  "threshold": 0.08107660710811615,
+  "sensitivity": 0.71875,
+  "specificity": 0.8477922077922078,
+  "youden_j": 0.5665422077922078,
+  "rule": "maior indice de Youden (sensibilidade + especificidade - 1) na curva ROC da validacao interna do BCN20000; empate: menor limiar",
+  "n_val_rows": 2501,
+  "n_positive": 576,
+  "n_negative": 1925,
+  "val_scores_path": "C:\\Projetos\\IFES\\mestrado_ifes\\experiments\\cnn_baseline\\training\\val_scores.csv"
+}
