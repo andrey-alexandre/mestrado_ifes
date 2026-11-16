@@ -617,6 +617,108 @@ def test_evaluate_manual_review_file_blocks_on_invalid_verdict_string():
 
 
 # ---------------------------------------------------------------------------
+# Revisão de FIDELIDADE da síntese (gate novo, 2026-11-16) -- substitui o
+# gate de "achado novo" acima; os testes acima ficam intactos para
+# rastreabilidade do vocabulário antigo.
+# ---------------------------------------------------------------------------
+def test_build_synthesis_fidelity_review_template_has_one_entry_per_scenario_with_null_verdict():
+    _FakeLLMForAgents.next_content = "Lesão Benigna. Sem achados relevantes."
+    synthesis_results = [
+        {k: v for k, v in vd.run_synthesis_control(MODEL_TAG, name).items() if k != "call_record"}
+        for name in vd.FIXED_SYNTHESIS_SCENARIOS
+    ]
+    template = vd.build_synthesis_fidelity_review_template(synthesis_results)
+    assert template["rule_version"] == vd.SYNTHESIS_FIDELITY_RULE_VERSION
+    assert len(template["scenarios"]) == len(vd.FIXED_SYNTHESIS_SCENARIOS)
+    for item in template["scenarios"]:
+        assert item["fidelity_verdict"] is None
+        assert item["reviewer_notes"] == ""
+        assert item["rule_version"] == vd.SYNTHESIS_FIDELITY_RULE_VERSION
+        assert "input_pareceres_fixos" in item
+        assert "diagnosis_menzies" in item["input_pareceres_fixos"]
+
+
+def test_build_synthesis_fidelity_review_template_preserves_old_heuristic_signals_as_read_only():
+    _FakeLLMForAgents.next_content = "Lesão Benigna. Sem achados relevantes."
+    synthesis_results = [
+        {k: v for k, v in vd.run_synthesis_control(MODEL_TAG, name).items() if k != "call_record"}
+        for name in vd.FIXED_SYNTHESIS_SCENARIOS
+    ]
+    template = vd.build_synthesis_fidelity_review_template(synthesis_results)
+    conflitante_item = next(s for s in template["scenarios"] if s["scenario"] == "conflitante")
+    assert "novel_clinical_terms_candidates" in conflitante_item["sinais_de_leitura_nao_decidem"]
+    assert "not_evaluated_vs_evaluated_absent_check" in conflitante_item["sinais_de_leitura_nao_decidem"]
+
+
+def test_evaluate_synthesis_fidelity_review_blocks_on_missing_verdict():
+    data = {"scenarios": [{"scenario": "unanime_positivo", "fidelity_verdict": None}]}
+    evaluation = vd.evaluate_synthesis_fidelity_review(data)
+    assert evaluation["all_scenarios_cleared"] is False
+    assert "unanime_positivo" in evaluation["missing_verdict_scenarios"]
+
+
+def test_evaluate_synthesis_fidelity_review_blocks_on_reprovada():
+    data = {"scenarios": [{"scenario": "conflitante", "fidelity_verdict": vd.FIDELITY_VERDICT_REPROVADA}]}
+    evaluation = vd.evaluate_synthesis_fidelity_review(data)
+    assert evaluation["all_scenarios_cleared"] is False
+    assert "conflitante" in evaluation["reproved_scenarios"]
+
+
+def test_evaluate_synthesis_fidelity_review_blocks_on_pendente():
+    data = {"scenarios": [{"scenario": "um_parecer_ausente", "fidelity_verdict": vd.FIDELITY_VERDICT_PENDENTE}]}
+    evaluation = vd.evaluate_synthesis_fidelity_review(data)
+    assert evaluation["all_scenarios_cleared"] is False
+    assert "um_parecer_ausente" in evaluation["pending_scenarios"]
+
+
+def test_evaluate_synthesis_fidelity_review_passes_when_all_approved():
+    data = {
+        "scenarios": [
+            {"scenario": name, "fidelity_verdict": vd.FIDELITY_VERDICT_APROVADA}
+            for name in vd.FIXED_SYNTHESIS_SCENARIOS
+        ]
+    }
+    evaluation = vd.evaluate_synthesis_fidelity_review(data)
+    assert evaluation["all_scenarios_cleared"] is True
+
+
+def test_evaluate_synthesis_fidelity_review_one_reproved_blocks_even_if_rest_approved():
+    data = {
+        "scenarios": [
+            {"scenario": "unanime_positivo", "fidelity_verdict": vd.FIDELITY_VERDICT_REPROVADA},
+            {"scenario": "unanime_negativo", "fidelity_verdict": vd.FIDELITY_VERDICT_APROVADA},
+            {"scenario": "conflitante", "fidelity_verdict": vd.FIDELITY_VERDICT_APROVADA},
+            {"scenario": "um_parecer_ausente", "fidelity_verdict": vd.FIDELITY_VERDICT_APROVADA},
+        ]
+    }
+    evaluation = vd.evaluate_synthesis_fidelity_review(data)
+    assert evaluation["all_scenarios_cleared"] is False
+    assert evaluation["reproved_scenarios"] == ["unanime_positivo"]
+
+
+def test_evaluate_synthesis_fidelity_review_blocks_on_invalid_verdict_string():
+    data = {"scenarios": [{"scenario": "unanime_negativo", "fidelity_verdict": "talvez"}]}
+    evaluation = vd.evaluate_synthesis_fidelity_review(data)
+    assert evaluation["all_scenarios_cleared"] is False
+    assert "unanime_negativo" in evaluation["invalid_verdict_scenarios"]
+
+
+def test_evaluate_synthesis_fidelity_review_never_reads_old_vocabulary_field():
+    # Um arquivo do vocabulário ANTIGO (manual_review_verdict) não tem
+    # 'fidelity_verdict' -- deve ser tratado como ausente, nunca
+    # convertido/adivinhado a partir do campo antigo.
+    data = {
+        "scenarios": [
+            {"scenario": name, "manual_review_verdict": vd.MANUAL_REVIEW_VERDICT_NO_NOVEL_FINDING}
+            for name in vd.FIXED_SYNTHESIS_SCENARIOS
+        ]
+    }
+    evaluation = vd.evaluate_synthesis_fidelity_review(data)
+    assert evaluation["all_scenarios_cleared"] is False
+    assert set(evaluation["missing_verdict_scenarios"]) == set(vd.FIXED_SYNTHESIS_SCENARIOS)
+
+
+# ---------------------------------------------------------------------------
 # classify_binary_coverage (inalterado)
 # ---------------------------------------------------------------------------
 @pytest.mark.parametrize(

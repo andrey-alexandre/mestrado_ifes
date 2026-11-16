@@ -1557,7 +1557,13 @@ def evaluate_manual_review_file(manual_review_data: dict[str, Any]) -> dict[str,
     """Confere se TODOS os cenários têm
     ``manual_review_verdict == MANUAL_REVIEW_VERDICT_NO_NOVEL_FINDING`` --
     qualquer veredito ausente/``None``/diferente disso bloqueia a
-    progressão (nunca assume/adivinha um veredito)."""
+    progressão (nunca assume/adivinha um veredito).
+
+    CONGELADO para rastreabilidade de execuções antigas (vocabulário
+    "achado novo", v1). A partir de 2026-11-16 este NÃO é mais o gate que
+    libera o Estágio 2 -- ver `evaluate_synthesis_fidelity_review` abaixo.
+    Nenhum veredito salvo sob este vocabulário é lido ou convertido pelo
+    critério novo."""
     scenarios = manual_review_data.get("scenarios", [])
     missing = [s["scenario"] for s in scenarios if s.get("manual_review_verdict") is None]
     novel_found = [s["scenario"] for s in scenarios if s.get("manual_review_verdict") == MANUAL_REVIEW_VERDICT_NOVEL_FINDING_FOUND]
@@ -1570,6 +1576,150 @@ def evaluate_manual_review_file(manual_review_data: dict[str, Any]) -> dict[str,
         "n_scenarios": len(scenarios),
         "missing_verdict_scenarios": missing,
         "novel_finding_scenarios": novel_found,
+        "invalid_verdict_scenarios": invalid,
+        "all_scenarios_cleared": all_clear,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 12c. Revisão de FIDELIDADE da síntese -- decisão do pesquisador,
+#      2026-11-16. SUBSTITUI `evaluate_manual_review_file` acima como o
+#      GATE que libera o Estágio 2. Critério (verbatim do pesquisador):
+#
+#      O sumarizador recebe a imagem dermatoscópica e os pareceres
+#      disponíveis. Ele PODE acrescentar observações/hipóteses próprias e
+#      chegar a uma conclusão diferente da de um agente, desde que
+#      preserve o que cada parecer diz -- isto NÃO é, por si só, falta de
+#      fidelidade.
+#
+#      APROVA: a síntese preserva o conteúdo e a autoria dos pareceres.
+#      Uma observação própria é permitida quando identificada como
+#      análise da imagem. Uma hipótese própria também é permitida, desde
+#      que apresentada como hipótese. Discordar de um agente não é
+#      distorcer seu parecer.
+#      REPROVA: a síntese inventa um parecer, atribui um achado ao agente
+#      errado, altera o conteúdo de um parecer, ou apresenta uma hipótese
+#      como achado confirmado. Confundir "avaliado e ausente" com "não
+#      avaliado", ou "parecer ausente" com "característica ausente na
+#      lesão", é erro de fidelidade.
+#      FICA PENDENTE: faltam a resposta original ou os pareceres
+#      necessários para decidir, ou o texto não permite distinguir com
+#      segurança uma atribuição incorreta de uma observação própria.
+#      Pendência NÃO libera o Estágio 2.
+#
+#      O vocabulário/gate de "achado novo" (v1, acima) NÃO é alterado nem
+#      migrado automaticamente -- fica congelado como está, só para
+#      rastreabilidade de execuções antigas. Este critério é NOVO e
+#      INDEPENDENTE; nenhuma função abaixo lê ou converte um veredito do
+#      vocabulário antigo.
+# ---------------------------------------------------------------------------
+SYNTHESIS_FIDELITY_RULE_VERSION = "fidelidade_sintese_v1_2026_11_16"
+
+FIDELITY_VERDICT_APROVADA = "fidelidade_aprovada"
+FIDELITY_VERDICT_REPROVADA = "fidelidade_reprovada"
+FIDELITY_VERDICT_PENDENTE = "fidelidade_pendente"
+VALID_FIDELITY_VERDICTS = (FIDELITY_VERDICT_APROVADA, FIDELITY_VERDICT_REPROVADA, FIDELITY_VERDICT_PENDENTE)
+
+FIDELITY_REVIEW_CRITERION_TEXT = (
+    "APROVA: a sintese preserva o conteudo e a autoria dos pareceres. Uma "
+    "observacao propria e permitida quando identificada como analise da "
+    "imagem. Uma hipotese propria tambem e permitida, desde que "
+    "apresentada como hipotese. Discordar de um agente nao e distorcer "
+    "seu parecer.\n"
+    "REPROVA: a sintese inventa um parecer, atribui um achado ao agente "
+    "errado, altera o conteudo de um parecer, ou apresenta uma hipotese "
+    "como achado confirmado. Confundir 'avaliado e ausente' com 'nao "
+    "avaliado', ou 'parecer ausente' com 'caracteristica ausente na "
+    "lesao', e erro de fidelidade.\n"
+    "FICA PENDENTE: faltam a resposta original ou os pareceres "
+    "necessarios para decidir, ou o texto nao permite distinguir com "
+    "seguranca uma atribuicao incorreta de uma observacao propria. "
+    "Pendencia NAO libera o Estagio 2."
+)
+
+
+def _dump_parecer(value: Any) -> Any:
+    return value.model_dump() if hasattr(value, "model_dump") else value
+
+
+def build_synthesis_fidelity_review_template(synthesis_results: list[dict[str, Any]]) -> dict[str, Any]:
+    """Um item por cenário de síntese, para o pesquisador aplicar o
+    CRITÉRIO DE FIDELIDADE (ver comentário acima) -- este é o artefato que
+    efetivamente libera o Estágio 2 a partir de 2026-11-16 (ver
+    `evaluate_synthesis_fidelity_review`), substituindo
+    `build_synthesis_manual_review_template`.
+
+    Inclui, por cenário, os pareceres de entrada FIXOS
+    (`FIXED_SYNTHESIS_SCENARIOS`) ao lado da justificativa REAL já salva
+    da síntese -- isto não é uma nova inferência, é só reapresentar um
+    dado de entrada já conhecido/congelado, para permitir a comparação
+    mecânica que o critério exige (conteúdo/autoria preservados ou não).
+    Os sinais heurísticos antigos (achado novo, as 2 checagens "não
+    avaliado") são preservados como SINAIS DE LEITURA -- nunca decidem
+    por conta própria."""
+    items = []
+    for r in synthesis_results:
+        scenario_name = r["scenario"]
+        scenario_inputs = FIXED_SYNTHESIS_SCENARIOS.get(scenario_name, {})
+        input_pareceres = {key: _dump_parecer(value) for key, value in scenario_inputs.items()}
+        items.append({
+            "scenario": scenario_name,
+            "justificativa": r.get("justificativa", ""),
+            "input_pareceres_fixos": input_pareceres,
+            "sinais_de_leitura_nao_decidem": {
+                "novel_clinical_terms_candidates": r.get("novel_clinical_terms_candidates", []),
+                "not_evaluated_vs_evaluated_absent_check": r.get("not_evaluated_vs_evaluated_absent_check"),
+                "absence_vs_lesion_lacks_feature_check": r.get("absence_vs_lesion_lacks_feature_check"),
+            },
+            "fidelity_verdict": None,
+            "reviewer_notes": "",
+            "rule_version": SYNTHESIS_FIDELITY_RULE_VERSION,
+        })
+    return {
+        "rule_version": SYNTHESIS_FIDELITY_RULE_VERSION,
+        "criterion": FIDELITY_REVIEW_CRITERION_TEXT,
+        "instructions": (
+            "Revise manualmente cada cenario usando o CRITERIO DE "
+            "FIDELIDADE acima (nao o vocabulario antigo de 'achado novo', "
+            "que nao decide mais nada aqui). Preencha 'fidelity_verdict' "
+            f"com exatamente '{FIDELITY_VERDICT_APROVADA}', "
+            f"'{FIDELITY_VERDICT_REPROVADA}' ou '{FIDELITY_VERDICT_PENDENTE}' "
+            "(strings exatas) e 'reviewer_notes' com observacoes livres. "
+            "Depois rode run_local_vlm_pilot.py "
+            "--synthesis-fidelity-review-file <este arquivo> para "
+            "prosseguir a matriz principal. Nenhum veredito de execucoes "
+            "antigas (vocabulario 'sem_achado_novo'/'achado_novo_encontrado') "
+            "e convertido ou lido por este fluxo."
+        ),
+        "valid_verdicts": list(VALID_FIDELITY_VERDICTS),
+        "scenarios": items,
+    }
+
+
+def evaluate_synthesis_fidelity_review(review_data: dict[str, Any]) -> dict[str, Any]:
+    """GATE OFICIAL a partir de 2026-11-16 (substitui
+    `evaluate_manual_review_file`): só libera o Estágio 2 se TODOS os
+    cenários tiverem ``fidelity_verdict == FIDELITY_VERDICT_APROVADA``.
+    Qualquer veredito ausente/``None``, ``FIDELITY_VERDICT_REPROVADA``,
+    ``FIDELITY_VERDICT_PENDENTE``, ou fora do vocabulário vigente bloqueia
+    a progressão (nunca assume/adivinha). Reprovação em UM cenário
+    bloqueia o avanço mesmo que os demais estejam aprovados -- não há
+    aprovação parcial, igual ao gate anterior."""
+    scenarios = review_data.get("scenarios", [])
+    missing = [s["scenario"] for s in scenarios if s.get("fidelity_verdict") is None]
+    reprovados = [s["scenario"] for s in scenarios if s.get("fidelity_verdict") == FIDELITY_VERDICT_REPROVADA]
+    pendentes = [s["scenario"] for s in scenarios if s.get("fidelity_verdict") == FIDELITY_VERDICT_PENDENTE]
+    invalid = [
+        s["scenario"] for s in scenarios
+        if s.get("fidelity_verdict") is not None and s.get("fidelity_verdict") not in VALID_FIDELITY_VERDICTS
+    ]
+    all_clear = len(scenarios) > 0 and not missing and not reprovados and not pendentes and not invalid
+    return {
+        "rule_version": review_data.get("rule_version", SYNTHESIS_FIDELITY_RULE_VERSION),
+        "n_scenarios": len(scenarios),
+        "missing_verdict_scenarios": missing,
+        "reproved_scenarios": reprovados,
+        "pending_scenarios": pendentes,
         "invalid_verdict_scenarios": invalid,
         "all_scenarios_cleared": all_clear,
     }

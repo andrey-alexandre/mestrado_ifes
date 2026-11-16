@@ -18,20 +18,32 @@ clínico novo" deixou de ser pass/fail automático):
        matriz principal.
     3. Controles de síntese (4 cenários fixos) -- SE a saída não for
        sequer PARSEÁVEL pela A34, PARA aqui. Se for parseável, este
-       script grava `synthesis_manual_review_template.json` e PARA DE
-       QUALQUER FORMA -- a heurística lexical de "achado novo" NUNCA mais
+       script grava `synthesis_fidelity_review_template.json` e PARA DE
+       QUALQUER FORMA -- a heurística lexical de "achado novo" NUNCA
        decide pass/fail por conta própria; o pesquisador revisa os 4
-       cenários manualmente e preenche o veredito antes de prosseguir.
+       cenários manualmente sob o CRITÉRIO DE FIDELIDADE (ver
+       `src/multiagent/vlm_direct.py`, seção 12c) e preenche o veredito
+       antes de prosseguir.
 
-  ESTÁGIO 2 (segunda invocação, com `--synthesis-manual-review-file
+  ESTÁGIO 2 (segunda invocação, com `--synthesis-fidelity-review-file
   <caminho>`): lê o template preenchido; se os 4 cenários tiverem
-  `manual_review_verdict == "sem_achado_novo"` E os controles de envio de
+  `fidelity_verdict == "fidelidade_aprovada"` E os controles de envio de
   imagem da invocação anterior (mesmo `--output-dir`) já tiverem passado,
   prossegue para a matriz principal (92 chamadas,
   `src.multiagent.vlm_direct.build_planned_calls`), respeitando a lógica
   de pausa por abstenção sistemática (3 contadores por papel, nunca
-  retry). Qualquer veredito ausente ou `"achado_novo_encontrado"` PARA a
-  execução com mensagem clara -- nunca assume/adivinha.
+  retry). Qualquer veredito ausente, `"fidelidade_reprovada"` ou
+  `"fidelidade_pendente"` PARA a execução com mensagem clara -- nunca
+  assume/adivinha. GATE MUDOU em 2026-11-16 (decisão do pesquisador): a
+  regra anterior ("achado_novo_encontrado" bloqueia; "sem_achado_novo"
+  libera) foi SUBSTITUÍDA pelo critério de fidelidade acima -- uma
+  observação/hipótese própria do sumarizador, identificada como tal, não
+  reprova por si só; o que reprova é inventar/distorcer/trocar a autoria
+  de um parecer, ou apresentar hipótese como achado confirmado. O
+  vocabulário antigo (`synthesis_manual_review_template.json`,
+  `manual_review_verdict`) fica congelado só para rastreabilidade de
+  execuções anteriores -- nenhum veredito antigo é lido ou convertido
+  automaticamente por este gate.
 
 Total de chamadas planejadas por modelo = 108 = 92 (matriz) + 16
 (controles: 12 de envio de imagem + 4 de síntese) -- 108 é um TETO
@@ -57,21 +69,28 @@ ollama` se ainda não instalados). Não executado pelo assistente que o
 escreveu (`feedback_no_autonomous_execution`).
 
 Uso (dois estágios, por modelo):
-    # Estágio 1: controles + template de revisão manual
+    # Estágio 1: controles + template de revisão de fidelidade
     python scripts/run_local_vlm_pilot.py --model-tag qwen3-vl:8b-instruct-q4_K_M
     # (pesquisador revisa e preenche experiments/multiagent/local_vlm_pilot/
-    #  qwen3-vl_8b-instruct-q4_K_M/synthesis_manual_review_template.json)
+    #  qwen3-vl_8b-instruct-q4_K_M/synthesis_fidelity_review_template.json)
     # Estágio 2: matriz principal
     python scripts/run_local_vlm_pilot.py --model-tag qwen3-vl:8b-instruct-q4_K_M \\
-        --synthesis-manual-review-file experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M/synthesis_manual_review_template.json
+        --synthesis-fidelity-review-file experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M/synthesis_fidelity_review_template.json
 
     python scripts/run_local_vlm_pilot.py --model-tag medgemma1.5:4b-it-q4_K_M
     python scripts/run_local_vlm_pilot.py --model-tag medgemma1.5:4b-it-q4_K_M \\
-        --synthesis-manual-review-file experiments/multiagent/local_vlm_pilot/medgemma1.5_4b-it-q4_K_M/synthesis_manual_review_template.json
+        --synthesis-fidelity-review-file experiments/multiagent/local_vlm_pilot/medgemma1.5_4b-it-q4_K_M/synthesis_fidelity_review_template.json
 
     # Só se necessário (ver docstring acima): modelo de contingência, mesmo fluxo de 2 estágios
     python scripts/run_local_vlm_pilot.py --model-tag qwen2.5vl:7b-q4_K_M
-    python scripts/run_local_vlm_pilot.py --model-tag qwen2.5vl:7b-q4_K_M --synthesis-manual-review-file ...
+    python scripts/run_local_vlm_pilot.py --model-tag qwen2.5vl:7b-q4_K_M --synthesis-fidelity-review-file ...
+
+NOTA 2026-11-16 (Qwen3-VL já tem Estágio 1 executado sob o gate antigo):
+`scripts/rebuild_synthesis_fidelity_review_from_stage1.py` reconstrói o
+template de fidelidade a partir do `summary.json` já salvo, sem repetir
+nenhuma chamada a modelo. O `synthesis_manual_review_template.json`
+antigo (vocabulário "achado novo") NÃO é lido nem convertido -- fica
+congelado só para rastreabilidade.
 """
 from __future__ import annotations
 
@@ -116,14 +135,19 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--timeout-s", type=float, default=vd.TIMEOUT_S)
     parser.add_argument(
-        "--synthesis-manual-review-file",
+        "--synthesis-fidelity-review-file",
         default=None,
         help=(
-            "ESTÁGIO 2: caminho do synthesis_manual_review_template.json já "
-            "preenchido pelo pesquisador (gerado pelo ESTÁGIO 1, invocação "
-            "sem este argumento). Quando fornecido, pula direto para a "
-            "matriz principal de 92 chamadas, reusando o resultado dos "
-            "controles de envio de imagem já gravado em --output-dir."
+            "ESTÁGIO 2: caminho do synthesis_fidelity_review_template.json "
+            "já preenchido pelo pesquisador sob o CRITÉRIO DE FIDELIDADE "
+            "(gerado pelo ESTÁGIO 1, invocação sem este argumento, ou por "
+            "scripts/rebuild_synthesis_fidelity_review_from_stage1.py para "
+            "um Estágio 1 já executado sob o gate antigo). Quando "
+            "fornecido, pula direto para a matriz principal de 92 "
+            "chamadas, reusando o resultado dos controles de envio de "
+            "imagem já gravado em --output-dir. SUBSTITUI "
+            "--synthesis-manual-review-file (vocabulário antigo de "
+            "'achado novo', removido deste CLI -- não decide mais nada)."
         ),
     )
     return parser
@@ -175,7 +199,7 @@ def main() -> None:
     rows = _load_pilot12_rows(Path(args.manifest_path))
     designated_image_ids = _resolve_designated_image_ids(rows, Path(args.sampling_results_json))
 
-    if args.synthesis_manual_review_file:
+    if args.synthesis_fidelity_review_file:
         _run_stage2_matrix(args, output_dir, model_name, rows, designated_image_ids)
     else:
         _run_stage1_controls(args, output_dir, model_name)
@@ -255,26 +279,28 @@ def _run_stage1_controls(args: argparse.Namespace, output_dir: Path, model_name:
         print("PARADO: ao menos um cenário de síntese não produziu saída parseável pela A34 -- matriz principal NÃO tentada.")
         return
 
-    # --- 3. Template de revisão manual -- SEMPRE escrito e SEMPRE para aqui
-    #     (decisão fechada #4: achado clínico novo nunca decide pass/fail
-    #     por conta própria; é sempre o pesquisador que decide). ---
-    manual_review_template = vd.build_synthesis_manual_review_template(synthesis_results)
-    template_path = output_dir / "synthesis_manual_review_template.json"
+    # --- 3. Template de revisão de FIDELIDADE -- SEMPRE escrito e SEMPRE
+    #     para aqui (gate 2026-11-16: nem a heurística de achado novo, nem
+    #     a presença/ausência de achados novos, decide pass/fail por conta
+    #     própria; é sempre o pesquisador que aplica o critério de
+    #     fidelidade e decide). ---
+    fidelity_review_template = vd.build_synthesis_fidelity_review_template(synthesis_results)
+    template_path = output_dir / "synthesis_fidelity_review_template.json"
     with open(template_path, "w", encoding="utf-8") as f:
-        json.dump(manual_review_template, f, ensure_ascii=False, indent=2, default=str)
+        json.dump(fidelity_review_template, f, ensure_ascii=False, indent=2, default=str)
 
     _write_stop_report(
         output_dir, model_name, model_info, all_records,
         stage="aguardando_revisao_manual_sintese",
         controls={"image_sending": image_controls_eval, "synthesis": synthesis_results},
-        extra_summary_fields={"synthesis_manual_review_template_path": str(template_path)},
+        extra_summary_fields={"synthesis_fidelity_review_template_path": str(template_path)},
     )
     print(
         "\nESTÁGIO 1 CONCLUÍDO -- controles de envio de imagem e de síntese "
-        "(parsing) passaram. Revise MANUALMENTE os 4 cenários de síntese e "
-        f"preencha o veredito em:\n  {template_path}\n"
+        "(parsing) passaram. Revise MANUALMENTE os 4 cenários de síntese "
+        f"pelo CRITÉRIO DE FIDELIDADE e preencha o veredito em:\n  {template_path}\n"
         "Depois rode novamente este script com "
-        f"--synthesis-manual-review-file {template_path} para prosseguir à "
+        f"--synthesis-fidelity-review-file {template_path} para prosseguir à "
         "matriz principal (92 chamadas). A matriz NÃO é tentada "
         "automaticamente nesta invocação."
     )
@@ -315,19 +341,20 @@ def _run_stage2_matrix(
     if not image_controls_eval.get("overall_pass"):
         raise SystemExit("ERRO: controles de envio de imagem do ESTÁGIO 1 não passaram -- matriz principal bloqueada.")
 
-    review_path = Path(args.synthesis_manual_review_file)
+    review_path = Path(args.synthesis_fidelity_review_file)
     if not review_path.exists():
-        raise SystemExit(f"ERRO: arquivo de revisão manual não encontrado: {review_path}")
+        raise SystemExit(f"ERRO: arquivo de revisão de fidelidade não encontrado: {review_path}")
     with open(review_path, encoding="utf-8") as f:
-        manual_review_data = json.load(f)
-    review_eval = vd.evaluate_manual_review_file(manual_review_data)
-    print(f"revisão manual de síntese: {review_eval}")
+        fidelity_review_data = json.load(f)
+    review_eval = vd.evaluate_synthesis_fidelity_review(fidelity_review_data)
+    print(f"revisão de fidelidade da síntese: {review_eval}")
     if not review_eval["all_scenarios_cleared"]:
         print(
-            "PARADO: revisão manual de síntese incompleta/reprovada -- matriz "
-            "principal NÃO tentada. Detalhe:\n"
+            "PARADO: revisão de fidelidade da síntese incompleta/reprovada/"
+            "pendente -- matriz principal NÃO tentada. Detalhe:\n"
             f"  cenários sem veredito: {review_eval['missing_verdict_scenarios']}\n"
-            f"  cenários com achado novo encontrado: {review_eval['novel_finding_scenarios']}\n"
+            f"  cenários reprovados: {review_eval['reproved_scenarios']}\n"
+            f"  cenários pendentes: {review_eval['pending_scenarios']}\n"
             f"  vereditos inválidos (fora do vocabulário aceito): {review_eval['invalid_verdict_scenarios']}"
         )
         return
@@ -410,7 +437,7 @@ def _run_stage2_matrix(
         output_dir, model_name, stage1_summary, matrix_records, planned_calls, tracker,
         image_controls_eval=image_controls_eval,
         synthesis_controls=stage1_summary["controls"].get("synthesis", []),
-        manual_review_eval=review_eval,
+        fidelity_review_eval=review_eval,
         baseline_swap_bytes=baseline_swap_bytes,
     )
     print(f"\nRelatórios/logs gravados em: {output_dir}")
@@ -467,15 +494,17 @@ def _write_stop_report(
         "(v1/`classify_case_status` mantido só para rastreabilidade -- nunca fallback/desempate)",
         "",
     ]
-    if extra_summary_fields and "synthesis_manual_review_template_path" in extra_summary_fields:
+    if extra_summary_fields and "synthesis_fidelity_review_template_path" in extra_summary_fields:
         report_lines += [
-            "## Próximo passo: revisão manual obrigatória",
+            "## Próximo passo: revisão manual de FIDELIDADE obrigatória",
             "",
-            "A heurística lexical de achado clínico novo NUNCA decide pass/fail "
-            "por conta própria (decisão fechada #4) -- revise manualmente:",
-            f"`{extra_summary_fields['synthesis_manual_review_template_path']}`",
+            "Nem a heurística lexical de achado clínico novo, nem a mera presença "
+            "de um achado novo, decide pass/fail por conta própria (gate "
+            "2026-11-16) -- revise manualmente pelo CRITÉRIO DE FIDELIDADE "
+            "(ver `src/multiagent/vlm_direct.py`, seção 12c):",
+            f"`{extra_summary_fields['synthesis_fidelity_review_template_path']}`",
             "",
-            "Depois rode novamente com `--synthesis-manual-review-file <esse caminho>`.",
+            "Depois rode novamente com `--synthesis-fidelity-review-file <esse caminho>`.",
             "",
         ]
     report_lines += [
@@ -497,7 +526,7 @@ def _write_full_report(
     tracker: "vd.AbstentionTracker",
     image_controls_eval: dict,
     synthesis_controls: list,
-    manual_review_eval: dict,
+    fidelity_review_eval: dict,
     baseline_swap_bytes: Optional[int],
 ) -> None:
     matrix_log_path = _write_call_log(output_dir, matrix_records, filename="call_log_matriz_principal.jsonl")
@@ -743,7 +772,7 @@ def _write_full_report(
         "controls": {
             "image_sending": _serialize_controls(image_controls_eval),
             "synthesis": _serialize_controls(synthesis_controls),
-            "manual_review_evaluation": _serialize_controls(manual_review_eval),
+            "fidelity_review_evaluation": _serialize_controls(fidelity_review_eval),
         },
         "sustained_swap_growth": _serialize_controls(swap_growth),
         "duration_projection_full_scale": _serialize_controls(duration_projection),
@@ -813,9 +842,9 @@ def _write_full_report(
         "",
         f"```json\n{json.dumps(_serialize_controls(synthesis_controls), ensure_ascii=False, indent=2, default=str)}\n```",
         "",
-        "## Avaliação da revisão manual de síntese",
+        "## Avaliação da revisão de fidelidade da síntese",
         "",
-        f"```json\n{json.dumps(manual_review_eval, ensure_ascii=False, indent=2, default=str)}\n```",
+        f"```json\n{json.dumps(fidelity_review_eval, ensure_ascii=False, indent=2, default=str)}\n```",
         "",
         "## Nota sobre a semente",
         "",
