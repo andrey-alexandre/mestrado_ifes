@@ -61,12 +61,12 @@ def _build_llm(model_name: str, temperature: float):
         return ChatGoogleGenerativeAI(
             model=model_name,
             temperature=temperature,
-            google_api_key="GOOGLE_API_KEY",
+            google_api_key=os.environ.get("GOOGLE_API_KEY"),
         )
     return ChatOpenAI(
         model=model_name,
         temperature=temperature,
-        openai_api_key="OPENAI_API_KEY",
+        openai_api_key=os.environ.get("OPENAI_API_KEY"),
     )
 
 

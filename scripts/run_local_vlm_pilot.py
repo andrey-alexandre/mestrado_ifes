@@ -1,96 +1,76 @@
-"""Etapa 5, segunda entrega (REWORK) — driver único do piloto local de
-VLMs via Ollama sobre as 12 lesões fora da amostra congelada (ver
-`docs/reconstruction/20_local_vlm_pilot.md` e
+"""Etapa 5 — driver único do piloto de VLMs sobre as 12 lesões fora da
+amostra congelada (ver `docs/reconstruction/20_local_vlm_pilot.md`,
+`docs/reconstruction/30_real_lesion_evaluation_protocol.md` e
 `src/multiagent/vlm_direct.py`, que concentra toda a lógica real reusada
 aqui).
 
-Fluxo de DUAS INVOCAÇÕES por tag de modelo Ollama (`--model-tag`) --
-mudança de arquitetura desta entrega (decisão fechada #4, "achado
-clínico novo" deixou de ser pass/fail automático):
+MUDANÇA DE PROTOCOLO (2026-11-16, decisão do pesquisador, ver doc 30):
+este script deixou de ter duas invocações separadas por um gate manual.
+Numa ÚNICA invocação por `--model-tag`, ele agora:
 
-  ESTÁGIO 1 (invocação normal, sem `--synthesis-manual-review-file`):
-    1. `ollama.show(model_tag)` uma única vez (metadados do modelo).
-    2. Controles de envio de imagem -- POR PAPEL VISUAL (vlm_direto,
-       diagnostic_abcd, diagnostic_menzies, diagnostic_spcl): 2 controles
-       de imagem (cor+quadrante diferentes entre si) + 1 controle
-       "sem imagem" (texto puro) por papel = 12 chamadas. SE QUALQUER
-       PAPEL reprovar, PARA aqui -- não tenta controles de síntese nem a
-       matriz principal.
-    3. Controles de síntese (4 cenários fixos) -- SE a saída não for
-       sequer PARSEÁVEL pela A34, PARA aqui. Se for parseável, este
-       script grava `synthesis_fidelity_review_template.json` e PARA DE
-       QUALQUER FORMA -- a heurística lexical de "achado novo" NUNCA
-       decide pass/fail por conta própria; o pesquisador revisa os 4
-       cenários manualmente sob o CRITÉRIO DE FIDELIDADE (ver
-       `src/multiagent/vlm_direct.py`, seção 12c) e preenche o veredito
-       antes de prosseguir.
+  1. Roda checagens OPERACIONAIS (manifesto, imagens, config/credenciais
+     do modelo, diretório de saída gravável) -- PARA aqui, com
+     `SystemExit`, se qualquer uma falhar. Isto é o único tipo de
+     problema que interrompe o lote.
+  2. Roda os 12 controles de envio de imagem + os 4 controles de síntese
+     -- sempre executados e sempre registrados no relatório, mas como
+     RESULTADO (desempenho/fidelidade), nunca mais como gate. Em
+     particular: acertar quadrante/cor numa imagem de controle, a saída
+     de um controle de síntese ser parseável pela A34, ou o veredito de
+     fidelidade da síntese (manual, opcional) -- nenhum desses bloqueia
+     a matriz principal. O ÚNICO aspecto desses controles que seria
+     operacional (o payload multimodal enviado estar correto -- ver
+     `payload_correct`/`operational_pass` em
+     `src.multiagent.vlm_direct.evaluate_image_sending_controls`) ainda é
+     checado, e uma falha aí indica um bug real deste pipeline, não do
+     modelo.
+  3. Prossegue DIRETO para a matriz principal (92 chamadas,
+     `src.multiagent.vlm_direct.build_planned_calls`), respeitando a
+     lógica de pausa por abstenção sistemática (3 contadores por papel,
+     nunca retry) -- essa pausa é uma salvaguarda operacional (evita
+     gastar o restante do orçamento de chamadas quando um papel está
+     sistematicamente sem resposta/com falha técnica), não um critério
+     de qualidade de conteúdo.
 
-  ESTÁGIO 2 (segunda invocação, com `--synthesis-fidelity-review-file
-  <caminho>`): lê o template preenchido; se os 4 cenários tiverem
-  `fidelity_verdict == "fidelidade_aprovada"` E os controles de envio de
-  imagem da invocação anterior (mesmo `--output-dir`) já tiverem passado,
-  prossegue para a matriz principal (92 chamadas,
-  `src.multiagent.vlm_direct.build_planned_calls`), respeitando a lógica
-  de pausa por abstenção sistemática (3 contadores por papel, nunca
-  retry). Qualquer veredito ausente, `"fidelidade_reprovada"` ou
-  `"fidelidade_pendente"` PARA a execução com mensagem clara -- nunca
-  assume/adivinha. GATE MUDOU em 2026-11-16 (decisão do pesquisador): a
-  regra anterior ("achado_novo_encontrado" bloqueia; "sem_achado_novo"
-  libera) foi SUBSTITUÍDA pelo critério de fidelidade acima -- uma
-  observação/hipótese própria do sumarizador, identificada como tal, não
-  reprova por si só; o que reprova é inventar/distorcer/trocar a autoria
-  de um parecer, ou apresentar hipótese como achado confirmado. O
-  vocabulário antigo (`synthesis_manual_review_template.json`,
-  `manual_review_verdict`) fica congelado só para rastreabilidade de
-  execuções anteriores -- nenhum veredito antigo é lido ou convertido
-  automaticamente por este gate.
+Histórico preservado, não removido: `--synthesis-fidelity-review-file`
+continua aceito como argumento OPCIONAL -- se fornecido (um
+`synthesis_fidelity_review_template.json` já preenchido pelo
+pesquisador, ou reconstruído por
+`scripts/rebuild_synthesis_fidelity_review_from_stage1.py`), seu
+conteúdo é anexado ao relatório final como documentação da revisão de
+fidelidade; se omitido, a matriz roda e o relatório final indica
+explicitamente que a revisão de fidelidade ainda não foi anexada --
+nunca bloqueia.
 
-Total de chamadas planejadas por modelo = 108 = 92 (matriz) + 16
-(controles: 12 de envio de imagem + 4 de síntese) -- 108 é um TETO
-OPERACIONAL de 4h para a execução COMPLETA de um modelo (estágio 1 +
-estágio 2), não uma meta de desempenho; passar do teto não estabelece por
-si só viabilidade para os 3.000 reais (ver projeção de duração no
-`report.md` do estágio 2).
+Preservado sem alteração: o contrato `decisao_final` (vlm_direto e
+sumarizador oficial), a extração de template do medgemma (fora deste
+script -- ver `src/evaluation/response_template_extraction.py`), a
+distinção indeterminado/resposta-inválida/falha-técnica, "sem retry,
+sem fallback para v1/v2", e a política de máscara vazia de S2 (definida
+em `src/multiagent/presentation.py`, não tocada por este script).
 
-Modelos a testar (Passo 7 da entrega): `qwen3-vl:8b-instruct-q4_K_M` e
-`medgemma1.5:4b-it-q4_K_M`. Rodar este script (os dois estágios) uma vez
-para CADA um (`--model-tag` diferente), independentemente -- este script
-NÃO encadeia os dois modelos automaticamente. Se, ao concluir os dois,
-apenas UM passou nos controles de pré-execução, o pesquisador deve rodar
-este mesmo script (os dois estágios) uma TERCEIRA vez com
-`--model-tag qwen2.5vl:7b-q4_K_M` (modelo de contingência) -- esta decisão
-é indicada no relatório Markdown final de cada execução, não decidida/
-encadeada automaticamente aqui (este assistente não pode executar nada
-para descobrir ao vivo qual passa).
+Modelos candidatos (ver `src.multiagent.vlm_direct.MAIN_EVALUATION_MODELS`):
+Gemini, GPT, Qwen3-VL e MedGemma 1.5 4B -- todos sob a MESMA regra.
+Qwen2.5-VL está registrado como NÃO avaliado por indisponibilidade de
+download (sem substituto) -- ver doc 30.
 
 STATUS: implementado, aguardando execução do pesquisador (requer Ollama
-rodando localmente com os modelos já baixados, `pip install psutil
-ollama` se ainda não instalados). Não executado pelo assistente que o
-escreveu (`feedback_no_autonomous_execution`).
+rodando localmente com os modelos Ollama já baixados para
+Qwen3-VL/MedGemma, ou `OPENAI_API_KEY`/`GOOGLE_API_KEY` definidos para
+GPT/Gemini; `pip install psutil ollama` se ainda não instalados). Não
+executado pelo assistente que o escreveu (`feedback_no_autonomous_execution`).
 
-Uso (dois estágios, por modelo):
-    # Estágio 1: controles + template de revisão de fidelidade
+Uso (uma única invocação por modelo):
     python scripts/run_local_vlm_pilot.py --model-tag qwen3-vl:8b-instruct-q4_K_M
-    # (pesquisador revisa e preenche experiments/multiagent/local_vlm_pilot/
-    #  qwen3-vl_8b-instruct-q4_K_M/synthesis_fidelity_review_template.json)
-    # Estágio 2: matriz principal
+    python scripts/run_local_vlm_pilot.py --model-tag medgemma1.5:4b-it-q4_K_M
+    python scripts/run_local_vlm_pilot.py --model-tag gemini-3.1-flash-lite
+    python scripts/run_local_vlm_pilot.py --model-tag gpt-5.4-nano
+
+    # Opcional, pode ser rodado antes OU depois da matriz, e anexado numa
+    # nova invocação (reaproveita o output-dir, não repete nenhuma
+    # chamada): revisão de fidelidade da síntese já preenchida.
     python scripts/run_local_vlm_pilot.py --model-tag qwen3-vl:8b-instruct-q4_K_M \\
         --synthesis-fidelity-review-file experiments/multiagent/local_vlm_pilot/qwen3-vl_8b-instruct-q4_K_M/synthesis_fidelity_review_template.json
-
-    python scripts/run_local_vlm_pilot.py --model-tag medgemma1.5:4b-it-q4_K_M
-    python scripts/run_local_vlm_pilot.py --model-tag medgemma1.5:4b-it-q4_K_M \\
-        --synthesis-fidelity-review-file experiments/multiagent/local_vlm_pilot/medgemma1.5_4b-it-q4_K_M/synthesis_fidelity_review_template.json
-
-    # Só se necessário (ver docstring acima): modelo de contingência, mesmo fluxo de 2 estágios
-    python scripts/run_local_vlm_pilot.py --model-tag qwen2.5vl:7b-q4_K_M
-    python scripts/run_local_vlm_pilot.py --model-tag qwen2.5vl:7b-q4_K_M --synthesis-fidelity-review-file ...
-
-NOTA 2026-11-16 (Qwen3-VL já tem Estágio 1 executado sob o gate antigo):
-`scripts/rebuild_synthesis_fidelity_review_from_stage1.py` reconstrói o
-template de fidelidade a partir do `summary.json` já salvo, sem repetir
-nenhuma chamada a modelo. O `synthesis_manual_review_template.json`
-antigo (vocabulário "achado novo") NÃO é lido nem convertido -- fica
-congelado só para rastreabilidade.
 """
 from __future__ import annotations
 
@@ -121,14 +101,14 @@ DEFAULT_SAMPLING_RESULTS_JSON = str(REPO_ROOT / "experiments" / "multiagent" / "
 DEFAULT_IMAGES_DIR = str(REPO_ROOT / "experiments" / "multiagent" / "pilot12_images")
 DEFAULT_OUTPUT_DIR = str(REPO_ROOT / "experiments" / "multiagent" / "local_vlm_pilot")
 
-# Projeção de duração (item 10 da entrega) -- N hipotético usado só como
-# referência no report.md, não uma meta real do piloto.
+# Projeção de duração -- N hipotético usado só como referência no
+# report.md, não uma meta real do piloto.
 HYPOTHETICAL_FULL_SCALE_N = 3000
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--model-tag", required=True, help="Tag Ollama exata, ex. qwen3-vl:8b-instruct-q4_K_M")
+    parser.add_argument("--model-tag", required=True, help="Ex.: qwen3-vl:8b-instruct-q4_K_M, medgemma1.5:4b-it-q4_K_M, gemini-3.1-flash-lite, gpt-5.4-nano")
     parser.add_argument("--manifest-path", default=DEFAULT_MANIFEST_PATH)
     parser.add_argument("--sampling-results-json", default=DEFAULT_SAMPLING_RESULTS_JSON)
     parser.add_argument("--images-dir", default=DEFAULT_IMAGES_DIR)
@@ -138,26 +118,27 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--synthesis-fidelity-review-file",
         default=None,
         help=(
-            "ESTÁGIO 2: caminho do synthesis_fidelity_review_template.json "
-            "já preenchido pelo pesquisador sob o CRITÉRIO DE FIDELIDADE "
-            "(gerado pelo ESTÁGIO 1, invocação sem este argumento, ou por "
-            "scripts/rebuild_synthesis_fidelity_review_from_stage1.py para "
-            "um Estágio 1 já executado sob o gate antigo). Quando "
-            "fornecido, pula direto para a matriz principal de 92 "
-            "chamadas, reusando o resultado dos controles de envio de "
-            "imagem já gravado em --output-dir. SUBSTITUI "
-            "--synthesis-manual-review-file (vocabulário antigo de "
-            "'achado novo', removido deste CLI -- não decide mais nada)."
+            "OPCIONAL (deixou de ser pré-requisito em 2026-11-16, ver doc "
+            "30): caminho do synthesis_fidelity_review_template.json já "
+            "preenchido pelo pesquisador. Se fornecido, seu conteúdo é "
+            "anexado ao relatório final como documentação da revisão de "
+            "fidelidade -- nunca condiciona a execução da matriz principal, "
+            "que já roda na mesma invocação independentemente deste "
+            "argumento."
         ),
     )
     return parser
 
 
 def _load_pilot12_rows(manifest_path: Path) -> list[dict[str, str]]:
+    """Checagem OPERACIONAL: manifesto com o número errado de linhas é um
+    problema de configuração, não de desempenho -- interrompe aqui."""
+    if not manifest_path.exists():
+        raise SystemExit(f"ERRO OPERACIONAL: manifesto não encontrado: {manifest_path}")
     with open(manifest_path, encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     if len(rows) != 12:
-        raise SystemExit(f"ERRO: {manifest_path} tem {len(rows)} linhas, esperado exatamente 12.")
+        raise SystemExit(f"ERRO OPERACIONAL: {manifest_path} tem {len(rows)} linhas, esperado exatamente 12.")
     return rows
 
 
@@ -176,11 +157,15 @@ def _resolve_designated_image_ids(rows: list[dict[str, str]], sampling_results_j
 
 
 def _load_condition_image(images_dir: Path, image_id: str, condition: str) -> Image.Image:
+    """Checagem OPERACIONAL: imagem da condição ausente/trocada é um
+    problema de preparação de dados, não de desempenho do modelo --
+    interrompe o lote (propagado como FileNotFoundError, nunca
+    engolido)."""
     path = images_dir / condition / f"{image_id}_{condition}.png"
     if not path.exists():
         raise FileNotFoundError(
-            f"imagem da condição {condition} não encontrada para image_id={image_id}: {path} -- "
-            "rode scripts/run_pilot12_image_preparation.py primeiro."
+            f"ERRO OPERACIONAL: imagem da condição {condition} não encontrada para "
+            f"image_id={image_id}: {path} -- rode scripts/run_pilot12_image_preparation.py primeiro."
         )
     return Image.open(path).convert("RGB")
 
@@ -188,6 +173,15 @@ def _load_condition_image(images_dir: Path, image_id: str, condition: str) -> Im
 def _resolve_output_dir(output_dir_root: Path, model_name: str) -> Path:
     output_dir = output_dir_root / model_name.replace(":", "_").replace("/", "_")
     output_dir.mkdir(parents=True, exist_ok=True)
+    # Checagem OPERACIONAL: diretório de saída precisa ser gravável ANTES
+    # de qualquer chamada real -- descobrir isso só depois de gastar o
+    # orçamento de chamadas do piloto seria o pior momento possível.
+    probe_path = output_dir / ".write_check"
+    try:
+        probe_path.write_text("ok", encoding="utf-8")
+        probe_path.unlink()
+    except OSError as exc:
+        raise SystemExit(f"ERRO OPERACIONAL: não foi possível gravar em {output_dir}: {exc}")
     return output_dir
 
 
@@ -199,30 +193,44 @@ def main() -> None:
     rows = _load_pilot12_rows(Path(args.manifest_path))
     designated_image_ids = _resolve_designated_image_ids(rows, Path(args.sampling_results_json))
 
+    fidelity_review_data = None
     if args.synthesis_fidelity_review_file:
-        _run_stage2_matrix(args, output_dir, model_name, rows, designated_image_ids)
-    else:
-        _run_stage1_controls(args, output_dir, model_name)
+        review_path = Path(args.synthesis_fidelity_review_file)
+        if not review_path.exists():
+            raise SystemExit(f"ERRO OPERACIONAL: arquivo de revisão de fidelidade não encontrado: {review_path}")
+        with open(review_path, encoding="utf-8") as f:
+            fidelity_review_data = json.load(f)
+
+    _run_single_stage(args, output_dir, model_name, rows, designated_image_ids, fidelity_review_data)
 
 
 # ---------------------------------------------------------------------------
-# ESTÁGIO 1 — controles de envio de imagem (por papel) + controles de
-# síntese + template de revisão manual. PARA sempre ao final (nunca
-# prossegue para a matriz na mesma invocação).
+# Fluxo único: checagens operacionais -> controles (resultado, não gate)
+# -> matriz principal, tudo na mesma invocação.
 # ---------------------------------------------------------------------------
-def _run_stage1_controls(args: argparse.Namespace, output_dir: Path, model_name: str) -> None:
-    print(f"=== Piloto local de VLM via Ollama -- modelo: {model_name} -- ESTÁGIO 1 (controles) ===")
+def _run_single_stage(
+    args: argparse.Namespace,
+    output_dir: Path,
+    model_name: str,
+    rows: list[dict[str, str]],
+    designated_image_ids: list[str],
+    fidelity_review_data: Optional[dict[str, Any]],
+) -> None:
+    print(f"=== Piloto de VLM -- modelo: {model_name} ===")
 
-    print("--- ollama.show(modelo) ---")
-    try:
-        model_info = vd.get_model_info(model_name)
-    except Exception as exc:  # noqa: BLE001 -- registrado, não interrompe a escrita do relatório parcial
-        model_info = {"error": str(exc)}
-        print(f"AVISO: falha ao obter informações do modelo via ollama.show: {exc}")
+    print("--- Checagem operacional de modelo/configuração ---")
+    # get_model_info levanta (SystemExit indireto via RuntimeError não
+    # capturado aqui) se o modelo Ollama não existir localmente, ou se a
+    # variável de ambiente de API esperada (GOOGLE_API_KEY/OPENAI_API_KEY)
+    # não estiver definida para Gemini/GPT -- problema OPERACIONAL real
+    # (configuração incompatível), nunca um aviso que deixa a execução
+    # continuar silenciosamente.
+    model_info = vd.get_model_info(model_name)
+    print(f"  modelo OK: {model_info}")
 
     all_records: list[vd.CallRecord] = []
 
-    # --- 1. Controles de envio de imagem, POR PAPEL VISUAL ---
+    # --- 1. Controles de envio de imagem, POR PAPEL VISUAL (RESULTADO) ---
     print("--- Controles de envio de imagem (4 papéis x [2 imagem + 1 sem imagem] = 12 chamadas) ---")
     results_by_role: dict[str, list[dict[str, Any]]] = {}
     for role in vd.VISUAL_ROLES:
@@ -239,18 +247,31 @@ def _run_stage1_controls(args: argparse.Namespace, output_dir: Path, model_name:
         results_by_role[role] = role_results
 
     image_controls_eval = vd.evaluate_image_sending_controls(results_by_role)
-    print(f"controles de envio de imagem: overall_pass={image_controls_eval['overall_pass']} (por papel: {image_controls_eval['n_roles_passed']}/{image_controls_eval['n_roles_evaluated']})")
-
-    if not image_controls_eval["overall_pass"]:
-        _write_stop_report(
+    print(
+        f"controles de envio de imagem: operational_pass={image_controls_eval['operational_pass']} "
+        f"(payload correto em todos os papéis) -- overall_pass (inclui acerto de cor/quadrante, "
+        f"RESULTADO, não gate)={image_controls_eval['overall_pass']} "
+        f"({image_controls_eval['n_roles_passed']}/{image_controls_eval['n_roles_evaluated']} papéis)"
+    )
+    if not image_controls_eval["operational_pass"]:
+        # ÚNICO motivo operacional real para parar aqui: o payload enviado
+        # não era o esperado -- bug deste pipeline (mensagem/imagem
+        # trocada), não desempenho do modelo.
+        _write_report(
             output_dir, model_name, model_info, all_records,
-            stage="controle_de_envio_de_imagem",
-            controls={"image_sending": image_controls_eval},
+            image_controls_eval=image_controls_eval, synthesis_results=[], fidelity_review_data=fidelity_review_data,
+            matrix_records=[], planned_calls=[], tracker=vd.AbstentionTracker(), baseline_swap_bytes=None,
+            stopped_operationally=True,
+            stop_reason=(
+                "payload multimodal incorreto em ao menos um controle de envio de imagem -- "
+                "ver controls.image_sending.per_role para o papel/controle específico."
+            ),
         )
-        print("PARADO: controle de envio de imagem reprovado (ao menos um papel visual) -- matriz principal NÃO tentada.")
+        print("PARADO (problema OPERACIONAL): payload de controle de imagem incorreto -- matriz principal NÃO tentada.")
         return
 
-    # --- 2. Controles de síntese ---
+    # --- 2. Controles de síntese (RESULTADO -- parseabilidade da A34/v2 é
+    #        desempenho, não gate a partir de 2026-11-16) ---
     print("--- Controles de síntese (4 cenários fixos) ---")
     synthesis_results = []
     for scenario_name in vd.FIXED_SYNTHESIS_SCENARIOS:
@@ -263,110 +284,28 @@ def _run_stage1_controls(args: argparse.Namespace, output_dir: Path, model_name:
             f"classificado_v1_historico={result['classified_status_v1_historical']} "
             f"achado_novo_candidatos={result['novel_clinical_terms_candidates']}"
         )
-
     synthesis_overall_pass = all(r["passed"] for r in synthesis_results)
     print(
-        f"controles de síntese (gate oficial 2026-11-14 -- parseável pela A34 via parser "
-        f"v2 '{case_status_v2.PARSER_VERSION}', v1 só rastreabilidade): overall_pass={synthesis_overall_pass}"
+        f"controles de síntese -- RESULTADO (não gate a partir de 2026-11-16): "
+        f"parseável pela A34 em todos os 4 cenários={synthesis_overall_pass} "
+        f"(parser v2 '{case_status_v2.PARSER_VERSION}', v1 só rastreabilidade)"
     )
 
-    if not synthesis_overall_pass:
-        _write_stop_report(
-            output_dir, model_name, model_info, all_records,
-            stage="controle_de_sintese",
-            controls={"image_sending": image_controls_eval, "synthesis": synthesis_results},
-        )
-        print("PARADO: ao menos um cenário de síntese não produziu saída parseável pela A34 -- matriz principal NÃO tentada.")
-        return
-
-    # --- 3. Template de revisão de FIDELIDADE -- SEMPRE escrito e SEMPRE
-    #     para aqui (gate 2026-11-16: nem a heurística de achado novo, nem
-    #     a presença/ausência de achados novos, decide pass/fail por conta
-    #     própria; é sempre o pesquisador que aplica o critério de
-    #     fidelidade e decide). ---
+    # Template de revisão de FIDELIDADE -- sempre gerado para o pesquisador
+    # poder revisar depois (análise qualitativa), nunca mais usado para
+    # bloquear a matriz principal.
     fidelity_review_template = vd.build_synthesis_fidelity_review_template(synthesis_results)
     template_path = output_dir / "synthesis_fidelity_review_template.json"
     with open(template_path, "w", encoding="utf-8") as f:
         json.dump(fidelity_review_template, f, ensure_ascii=False, indent=2, default=str)
+    print(f"template de revisão de fidelidade (OPCIONAL, não bloqueante) gravado em: {template_path}")
 
-    _write_stop_report(
-        output_dir, model_name, model_info, all_records,
-        stage="aguardando_revisao_manual_sintese",
-        controls={"image_sending": image_controls_eval, "synthesis": synthesis_results},
-        extra_summary_fields={"synthesis_fidelity_review_template_path": str(template_path)},
-    )
-    print(
-        "\nESTÁGIO 1 CONCLUÍDO -- controles de envio de imagem e de síntese "
-        "(parsing) passaram. Revise MANUALMENTE os 4 cenários de síntese "
-        f"pelo CRITÉRIO DE FIDELIDADE e preencha o veredito em:\n  {template_path}\n"
-        "Depois rode novamente este script com "
-        f"--synthesis-fidelity-review-file {template_path} para prosseguir à "
-        "matriz principal (92 chamadas). A matriz NÃO é tentada "
-        "automaticamente nesta invocação."
-    )
-
-
-# ---------------------------------------------------------------------------
-# ESTÁGIO 2 — matriz principal (92 chamadas), só prossegue se o veredito
-# manual de síntese estiver todo "sem_achado_novo" E os controles de envio
-# de imagem da invocação anterior já tiverem passado.
-# ---------------------------------------------------------------------------
-def _run_stage2_matrix(
-    args: argparse.Namespace,
-    output_dir: Path,
-    model_name: str,
-    rows: list[dict[str, str]],
-    designated_image_ids: list[str],
-) -> None:
-    print(f"=== Piloto local de VLM via Ollama -- modelo: {model_name} -- ESTÁGIO 2 (matriz principal) ===")
-
-    stage1_summary_path = output_dir / "summary.json"
-    if not stage1_summary_path.exists():
-        raise SystemExit(
-            f"ERRO: {stage1_summary_path} não encontrado -- rode este script SEM "
-            "--synthesis-manual-review-file primeiro (ESTÁGIO 1) neste mesmo --output-dir."
-        )
-    with open(stage1_summary_path, encoding="utf-8") as f:
-        stage1_summary = json.load(f)
-
-    if stage1_summary.get("stopped_at_stage") != "aguardando_revisao_manual_sintese":
-        raise SystemExit(
-            f"ERRO: o ESTÁGIO 1 gravado em {stage1_summary_path} parou em "
-            f"'{stage1_summary.get('stopped_at_stage')}', não em "
-            "'aguardando_revisao_manual_sintese' -- os controles de envio de "
-            "imagem e/ou de síntese (parsing) não passaram. Corrija o ESTÁGIO 1 "
-            "antes de tentar a matriz principal."
-        )
-    image_controls_eval = stage1_summary["controls"]["image_sending"]
-    if not image_controls_eval.get("overall_pass"):
-        raise SystemExit("ERRO: controles de envio de imagem do ESTÁGIO 1 não passaram -- matriz principal bloqueada.")
-
-    review_path = Path(args.synthesis_fidelity_review_file)
-    if not review_path.exists():
-        raise SystemExit(f"ERRO: arquivo de revisão de fidelidade não encontrado: {review_path}")
-    with open(review_path, encoding="utf-8") as f:
-        fidelity_review_data = json.load(f)
-    review_eval = vd.evaluate_synthesis_fidelity_review(fidelity_review_data)
-    print(f"revisão de fidelidade da síntese: {review_eval}")
-    if not review_eval["all_scenarios_cleared"]:
-        print(
-            "PARADO: revisão de fidelidade da síntese incompleta/reprovada/"
-            "pendente -- matriz principal NÃO tentada. Detalhe:\n"
-            f"  cenários sem veredito: {review_eval['missing_verdict_scenarios']}\n"
-            f"  cenários reprovados: {review_eval['reproved_scenarios']}\n"
-            f"  cenários pendentes: {review_eval['pending_scenarios']}\n"
-            f"  vereditos inválidos (fora do vocabulário aceito): {review_eval['invalid_verdict_scenarios']}"
-        )
-        return
-
+    # --- 3. Matriz principal -- roda SEMPRE na mesma invocação, nenhum
+    #        gate manual intermediário. ---
     print("--- Matriz principal: 92 chamadas planejadas ---")
     planned_calls = vd.build_planned_calls(rows, designated_image_ids)
     print(f"chamadas planejadas: {len(planned_calls)} (deve ser 92; total da execução do modelo incluindo controles = {vd.N_TOTAL_PLANNED_CALLS_PER_MODEL})")
 
-    # Baseline de swap: capturado AGORA, explicitamente -- modelo já
-    # carregado (ESTÁGIO 1 já rodou controles com este model_name) e
-    # controles já completos. Nunca derivado da própria lista de amostras
-    # da matriz (decisão fechada #6).
     baseline_snapshot = vd.capture_memory_snapshot() if vd.psutil is not None else None
     baseline_swap_bytes = baseline_snapshot.system_swap_used_bytes if baseline_snapshot is not None else None
     print(f"baseline de swap pós-controles (pré-matriz): {baseline_swap_bytes}")
@@ -396,13 +335,6 @@ def _run_stage2_matrix(
             image = _get_image(image_id, condition)
             record = vd.run_vlm_direct_call(model_name, image, lesion_id, image_id, timeout_s=args.timeout_s)
         elif role == vd.ROLE_SUMMARY:
-            # OFICIAL a partir desta entrega (decisão do pesquisador, ver
-            # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
-            # usa a MESMA rota/configuração do contrato de decisão já
-            # validada nos 8 controles de síntese reais (docs 23-25),
-            # não `run_multiagent_role_call` (que mantém o prompt oficial
-            # de agents.py, ainda usado pelos controles de síntese
-            # históricos e pela produção fora do piloto).
             key = (lesion_id, condition)
             if key not in accumulated_state:
                 image = _get_image(image_id, condition)
@@ -433,20 +365,21 @@ def _run_stage2_matrix(
             f"(v1_historico={record.classified_status} v2_historico={record.classified_status_v2})"
         )
 
-    _write_full_report(
-        output_dir, model_name, stage1_summary, matrix_records, planned_calls, tracker,
-        image_controls_eval=image_controls_eval,
-        synthesis_controls=stage1_summary["controls"].get("synthesis", []),
-        fidelity_review_eval=review_eval,
-        baseline_swap_bytes=baseline_swap_bytes,
+    _write_report(
+        output_dir, model_name, model_info, all_records,
+        image_controls_eval=image_controls_eval, synthesis_results=synthesis_results,
+        fidelity_review_data=fidelity_review_data,
+        matrix_records=matrix_records, planned_calls=planned_calls, tracker=tracker,
+        baseline_swap_bytes=baseline_swap_bytes, stopped_operationally=False, stop_reason=None,
     )
     print(f"\nRelatórios/logs gravados em: {output_dir}")
 
 
 # ---------------------------------------------------------------------------
-# Escrita de relatórios/logs
+# Escrita de relatório único (controles + matriz, ou só controles se um
+# problema OPERACIONAL interrompeu antes da matriz).
 # ---------------------------------------------------------------------------
-def _write_call_log(output_dir: Path, records: list["vd.CallRecord"], filename: str = "call_log.jsonl") -> Path:
+def _write_call_log(output_dir: Path, records: list["vd.CallRecord"], filename: str) -> Path:
     log_path = output_dir / filename
     with open(log_path, "w", encoding="utf-8") as f:
         for r in records:
@@ -454,403 +387,210 @@ def _write_call_log(output_dir: Path, records: list["vd.CallRecord"], filename: 
     return log_path
 
 
-def _serialize_controls(controls: dict) -> dict:
-    return json.loads(json.dumps(controls, default=str, ensure_ascii=False))
+def _serialize(obj: Any) -> Any:
+    return json.loads(json.dumps(obj, default=str, ensure_ascii=False))
 
 
-def _write_stop_report(
-    output_dir: Path, model_name: str, model_info: dict, records: list, stage: str, controls: dict,
-    extra_summary_fields: Optional[dict[str, Any]] = None,
-) -> None:
-    log_path = _write_call_log(output_dir, records)
-    summary = {
-        "model_name": model_name,
-        "model_info": model_info,
-        "stopped_before_main_matrix": True,
-        "stopped_at_stage": stage,
-        # GATE OFICIAL registrado explicitamente (decisão do pesquisador,
-        # 2026-11-14, ver docs/reconstruction/20_local_vlm_pilot.md §9c):
-        # versão EXATA do parser de classificação que decidiu "parseable"/
-        # "passed" dos controles de síntese (quando esta etapa os
-        # alcançou) -- v1 (classify_case_status) é mantido só para
-        # rastreabilidade, nunca como fallback/desempate.
-        "official_classification_parser_version": case_status_v2.PARSER_VERSION,
-        "controls": _serialize_controls(controls),
-        "n_calls_executed_total": len(records),
-        "n_total_planned_calls_per_model": vd.N_TOTAL_PLANNED_CALLS_PER_MODEL,
-    }
-    if extra_summary_fields:
-        summary.update(extra_summary_fields)
-    with open(output_dir / "summary.json", "w", encoding="utf-8") as f:
-        json.dump(summary, f, ensure_ascii=False, indent=2, default=str)
-    report_lines = [
-        f"# Piloto local de VLM — {model_name} — ESTÁGIO 1 PARADO (stage=`{stage}`)",
-        "",
-        f"- Etapa em que parou: `{stage}`",
-        "- Matriz principal de 92 chamadas: NÃO tentada.",
-        f"- Log de chamadas (controles): `{log_path}`",
-        f"- Total de chamadas planejadas por modelo (controles + matriz, teto operacional de 4h): {vd.N_TOTAL_PLANNED_CALLS_PER_MODEL}",
-        f"- Parser OFICIAL de classificação/gate (decisão 2026-11-14): `{case_status_v2.PARSER_VERSION}` "
-        "(v1/`classify_case_status` mantido só para rastreabilidade -- nunca fallback/desempate)",
-        "",
-    ]
-    if extra_summary_fields and "synthesis_fidelity_review_template_path" in extra_summary_fields:
-        report_lines += [
-            "## Próximo passo: revisão manual de FIDELIDADE obrigatória",
-            "",
-            "Nem a heurística lexical de achado clínico novo, nem a mera presença "
-            "de um achado novo, decide pass/fail por conta própria (gate "
-            "2026-11-16) -- revise manualmente pelo CRITÉRIO DE FIDELIDADE "
-            "(ver `src/multiagent/vlm_direct.py`, seção 12c):",
-            f"`{extra_summary_fields['synthesis_fidelity_review_template_path']}`",
-            "",
-            "Depois rode novamente com `--synthesis-fidelity-review-file <esse caminho>`.",
-            "",
-        ]
-    report_lines += [
-        "## Controles",
-        "",
-        f"```json\n{json.dumps(_serialize_controls(controls), ensure_ascii=False, indent=2, default=str)}\n```",
-        "",
-    ]
-    with open(output_dir / "report.md", "w", encoding="utf-8") as f:
-        f.write("\n".join(report_lines))
-
-
-def _write_full_report(
+def _write_report(
     output_dir: Path,
     model_name: str,
-    stage1_summary: dict,
-    matrix_records: list["vd.CallRecord"],
+    model_info: dict,
+    control_records: list,
+    image_controls_eval: dict,
+    synthesis_results: list,
+    fidelity_review_data: Optional[dict[str, Any]],
+    matrix_records: list,
     planned_calls: list,
     tracker: "vd.AbstentionTracker",
-    image_controls_eval: dict,
-    synthesis_controls: list,
-    fidelity_review_eval: dict,
     baseline_swap_bytes: Optional[int],
+    stopped_operationally: bool,
+    stop_reason: Optional[str],
 ) -> None:
-    matrix_log_path = _write_call_log(output_dir, matrix_records, filename="call_log_matriz_principal.jsonl")
+    control_log_path = _write_call_log(output_dir, control_records, "call_log.jsonl")
+    matrix_log_path = None
+    if matrix_records:
+        matrix_log_path = _write_call_log(output_dir, matrix_records, "call_log_matriz_principal.jsonl")
 
-    n_planned = len(planned_calls)
-    n_executed = sum(1 for r in matrix_records if r.call_status != vd.STATUS_NOT_EXECUTED)
-    n_not_executed = n_planned - n_executed
+    fidelity_review_eval = vd.evaluate_synthesis_fidelity_review(fidelity_review_data) if fidelity_review_data else None
 
-    by_role_condition: dict[str, dict[str, int]] = {}
-    for r in matrix_records:
-        key = f"{r.role}__{r.condition}"
-        d = by_role_condition.setdefault(key, {"planejadas": 0, "executadas": 0, "nao_executadas": 0, "ok": 0, "sem_conclusao": 0})
-        d["planejadas"] += 1
-        if r.call_status == vd.STATUS_NOT_EXECUTED:
-            d["nao_executadas"] += 1
-        else:
-            d["executadas"] += 1
-            if r.call_status == vd.STATUS_OK:
-                d["ok"] += 1
-
-    # DECISÃO FECHADA #9 (extensão): "zero parecer conclusivo" só se aplica
-    # a vlm_direto/summary -- únicos papéis com um veredito final
-    # categorizável.
-    #
-    # GATE/COMPUTAÇÃO OFICIAL trocado para o contrato de decisão explícito
-    # (decisão verbatim do pesquisador, 2026-11-14, ver
-    # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
-    # esta contagem agora lê `decisao_final` (campo OFICIAL, lido via
-    # `src.evaluation.explicit_decision_contract.extract_decisao_final`),
-    # não `classified_status_v2` -- aplicado IDENTICAMENTE para vlm_direto
-    # e sumarizador, sem caso especial por papel. `classified_status_v2`
-    # (gate oficial ANTERIOR, 2026-11-14 §9c do doc 20) e `classified_status`
-    # (v1) continuam computados e reportados nos registros, só para
-    # RASTREABILIDADE -- ver `binary_coverage_v1_historical_informational`/
-    # `binary_coverage_v2_historical_informational` abaixo.
-    _ROLES_WITH_CLASSIFIABLE_OUTPUT = {vd.ROLE_VLM_DIRETO, vd.ROLE_SUMMARY}
-    roles_with_zero_conclusive: list[str] = []
-    for key, d in by_role_condition.items():
-        role = key.split("__")[0]
-        if role not in _ROLES_WITH_CLASSIFIABLE_OUTPUT:
-            continue
-        has_conclusive = any(
-            r.decisao_final in (DECISAO_MELANOMA, DECISAO_NAO_MELANOMA, DECISAO_INDETERMINADO)
-            for r in matrix_records
-            if f"{r.role}__{r.condition}" == key
-        )
-        if not has_conclusive and key not in roles_with_zero_conclusive:
-            roles_with_zero_conclusive.append(key)
-
-    # Relatório INFORMATIVO (nunca pass/fail) para ABCD/Menzies/SPCL.
-    diagnostic_role_reporting = {
-        role: vd.summarize_diagnostic_role_reporting(matrix_records, role)
-        for role in (vd.ROLE_ABCD, vd.ROLE_MENZIES, vd.ROLE_SPCL)
-    }
-
-    n_valid_first_attempt = sum(1 for r in matrix_records if r.call_status == vd.STATUS_OK)
-    valid_rate = n_valid_first_attempt / n_executed if n_executed else 0.0
-
-    # CRITÉRIO OFICIAL de "resposta válida" (decisão do pesquisador, ver
-    # doc 26): escopo SÓ vlm_direto/summary (únicos papéis com contrato
-    # de decisão) -- `decision_status == DECISION_CONTRACT_STATUS_OK`
-    # conta como válida INCLUSIVE quando `decisao_final == "indeterminado"`
-    # (indeterminado explícito é uma decisão válida, só não conta para
-    # cobertura binária -- ver `classify_binary_coverage_from_decisao_final`
-    # abaixo). Distinto de `valid_rate` acima (que é sobre TODOS os papéis
-    # e mede só sucesso de chamada, não formato do veredito).
-    classifiable_records = [r for r in matrix_records if r.role in _ROLES_WITH_CLASSIFIABLE_OUTPUT and r.call_status != vd.STATUS_NOT_EXECUTED]
-    n_decision_contract_valid = sum(1 for r in classifiable_records if r.decision_status == DECISION_CONTRACT_STATUS_OK)
-    n_decision_contract_applicable = len(classifiable_records)
-    decision_contract_valid_rate = (
-        n_decision_contract_valid / n_decision_contract_applicable if n_decision_contract_applicable else 0.0
-    )
-
-    # Detalhe de toda chamada vlm_direto/summary que NÃO contou como
-    # "válida" acima -- falha de chamada (call_status != OK) OU chamada
-    # OK mas campo de formato inválido/ausente/repetido
-    # (decision_status != DECISION_CONTRACT_STATUS_OK) -- sempre com
-    # papel/condição/lesão/imagem explícitos, para o pesquisador revisar
-    # por modelo (1 modelo por execução deste script) x papel x condição.
-    decision_contract_failures_detail = [
-        {
-            "role": r.role, "condition": r.condition, "lesion_id": r.lesion_id, "image_id": r.image_id,
-            "call_status": r.call_status, "failure_cause": r.failure_cause,
-            "decision_status": r.decision_status, "decisao_final": r.decisao_final,
-        }
-        for r in classifiable_records
-        if not (r.call_status == vd.STATUS_OK and r.decision_status == DECISION_CONTRACT_STATUS_OK)
-    ]
-
-    # OFICIAL (2026-11-14, doc 26): cobertura binária reportada agora vem
-    # do contrato de decisão explícito -- mesma forma para vlm_direto e
-    # sumarizador (não há ramificação por papel em
-    # `classify_binary_coverage_from_decisao_final`).
-    binary_statuses_decision_contract = [
-        vd.classify_binary_coverage_from_decisao_final(r.decisao_final) for r in matrix_records
-    ]
-    n_positivo = sum(1 for b in binary_statuses_decision_contract if b is True)
-    n_negativo = sum(1 for b in binary_statuses_decision_contract if b is False)
-
-    # Rastreabilidade SÓ (nunca mais a fonte oficial dos números do
-    # relatório): mesma contagem a partir de `classified_status` (v1,
-    # intocado) e `classified_status_v2` (v2, gate oficial ANTERIOR) --
-    # mantidos para comparação histórica, nunca lidos por nenhum
-    # gate/critério de aprovação a partir desta entrega.
-    binary_statuses_v1_historical = [vd.classify_binary_coverage(r.classified_status) for r in matrix_records]
-    n_positivo_v1_historical = sum(1 for b in binary_statuses_v1_historical if b is True)
-    n_negativo_v1_historical = sum(1 for b in binary_statuses_v1_historical if b is False)
-
-    binary_statuses_v2_historical = [vd.classify_binary_coverage(r.classified_status_v2) for r in matrix_records]
-    n_positivo_v2_historical = sum(1 for b in binary_statuses_v2_historical if b is True)
-    n_negativo_v2_historical = sum(1 for b in binary_statuses_v2_historical if b is False)
-
-    # Candidatos a recusa -- surfaced SEMPRE que houver qualquer
-    # STATUS_REFUSAL na matriz, não só na 3ª consecutiva que dispara pausa
-    # (decisão fechada #5).
-    refusal_candidates = [
-        {
-            "role": r.role, "condition": r.condition, "lesion_id": r.lesion_id, "image_id": r.image_id,
-            "raw_response_text": r.raw_response_text, "failure_cause": r.failure_cause,
-        }
-        for r in matrix_records if r.call_status == vd.STATUS_REFUSAL
-    ]
-
-    # Swap: janelas de 5 sobre a MATRIZ PRINCIPAL, com baseline explícito
-    # pós-controles (decisão fechada #6).
-    matrix_swap_samples: list[int] = []
-    for r in matrix_records:
-        if r.mem_before is not None:
-            matrix_swap_samples.append(r.mem_before.system_swap_used_bytes)
-        if r.mem_after is not None:
-            matrix_swap_samples.append(r.mem_after.system_swap_used_bytes)
-    if matrix_swap_samples and baseline_swap_bytes is not None:
-        swap_growth = vd.detect_sustained_swap_growth(matrix_swap_samples, baseline_swap_bytes=baseline_swap_bytes)
-    else:
-        swap_growth = {
-            "note": "psutil indisponível, baseline ausente, ou nenhuma amostra coletada -- não computado.",
-            "baseline_swap_bytes": baseline_swap_bytes,
-        }
-
-    # Projeção de duração (item 10 -- extensão: soma sequencial dos 4
-    # papéis por lesão+condição, projeção para HYPOTHETICAL_FULL_SCALE_N).
-    per_lesion_condition_totals = vd.compute_per_lesion_condition_elapsed_totals(matrix_records)
-    duration_projection = vd.project_full_scale_duration(
-        list(per_lesion_condition_totals.values()), HYPOTHETICAL_FULL_SCALE_N
-    )
-
-    summary = {
+    summary: dict[str, Any] = {
         "model_name": model_name,
-        "model_info": stage1_summary.get("model_info"),
-        "stopped_before_main_matrix": False,
-        "n_calls_planned_main_matrix": n_planned,
-        "n_calls_executed_main_matrix": n_executed,
-        "n_calls_not_executed_due_to_pause": n_not_executed,
-        "n_total_planned_calls_per_model": vd.N_TOTAL_PLANNED_CALLS_PER_MODEL,
-        "valid_on_first_attempt_rate": valid_rate,
-        # CRITÉRIO OFICIAL de "≥95% de respostas válidas" do piloto
-        # (decisão do pesquisador, ver
-        # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
-        # taxa de leitura válida do contrato de decisão explícito, só
-        # vlm_direto/summary -- `indeterminado` explícito CONTA como
-        # resposta válida aqui (não é decisão binária, mas é uma leitura
-        # de formato bem-sucedida do campo `decisao_final`).
-        "decision_contract_valid_rate_official": decision_contract_valid_rate,
-        "decision_contract_valid_count": n_decision_contract_valid,
-        "decision_contract_applicable_count": n_decision_contract_applicable,
-        "decision_contract_failures_detail": decision_contract_failures_detail,
-        "decision_contract_valid_rate_note": (
-            "Fração de chamadas executadas de vlm_direto/summary com "
-            "decision_status == 'ok' (campo decisao_final lido com "
-            "sucesso -- melanoma/nao_melanoma/indeterminado contam todos "
-            "como válidos). Distinta de valid_on_first_attempt_rate "
-            "acima, que é sobre TODOS os papéis e mede só sucesso de "
-            "chamada (sem falha técnica/recusa/sem-resposta), não o "
-            "formato do veredito."
+        "model_info": model_info,
+        "stopped_operationally": stopped_operationally,
+        "stop_reason": stop_reason,
+        "protocol_note": (
+            "Protocolo alterado em 2026-11-16 (ver docs/reconstruction/"
+            "30_real_lesion_evaluation_protocol.md): controles de envio de "
+            "imagem e de síntese são sempre executados e registrados como "
+            "RESULTADO (desempenho/fidelidade), nunca como gate -- só um "
+            "problema OPERACIONAL real (payload incorreto, manifesto "
+            "errado, imagem ausente/trocada, configuração/credencial "
+            "incompatível, diretório de saída não gravável) interrompe a "
+            "execução. Revisão manual de fidelidade da síntese e o limiar "
+            "de >=95% de respostas válidas deixaram de ser pré-requisito "
+            "de avanço."
         ),
-        # GATE OFICIAL registrado explicitamente (decisão do pesquisador,
-        # 2026-11-14, ver
-        # docs/reconstruction/26_decision_contract_official_pilot_criterion.md):
-        # o contrato de decisão explícito (`decisao_final`, lido via
-        # `src.evaluation.explicit_decision_contract.extract_decisao_final`)
-        # é agora a fonte OFICIAL de todo gate/classificação do veredito
-        # final reportado aqui -- binary_coverage,
-        # roles_with_zero_conclusive_opinion. `classified_status_v2`
-        # (v2, gate oficial ANTERIOR a esta entrega, ver
-        # docs/reconstruction/20_local_vlm_pilot.md §9c) e
-        # `classified_status` (v1) são mantidos só para RASTREABILIDADE
-        # (ver *_historical_informational abaixo e os dois campos em
-        # call_log_matriz_principal.jsonl) -- nunca usados como
-        # fallback/desempate.
         "official_classification_parser_version": DECISION_CONTRACT_PARSER_VERSION,
-        "official_classification_parser_note": (
-            "src.evaluation.explicit_decision_contract.extract_decisao_final "
-            "é o parser OFICIAL de todo gate/classificação reportada aqui -- "
-            "binary_coverage, roles_with_zero_conclusive_opinion e "
-            "decision_contract_valid_rate_official. v2 "
-            "(classify_case_status_v2) e v1 (classify_case_status) são "
-            "mantidos só para RASTREABILIDADE (ver "
-            "binary_coverage_v1_historical_informational/"
-            "binary_coverage_v2_historical_informational abaixo e "
-            "classified_status/classified_status_v2 em "
-            "call_log_matriz_principal.jsonl) -- nunca usados como "
-            "fallback/desempate. O gate de parseabilidade dos controles "
-            "de síntese do Estágio 1 (run_synthesis_control, imagem "
-            "placeholder) NÃO foi alterado por esta entrega -- continua "
-            "lendo classify_case_status_v2, por ser um gate de "
-            "parseabilidade pré-matriz estruturalmente anterior e "
-            "separado deste critério."
-        ),
-        "binary_coverage": {
-            "positivo": n_positivo,
-            "negativo": n_negativo,
-            "parser_version": DECISION_CONTRACT_PARSER_VERSION,
-            "nota_proxy": (
-                "'positivo'/'negativo' aqui vêm de "
-                "classify_binary_coverage_from_decisao_final sobre o campo "
-                "OFICIAL decisao_final ('melanoma'/'nao_melanoma') -- "
-                "'indeterminado' explícito não conta para nenhum dos dois "
-                "lados (ver decision_contract_valid_rate_official para a "
-                "taxa de validade que O INCLUI)."
-            ),
-        },
-        # RASTREABILIDADE SÓ (2026-11-14): mesma cobertura binária, mas a
-        # partir do classificador v1 histórico (classify_case_status) --
-        # nunca mais a fonte oficial deste relatório (trocado para o
-        # contrato de decisão explícito, ver
-        # "official_classification_parser_version" acima e doc 26).
-        # Mantido só para comparação/auditoria entre versões do parser.
-        "binary_coverage_v1_historical_informational": {
-            "positivo": n_positivo_v1_historical,
-            "negativo": n_negativo_v1_historical,
-        },
-        # RASTREABILIDADE SÓ (ver nota acima) -- v2 foi o gate oficial
-        # ANTERIOR (2026-11-14 §9c do doc 20), agora também histórico.
-        "binary_coverage_v2_historical_informational": {
-            "positivo": n_positivo_v2_historical,
-            "negativo": n_negativo_v2_historical,
-            "parser_version": case_status_v2.PARSER_VERSION,
-        },
-        "by_role_condition": by_role_condition,
-        "roles_with_zero_conclusive_opinion": roles_with_zero_conclusive,
-        "diagnostic_role_reporting_informational": diagnostic_role_reporting,
-        "abstention_counters_trace": tracker.trace(),
+        "n_control_calls_executed": len(control_records),
+        "n_total_planned_calls_per_model": vd.N_TOTAL_PLANNED_CALLS_PER_MODEL,
         "controls": {
-            "image_sending": _serialize_controls(image_controls_eval),
-            "synthesis": _serialize_controls(synthesis_controls),
-            "fidelity_review_evaluation": _serialize_controls(fidelity_review_eval),
+            "image_sending": _serialize(image_controls_eval),
+            "synthesis": _serialize(synthesis_results),
+            "synthesis_fidelity_review": _serialize(fidelity_review_eval) if fidelity_review_eval else {
+                "note": "nenhum arquivo de revisão de fidelidade anexado nesta execução -- não bloqueante.",
+            },
         },
-        "sustained_swap_growth": _serialize_controls(swap_growth),
-        "duration_projection_full_scale": _serialize_controls(duration_projection),
-        "refusal_candidates_for_manual_review": refusal_candidates,
-        "seed_note": (
-            "A semente 20270203 (e a sub-semente nova de redistribuição de "
-            "grupo, ver scripts/run_pilot12_sample.py) governam só a "
-            "SELEÇÃO das lesões -- não garantem determinismo das respostas "
-            "do VLM (inferência local via Ollama não é seedada por este valor)."
-        ),
     }
+
+    if not stopped_operationally:
+        n_planned = len(planned_calls)
+        n_executed = sum(1 for r in matrix_records if r.call_status != vd.STATUS_NOT_EXECUTED)
+        n_not_executed = n_planned - n_executed
+
+        by_role_condition: dict[str, dict[str, int]] = {}
+        for r in matrix_records:
+            key = f"{r.role}__{r.condition}"
+            d = by_role_condition.setdefault(key, {"planejadas": 0, "executadas": 0, "nao_executadas": 0, "ok": 0})
+            d["planejadas"] += 1
+            if r.call_status == vd.STATUS_NOT_EXECUTED:
+                d["nao_executadas"] += 1
+            else:
+                d["executadas"] += 1
+                if r.call_status == vd.STATUS_OK:
+                    d["ok"] += 1
+
+        _ROLES_WITH_CLASSIFIABLE_OUTPUT = {vd.ROLE_VLM_DIRETO, vd.ROLE_SUMMARY}
+        roles_with_zero_conclusive: list[str] = []
+        for key in by_role_condition:
+            role = key.split("__")[0]
+            if role not in _ROLES_WITH_CLASSIFIABLE_OUTPUT:
+                continue
+            has_conclusive = any(
+                r.decisao_final in (DECISAO_MELANOMA, DECISAO_NAO_MELANOMA, DECISAO_INDETERMINADO)
+                for r in matrix_records
+                if f"{r.role}__{r.condition}" == key
+            )
+            if not has_conclusive:
+                roles_with_zero_conclusive.append(key)
+
+        diagnostic_role_reporting = {
+            role: vd.summarize_diagnostic_role_reporting(matrix_records, role)
+            for role in (vd.ROLE_ABCD, vd.ROLE_MENZIES, vd.ROLE_SPCL)
+        }
+
+        n_valid_first_attempt = sum(1 for r in matrix_records if r.call_status == vd.STATUS_OK)
+        valid_rate = n_valid_first_attempt / n_executed if n_executed else 0.0
+
+        classifiable_records = [r for r in matrix_records if r.role in _ROLES_WITH_CLASSIFIABLE_OUTPUT and r.call_status != vd.STATUS_NOT_EXECUTED]
+        n_decision_contract_valid = sum(1 for r in classifiable_records if r.decision_status == DECISION_CONTRACT_STATUS_OK)
+        n_decision_contract_applicable = len(classifiable_records)
+        decision_contract_valid_rate = (
+            n_decision_contract_valid / n_decision_contract_applicable if n_decision_contract_applicable else 0.0
+        )
+
+        decision_contract_failures_detail = [
+            {
+                "role": r.role, "condition": r.condition, "lesion_id": r.lesion_id, "image_id": r.image_id,
+                "call_status": r.call_status, "failure_cause": r.failure_cause,
+                "decision_status": r.decision_status, "decisao_final": r.decisao_final,
+            }
+            for r in classifiable_records
+            if not (r.call_status == vd.STATUS_OK and r.decision_status == DECISION_CONTRACT_STATUS_OK)
+        ]
+
+        binary_statuses_decision_contract = [vd.classify_binary_coverage_from_decisao_final(r.decisao_final) for r in matrix_records]
+        n_positivo = sum(1 for b in binary_statuses_decision_contract if b is True)
+        n_negativo = sum(1 for b in binary_statuses_decision_contract if b is False)
+
+        binary_statuses_v1_historical = [vd.classify_binary_coverage(r.classified_status) for r in matrix_records]
+        binary_statuses_v2_historical = [vd.classify_binary_coverage(r.classified_status_v2) for r in matrix_records]
+
+        refusal_candidates = [
+            {
+                "role": r.role, "condition": r.condition, "lesion_id": r.lesion_id, "image_id": r.image_id,
+                "raw_response_text": r.raw_response_text, "failure_cause": r.failure_cause,
+            }
+            for r in matrix_records if r.call_status == vd.STATUS_REFUSAL
+        ]
+
+        matrix_swap_samples: list[int] = []
+        for r in matrix_records:
+            if r.mem_before is not None:
+                matrix_swap_samples.append(r.mem_before.system_swap_used_bytes)
+            if r.mem_after is not None:
+                matrix_swap_samples.append(r.mem_after.system_swap_used_bytes)
+        if matrix_swap_samples and baseline_swap_bytes is not None:
+            swap_growth = vd.detect_sustained_swap_growth(matrix_swap_samples, baseline_swap_bytes=baseline_swap_bytes)
+        else:
+            swap_growth = {"note": "psutil indisponível, baseline ausente, ou nenhuma amostra coletada -- não computado.", "baseline_swap_bytes": baseline_swap_bytes}
+
+        per_lesion_condition_totals = vd.compute_per_lesion_condition_elapsed_totals(matrix_records)
+        duration_projection = vd.project_full_scale_duration(list(per_lesion_condition_totals.values()), HYPOTHETICAL_FULL_SCALE_N)
+
+        summary.update({
+            "n_calls_planned_main_matrix": n_planned,
+            "n_calls_executed_main_matrix": n_executed,
+            "n_calls_not_executed_due_to_pause": n_not_executed,
+            "valid_on_first_attempt_rate": valid_rate,
+            "decision_contract_valid_rate_informational": decision_contract_valid_rate,
+            "decision_contract_valid_count": n_decision_contract_valid,
+            "decision_contract_applicable_count": n_decision_contract_applicable,
+            "decision_contract_failures_detail": decision_contract_failures_detail,
+            "decision_contract_valid_rate_note": (
+                "Fração de chamadas vlm_direto/summary com decision_status=='ok' -- "
+                "indeterminado conta como válido. Reportada como RESULTADO/cobertura "
+                "do lote; não é mais usada para bloquear/reprovar a execução (ver "
+                "protocol_note)."
+            ),
+            "binary_coverage": {
+                "positivo": n_positivo, "negativo": n_negativo,
+                "parser_version": DECISION_CONTRACT_PARSER_VERSION,
+            },
+            "binary_coverage_v1_historical_informational": {
+                "positivo": sum(1 for b in binary_statuses_v1_historical if b is True),
+                "negativo": sum(1 for b in binary_statuses_v1_historical if b is False),
+            },
+            "binary_coverage_v2_historical_informational": {
+                "positivo": sum(1 for b in binary_statuses_v2_historical if b is True),
+                "negativo": sum(1 for b in binary_statuses_v2_historical if b is False),
+                "parser_version": case_status_v2.PARSER_VERSION,
+            },
+            "by_role_condition": by_role_condition,
+            "roles_with_zero_conclusive_opinion": roles_with_zero_conclusive,
+            "diagnostic_role_reporting_informational": diagnostic_role_reporting,
+            "abstention_counters_trace": tracker.trace(),
+            "sustained_swap_growth": _serialize(swap_growth),
+            "duration_projection_full_scale": _serialize(duration_projection),
+            "refusal_candidates_for_manual_review": refusal_candidates,
+        })
+
     with open(output_dir / "summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2, default=str)
 
     report_lines = [
-        f"# Piloto local de VLM — {model_name} — ESTÁGIO 2 (matriz principal concluída)",
+        f"# Piloto de VLM — {model_name}",
         "",
-        f"- Log de chamadas da matriz principal: `{matrix_log_path}`",
-        f"- Log de chamadas dos controles (ESTÁGIO 1): ver `{output_dir / 'call_log.jsonl'}`",
-        f"- Chamadas planejadas na matriz: {n_planned} (deve ser 92)",
-        f"- Total de chamadas planejadas por modelo (controles + matriz): {vd.N_TOTAL_PLANNED_CALLS_PER_MODEL}",
-        f"- Chamadas efetivamente realizadas na matriz: {n_executed}",
-        f"- Chamadas NÃO executadas (pausa por abstenção): {n_not_executed}",
-        f"- Taxa de validade na primeira tentativa (todos os papéis, sucesso de chamada): {valid_rate:.2%}",
-        f"- Taxa de validade do contrato de decisão (OFICIAL, só vlm_direto/summary, indeterminado conta como válido): "
-        f"{decision_contract_valid_rate:.2%} ({n_decision_contract_valid}/{n_decision_contract_applicable})",
-        f"- Falhas detalhadas (chamada ou formato) de vlm_direto/summary: {len(decision_contract_failures_detail)} "
-        "(ver decision_contract_failures_detail no summary.json -- por papel/condição/lesão/imagem)",
-        "- Parser OFICIAL de classificação/gate (decisão 2026-11-14, doc 26): "
-        "`src.evaluation.explicit_decision_contract.extract_decisao_final` "
-        "(v1/`classify_case_status` e v2/`classify_case_status_v2` mantidos só para rastreabilidade -- nunca fallback/desempate)",
-        f"- Cobertura binária (OFICIAL, via contrato de decisão): positivo={n_positivo}, negativo={n_negativo} "
-        "('negativo' é decisao_final=='nao_melanoma', não diagnóstico literal de benignidade)",
-        f"- Cobertura binária (v1 histórico, só rastreabilidade): positivo={n_positivo_v1_historical}, negativo={n_negativo_v1_historical}",
-        f"- Cobertura binária (v2 histórico, gate oficial ANTERIOR, só rastreabilidade): positivo={n_positivo_v2_historical}, negativo={n_negativo_v2_historical}",
+        f"- Parou por problema operacional: {stopped_operationally}" + (f" ({stop_reason})" if stop_reason else ""),
+        f"- Log de chamadas de controle: `{control_log_path}`",
+    ]
+    if matrix_log_path:
+        report_lines.append(f"- Log de chamadas da matriz principal: `{matrix_log_path}`")
+    report_lines += [
         "",
-        "## Papéis x condições sem nenhum parecer conclusivo (melanoma/nao_melanoma/indeterminado via decisao_final oficial) -- só vlm_direto/summary",
+        summary["protocol_note"],
         "",
-        f"{roles_with_zero_conclusive if roles_with_zero_conclusive else 'nenhum'}",
+        "## Controles (resultado, não gate)",
         "",
-        "## Relatório informativo (NÃO é pass/fail) -- ABCD/Menzies/SPCL",
-        "",
-        f"```json\n{json.dumps(diagnostic_role_reporting, ensure_ascii=False, indent=2, default=str)}\n```",
-        "",
-        "## Candidatos a recusa para revisão manual (TODA chamada classificada STATUS_REFUSAL, não só a 3ª consecutiva)",
-        "",
-        (
-            f"```json\n{json.dumps(refusal_candidates, ensure_ascii=False, indent=2, default=str)}\n```"
-            if refusal_candidates else "nenhuma chamada classificada como recusa explícita nesta execução."
-        ),
-        "",
-        "## Rastro dos contadores de abstenção (por papel)",
-        "",
-        f"```json\n{json.dumps(tracker.trace(), ensure_ascii=False, indent=2)}\n```",
-        "",
-        "## Crescimento sustentado de swap (decisão fechada #6 -- janelas de 5 sobre a matriz principal, baseline pós-controles)",
-        "",
-        f"```json\n{json.dumps(swap_growth, ensure_ascii=False, indent=2, default=str)}\n```",
-        "",
-        "## Projeção de duração em escala real (informativa -- NÃO é promessa de tempo real)",
-        "",
-        f"```json\n{json.dumps(duration_projection, ensure_ascii=False, indent=2, default=str)}\n```",
-        "",
-        "## Controles (ESTÁGIO 1, reusados aqui)",
-        "",
-        f"```json\n{json.dumps(_serialize_controls(image_controls_eval), ensure_ascii=False, indent=2, default=str)}\n```",
-        "",
-        f"```json\n{json.dumps(_serialize_controls(synthesis_controls), ensure_ascii=False, indent=2, default=str)}\n```",
-        "",
-        "## Avaliação da revisão de fidelidade da síntese",
-        "",
-        f"```json\n{json.dumps(fidelity_review_eval, ensure_ascii=False, indent=2, default=str)}\n```",
-        "",
-        "## Nota sobre a semente",
-        "",
-        summary["seed_note"],
+        f"```json\n{json.dumps(summary['controls'], ensure_ascii=False, indent=2, default=str)}\n```",
         "",
     ]
+    if not stopped_operationally:
+        report_lines += [
+            "## Resumo da matriz principal",
+            "",
+            f"```json\n{json.dumps({k: v for k, v in summary.items() if k not in ('controls', 'model_info')}, ensure_ascii=False, indent=2, default=str)}\n```",
+            "",
+        ]
     with open(output_dir / "report.md", "w", encoding="utf-8") as f:
         f.write("\n".join(report_lines))
 

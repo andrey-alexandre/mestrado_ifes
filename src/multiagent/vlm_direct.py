@@ -91,14 +91,15 @@ try:
 except ImportError:  # pragma: no cover
     from langchain.schema import HumanMessage
 
-from langchain_ollama import ChatOllama
-
+from src.agents import agents as _agents_module
 from src.agents.agents import (
     ABCDDiagnosticAgent,
     MenziesDiagnosticAgent,
     SPCLDiagnosticAgent,
     SummaryAgent,
     _image_message,
+    _is_gemini,
+    _is_ollama,
 )
 from src.agents.schemas import (
     ABCDDiagnosticAnswer,
@@ -116,6 +117,7 @@ from src.evaluation.explicit_decision_contract import (
     DECISAO_MELANOMA,
     DECISAO_NAO_MELANOMA,
     DECISION_STATUS_OK as DECISION_CONTRACT_STATUS_OK,
+    PARSER_VERSION as DECISION_CONTRACT_PARSER_VERSION,
     extract_decisao_final,
 )
 from src.models.model import convert_to_base64
@@ -160,6 +162,35 @@ STATUS_TECHNICAL_FAILURE = "falha_tecnica"
 STATUS_NO_RESPONSE = "sem_resposta"
 STATUS_REFUSAL = "recusa_explicita"
 STATUS_NOT_EXECUTED = "nao_executado"
+
+# ---------------------------------------------------------------------------
+# 0b. Modelos candidatos da Etapa 5 (avaliação nas lesões reais) -- IDs
+# exatos conforme já fixados nos registros do projeto/config do pipeline.
+# Qwen2.5-VL NÃO está nesta lista -- registrado como não avaliado por
+# indisponibilidade de download (ver docs/reconstruction), sem substituto.
+# ---------------------------------------------------------------------------
+MODEL_GEMINI = "gemini-3.1-flash-lite"  # já usado em execuções históricas reais (llm_result_gemini-3.1-flash-lite_*)
+MODEL_GPT = "gpt-5.4-nano"  # default de config/config.yaml::llm.model_name, já usado em execuções históricas reais
+MODEL_QWEN3_VL = "qwen3-vl:8b-instruct-q4_K_M"  # Ollama local, já testado no piloto de 12 lesões
+MODEL_MEDGEMMA = "medgemma1.5:4b-it-q4_K_M"  # Ollama local, já testado no piloto de 12 lesões
+# Qwen2.5-VL: NÃO avaliado -- indisponibilidade de download (não é um ID
+# fixado nem um candidato desta etapa; mantido aqui só como nota, nunca
+# usado como substituto de nenhum dos 4 acima).
+MODEL_QWEN2_5_VL_NOT_EVALUATED = "qwen2.5vl:7b-q4_K_M"
+MAIN_EVALUATION_MODELS = (MODEL_GEMINI, MODEL_GPT, MODEL_QWEN3_VL, MODEL_MEDGEMMA)
+
+
+def _build_direct_llm(model_name: str):
+    """Instancia o LLM para os papéis chamados diretamente por este módulo
+    (``vlm_direto`` e o sumarizador via contrato de decisão oficial) --
+    reusa `src.agents.agents._build_llm` (mesma função usada pelos agentes
+    ABCD/Menzies/SPCL/sumarizador oficiais), em vez de hardcodar
+    ``ChatOllama`` -- é isto que permite rodar estes dois papéis com
+    Gemini/GPT, não só modelos Ollama locais. Para tags Ollama
+    (``_is_ollama(model_name)``), o comportamento é byte-idêntico ao
+    anterior (``ChatOllama(model=model_name)``, temperatura ignorada por
+    `_build_llm` nesse ramo)."""
+    return _agents_module._build_llm(model_name, temperature=0)
 
 
 # ---------------------------------------------------------------------------
@@ -231,22 +262,44 @@ def capture_memory_snapshot() -> MemorySnapshot:
 # 3. Informações do modelo (ollama.show), uma vez por modelo
 # ---------------------------------------------------------------------------
 def get_model_info(model_name: str) -> dict[str, Any]:
-    """Chama ``ollama.show(model_name)`` UMA vez (chamador decide quando --
-    o piloto chama isto uma vez por modelo no início, nunca por chamada).
-    Devolve um dict serializável; nunca levanta por conta própria além do
-    que ``ollama.show`` já levantaria (ex.: modelo não existe localmente)."""
-    if ollama_client is None:
+    """Para tags Ollama (``model_name`` contém ``:``): chama
+    ``ollama.show(model_name)`` UMA vez (chamador decide quando -- o
+    piloto chama isto uma vez por modelo no início, nunca por chamada).
+    Levanta se o modelo não existir localmente (``ollama.show`` já faz
+    isso) -- este é um problema OPERACIONAL real (configuração
+    incompatível: modelo não baixado), não um problema de desempenho, e
+    deve interromper a execução, não só um aviso.
+
+    Para modelos via API (Gemini/GPT, ``model_name`` sem ``:``):
+    ``ollama.show`` não se aplica -- devolve metadados mínimos e confirma
+    só que a variável de ambiente da chave de API correspondente está
+    definida (checagem operacional equivalente: configuração incompatível
+    -- chave ausente -- deve ser detectada aqui, antes de qualquer
+    chamada real, não silenciosamente no meio do lote)."""
+    if _is_ollama(model_name):
+        if ollama_client is None:
+            raise RuntimeError(
+                "o pacote 'ollama' não está instalado -- dependência já esperada "
+                "(langchain-ollama) mas nunca importada diretamente neste projeto "
+                "até esta entrega. Instale/confirme com `pip show ollama`."
+            )
+        info = ollama_client.show(model_name)
+        # ollama.show pode devolver um objeto typed (ShowResponse) dependendo da
+        # versão do cliente -- normaliza para dict puro e serializável.
+        if hasattr(info, "model_dump"):
+            info = info.model_dump()
+        return dict(info)
+
+    import os as _os
+
+    env_var = "GOOGLE_API_KEY" if _is_gemini(model_name) else "OPENAI_API_KEY"
+    if not _os.environ.get(env_var):
         raise RuntimeError(
-            "o pacote 'ollama' não está instalado -- dependência já esperada "
-            "(langchain-ollama) mas nunca importada diretamente neste projeto "
-            "até esta entrega. Instale/confirme com `pip show ollama`."
+            f"modelo '{model_name}' requer a variável de ambiente {env_var} "
+            "definida -- configuração incompatível, nenhuma chamada real foi "
+            "tentada."
         )
-    info = ollama_client.show(model_name)
-    # ollama.show pode devolver um objeto typed (ShowResponse) dependendo da
-    # versão do cliente -- normaliza para dict puro e serializável.
-    if hasattr(info, "model_dump"):
-        info = info.model_dump()
-    return dict(info)
+    return {"provider": "gemini" if _is_gemini(model_name) else "openai", "model_name": model_name, "api_key_env_var_present": True}
 
 
 # ---------------------------------------------------------------------------
@@ -485,6 +538,19 @@ class CallRecord:
     # mas só para RASTREABILIDADE, nunca mais como fallback/desempate.
     decision_status: Optional[str] = None
     decisao_final: Optional[str] = None
+    # NOVO (checagem de reaproveitamento entre execuções/escala real):
+    # versão do parser do contrato de decisão vigente NO MOMENTO desta
+    # chamada (`explicit_decision_contract.PARSER_VERSION`), gravada
+    # junto com `decision_status`/`decisao_final` -- `None` quando o
+    # papel não tem contrato de decisão (ABCD/Menzies/SPCL) ou quando a
+    # chamada não chegou a STATUS_OK. É este campo, e não só
+    # `decision_status`/`decisao_final`, que `check_reuse`/
+    # `is_call_record_reusable` (seção 13) comparam contra a versão
+    # ATUAL do parser antes de considerar um registro reaproveitável --
+    # sem ele, uma mudança futura no contrato de decisão não teria como
+    # ser detectada por um registro antigo que por acaso já tenha
+    # `decision_status`/`decisao_final` preenchidos.
+    decision_contract_parser_version: Optional[str] = None
 
     def to_flat_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
@@ -502,6 +568,7 @@ class CallRecord:
             "classified_status_v2": self.classified_status_v2,
             "decision_status": self.decision_status,
             "decisao_final": self.decisao_final,
+            "decision_contract_parser_version": self.decision_contract_parser_version,
         }
         for prefix, snap in (("mem_before", self.mem_before), ("mem_after", self.mem_after)):
             if snap is None:
@@ -530,7 +597,7 @@ def run_vlm_direct_call(
     task_instruction: str = VLM_DIRECT_TASK_INSTRUCTION,
 ) -> CallRecord:
     message = build_vlm_direct_message(image, task_instruction)
-    llm = ChatOllama(model=model_name)
+    llm = _build_direct_llm(model_name)
 
     mem_before = capture_memory_snapshot() if psutil is not None else None
     attempt_ts = datetime.now(timezone.utc).isoformat()
@@ -565,6 +632,7 @@ def run_vlm_direct_call(
         classified_status_v2=classified_v2,
         decision_status=(decision_result.decision_status if decision_result else None),
         decisao_final=(decision_result.decisao_final if decision_result else None),
+        decision_contract_parser_version=(DECISION_CONTRACT_PARSER_VERSION if decision_result else None),
     )
 
 
@@ -720,7 +788,7 @@ def run_summary_role_call_official_decision_contract(
         diagnosis_spcl=state.diagnosis_spcl,
     )
     message = _image_message(state.seg_image_data, text_prompt)
-    llm = ChatOllama(model=model_name)
+    llm = _build_direct_llm(model_name)
 
     mem_before = capture_memory_snapshot() if psutil is not None else None
     attempt_ts = datetime.now(timezone.utc).isoformat()
@@ -749,6 +817,7 @@ def run_summary_role_call_official_decision_contract(
         classified_status_v2=classified_v2,
         decision_status=(decision_result.decision_status if decision_result else None),
         decisao_final=(decision_result.decisao_final if decision_result else None),
+        decision_contract_parser_version=(DECISION_CONTRACT_PARSER_VERSION if decision_result else None),
     )
     # Mesma convenção de `run_multiagent_role_call`: `state_update` fica
     # vazio em falha de chamada (timeout/exceção) -- o chamador nunca
@@ -1044,6 +1113,16 @@ def evaluate_image_sending_controls_for_role(results: list[dict[str, Any]]) -> d
         "all_individually_passed": all_individually_passed,
         "all_payloads_correct": all_payloads_correct,
         "responses_vary_with_image_content": varies_with_content,
+        # GATE OPERACIONAL (único que interrompe o lote, decisão
+        # 2026-11-16): só confirma que o PAYLOAD multimodal enviado ao
+        # modelo foi o correto -- ou seja, nossa própria construção de
+        # mensagem não está quebrada/trocada. Acerto de cor/quadrante
+        # (`all_individually_passed`) e variação de resposta com o
+        # conteúdo são RESULTADO de desempenho do modelo, não um problema
+        # operacional -- nunca bloqueiam a execução a partir desta
+        # entrega (ver `overall_pass` acima, preservado só para
+        # rastreabilidade/leitura informativa).
+        "operational_pass": all_payloads_correct,
         "overall_pass": overall_pass,
     }
 
@@ -1056,24 +1135,33 @@ def evaluate_image_sending_controls(results_by_role: dict[str, list[dict[str, An
     sucesso dos outros 3."""
     per_role = {role: evaluate_image_sending_controls_for_role(results) for role, results in results_by_role.items()}
     overall_pass = all(e["overall_pass"] for e in per_role.values())
+    operational_pass = all(e["operational_pass"] for e in per_role.values())
     return {
         "per_role": per_role,
         "n_roles_evaluated": len(per_role),
         "n_roles_passed": sum(1 for e in per_role.values() if e["overall_pass"]),
+        "n_roles_operationally_passed": sum(1 for e in per_role.values() if e["operational_pass"]),
+        # Único campo que o driver (`scripts/run_local_vlm_pilot.py`) usa
+        # para decidir se interrompe a execução (ver nota em
+        # `evaluate_image_sending_controls_for_role`). `overall_pass`
+        # (acima) continua reportado, só para leitura informativa de
+        # desempenho -- nunca mais gate.
+        "operational_pass": operational_pass,
         "overall_pass": overall_pass,
     }
 
 
 def _build_role_llm(model_name: str, role: str):
     """Constrói o LLM de ``role`` pelo MESMO caminho de construção que o
-    papel usa na matriz principal -- para `vlm_direto`, ``ChatOllama(model=...)``
-    direto (idêntico a `run_vlm_direct_call`); para os 3 papéis
-    diagnósticos, instancia a classe de agente real (o mesmo `_build_llm`
-    interno de `src.agents.agents` roda dentro do `__init__`) e devolve o
-    atributo `.llm` já construído -- NUNCA chama `.analyze_lesion` (que
-    monta sempre o prompt clínico real, intocado nesta entrega)."""
+    papel usa na matriz principal -- para `vlm_direto`, `_build_direct_llm`
+    (idêntico a `run_vlm_direct_call`, suporta Gemini/GPT/Ollama); para os
+    3 papéis diagnósticos, instancia a classe de agente real (o mesmo
+    `_build_llm` interno de `src.agents.agents` roda dentro do `__init__`)
+    e devolve o atributo `.llm` já construído -- NUNCA chama
+    `.analyze_lesion` (que monta sempre o prompt clínico real, intocado
+    nesta entrega)."""
     if role == ROLE_VLM_DIRETO:
-        return ChatOllama(model=model_name)
+        return _build_direct_llm(model_name)
     agent_cls, schema = _ROLE_TO_AGENT_CLASS_AND_SCHEMA[role]
     agent = agent_cls(model_name, schema)
     return agent.llm
@@ -1948,3 +2036,154 @@ def project_full_scale_duration(per_lesion_condition_totals: list[float], hypoth
             "local (sem seed garantido) podem diferir substancialmente."
         ),
     }
+
+
+# ---------------------------------------------------------------------------
+# 13. Reaproveitamento de chamadas já executadas e planejamento da matriz de
+#     escala real (3.000 lesões congeladas) -- Etapa 5, terceira entrega
+#     (ver docs/reconstruction/30_real_lesion_evaluation_protocol.md,
+#     scripts/run_full_scale_vlm_matrix.py, scripts/check_vlm_matrix_reuse.py).
+#
+#     Estas duas funções eram originalmente definidas só dentro de
+#     `scripts/check_vlm_matrix_reuse.py` (script standalone de checagem
+#     manual) -- movidas para aqui para serem a ÚNICA implementação,
+#     reusada tanto pelo script standalone quanto pelo executor de escala
+#     real (`scripts/run_full_scale_vlm_matrix.py`), que precisa chamar a
+#     checagem de reaproveitamento internamente antes/durante a execução,
+#     não só como um passo manual externo.
+#
+#     CORREÇÃO (2026-11-16, nesta entrega): a versão anterior (só em
+#     `scripts/check_vlm_matrix_reuse.py`) AFIRMAVA no docstring exigir
+#     equivalência de "versão do contrato de decisão vigente" para
+#     reaproveitar um registro, mas `CallRecord` não tinha nenhum campo
+#     guardando QUAL versão do parser produziu um `decisao_final`
+#     salvo -- a checagem de versão nunca era de fato aplicada (bug real,
+#     não só cosmético: um registro de uma versão antiga do contrato de
+#     decisão seria considerado reaproveitável mesmo que o contrato tivesse
+#     mudado). Corrigido adicionando `CallRecord.decision_contract_
+#     parser_version` (seção 7, populado em `run_vlm_direct_call` e
+#     `run_summary_role_call_official_decision_contract`) e comparando-o
+#     explicitamente aqui contra `DECISION_CONTRACT_PARSER_VERSION` atual.
+# ---------------------------------------------------------------------------
+NOT_EXECUTED_STATUS_FOR_REUSE = STATUS_NOT_EXECUTED
+STATUS_AVAILABLE_IN_S0_S1_S2_MANIFEST = "disponivel"
+
+# Papéis cujo resultado é lido via o contrato de decisão explícito
+# (`decision_status`/`decisao_final`) -- ABCD/Menzies/SPCL não têm
+# veredito categórico próprio (ver `run_multiagent_role_call`), então a
+# checagem de versão do contrato de decisão não se aplica a eles.
+_ROLES_WITH_DECISION_CONTRACT = (ROLE_VLM_DIRETO, ROLE_SUMMARY)
+
+
+def is_call_record_reusable(record: dict[str, Any], model_name: str) -> bool:
+    """``True`` se ``record`` (um dict já carregado de um `call_log*.jsonl`
+    -- mesmo formato de `CallRecord.to_flat_dict`) puder ser reaproveitado
+    como equivalente a uma chamada planejada com o mesmo
+    ``(role, condition, lesion_id, image_id)``. Equivalência EXIGE, nesta
+    ordem (qualquer falha => não reaproveitável):
+
+      1. ``record["model_name"] == model_name`` (string EXATA, sem
+         normalização/alias);
+      2. ``record["call_status"] != "nao_executado"`` (uma chamada pausada
+         por abstenção nunca conta como "já feita" -- precisa ser tentada
+         de verdade, inclusive para registrar uma falha real);
+      3. para papéis com contrato de decisão (`vlm_direto`/`summary`):
+         ``record["decision_contract_parser_version"] ==
+         DECISION_CONTRACT_PARSER_VERSION`` atual -- um registro de uma
+         versão diferente do parser NUNCA é reaproveitado, mesmo que
+         lesão/condição/modelo batam, porque o contrato de leitura do
+         veredito mudou. Isto vale mesmo quando a chamada teve falha
+         técnica/sem-resposta/recusa (nesse caso
+         `decision_contract_parser_version` é `None` por construção --
+         `None != DECISION_CONTRACT_PARSER_VERSION` já reprova
+         corretamente, sem precisar de um caso especial).
+
+    Falhas reais (falha técnica, sem resposta, recusa) SÃO reaproveitáveis
+    (ponto 2) -- repetir uma chamada que já falhou de verdade não é "rodar
+    o que falta", é um retry disfarçado, que este pipeline nunca faz.
+    """
+    if record.get("model_name") != model_name:
+        return False
+    if record.get("call_status") == NOT_EXECUTED_STATUS_FOR_REUSE:
+        return False
+    if record.get("role") in _ROLES_WITH_DECISION_CONTRACT:
+        if record.get("decision_contract_parser_version") != DECISION_CONTRACT_PARSER_VERSION:
+            return False
+    return True
+
+
+def check_reuse(
+    model_name: str, existing_records: list[dict[str, Any]], planned_calls: list[dict[str, str]]
+) -> dict[str, Any]:
+    """Compara ``planned_calls`` (lista de ``{role, condition, lesion_id,
+    image_id}``) contra ``existing_records`` (registros já carregados de
+    um ou mais `call_log*.jsonl`) e devolve quais chamadas planejadas já
+    estão cobertas por um registro reaproveitável (`is_call_record_reusable`)
+    e quais faltam rodar. Chave de equivalência: ``(role, condition,
+    lesion_id, image_id)`` -- as mesmas 4 dimensões em ambos os lados,
+    nunca só uma. Deliberadamente conservador: qualquer registro que não
+    bata em algum eixo de `is_call_record_reusable` entra na lista do que
+    falta rodar -- reaproveitar demais seria pior que reexecutar uma
+    chamada já feita."""
+    reusable_keys: set[tuple[str, str, str, str]] = set()
+    for record in existing_records:
+        if not is_call_record_reusable(record, model_name):
+            continue
+        reusable_keys.add((record["role"], record["condition"], record["lesion_id"], record["image_id"]))
+
+    already_covered: list[dict[str, str]] = []
+    missing: list[dict[str, str]] = []
+    for call in planned_calls:
+        key = (call["role"], call["condition"], call["lesion_id"], call["image_id"])
+        (already_covered if key in reusable_keys else missing).append(call)
+
+    return {
+        "model_name": model_name,
+        "decision_contract_parser_version_current": DECISION_CONTRACT_PARSER_VERSION,
+        "n_planned": len(planned_calls),
+        "n_already_covered_by_existing_output": len(already_covered),
+        "n_missing_must_run": len(missing),
+        "already_covered": already_covered,
+        "missing": missing,
+    }
+
+
+def build_full_scale_planned_calls(s0_s1_s2_rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Plano de chamadas da matriz APROVADA sobre as 3.000 lesões
+    congeladas (ver doc 15/30) -- generalização de `build_planned_calls`
+    (que cobre só as 12 lesões do piloto local) para a amostra completa.
+
+    ``s0_s1_s2_rows``: as linhas de
+    `experiments/multiagent/s0_s1_s2_preparation_manifest.csv` (saída já
+    real de `scripts/run_s0_s1_s2_preparation.py` -- reusada, nunca
+    regenerada por esta função), uma por lesão, com colunas
+    ``status_s0``/``status_s1``/``status_s2`` (``"disponivel"`` ou
+    ``"indisponivel"``) e ``lesion_id``/``image_id``.
+
+    Para cada lesão:
+      - VLM-direto, condição S0 -- SE ``status_s0 == "disponivel"``
+        (comparação planejada: VLM-direto S0 × multiagente S0).
+      - Multiagente (ABCD/Menzies/SPCL/sumarizador), em CADA condição
+        S0/S1/S2 individualmente disponível -- SE
+        ``status_<condição> == "disponivel"``. Uma condição indisponível
+        (política já definida para máscara vazia de S2 -- ver
+        `src.multiagent.presentation` -- e qualquer outro motivo de
+        indisponibilidade estrutural de S0/S1/S2) é OMITIDA da condição
+        correspondente, NUNCA substituída por outra condição (sem
+        fallback S2->S0/S1).
+
+    Não inclui CNN -- a comparação CNN S0 × multiagente S2 reusa
+    `experiments/cnn_baseline/s0_ham10000_eval/s0_cnn_scores.csv`
+    diretamente (ver `scripts/run_full_scale_vlm_matrix.py`), nenhuma nova
+    chamada à CNN é planejada ou executada por este módulo."""
+    calls: list[dict[str, str]] = []
+    for row in s0_s1_s2_rows:
+        lesion_id, image_id = row["lesion_id"], row["image_id"]
+        if row.get("status_s0") == STATUS_AVAILABLE_IN_S0_S1_S2_MANIFEST:
+            calls.append({"role": ROLE_VLM_DIRETO, "condition": "s0", "lesion_id": lesion_id, "image_id": image_id})
+        for condition in ("s0", "s1", "s2"):
+            if row.get(f"status_{condition}") != STATUS_AVAILABLE_IN_S0_S1_S2_MANIFEST:
+                continue
+            for role in MULTIAGENT_ROLES_IN_ORDER:
+                calls.append({"role": role, "condition": condition, "lesion_id": lesion_id, "image_id": image_id})
+    return calls

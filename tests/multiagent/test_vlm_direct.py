@@ -37,45 +37,38 @@ class _FakeOllamaResponse:
         self.content = content
 
 
-class _FakeChatOllama:
-    """Substitui langchain_ollama.ChatOllama -- usado via monkeypatch de
-    `vd.ChatOllama`."""
-
-    _next_content: str | Exception | None = "resposta padrão de teste"
-    _sleep_s: float = 0.0
-
-    def __init__(self, model=None, **kwargs):
-        self.model = model
-
-    def invoke(self, messages):
-        if isinstance(self._next_content, Exception):
-            raise self._next_content
-        if self._sleep_s:
-            import time
-
-            time.sleep(self._sleep_s)
-        return _FakeOllamaResponse(self._next_content)
-
-
 class _FakeLLMForAgents:
     """Substitui o retorno de `src.agents.agents._build_llm` -- usado via
     monkeypatch de `agents_module._build_llm`. Como `model_name` contém
     ':' nos testes (convenção Ollama), `_invoke` chama `.invoke(messages)
-    .content` diretamente (caminho Ollama em `_invoke`)."""
+    .content` diretamente (caminho Ollama em `_invoke`).
 
-    next_content: str | None = "texto simulado"
+    A partir da generalização de dispatch de modelo em
+    `src.multiagent.vlm_direct._build_direct_llm` (reusa
+    `_agents_module._build_llm`, nunca mais `ChatOllama` hardcoded), este
+    dublê também cobre o papel `vlm_direto` e o sumarizador-via-contrato
+    -- não só os 3 papéis diagnósticos -- porque todos os pontos de
+    construção de LLM deste módulo passam pelo MESMO
+    `agents_module._build_llm` monkeypatchado abaixo."""
+
+    next_content: str | Exception | None = "texto simulado"
+    sleep_s: float = 0.0
 
     def invoke(self, messages):
+        if isinstance(self.next_content, Exception):
+            raise self.next_content
+        if type(self).sleep_s:
+            import time
+
+            time.sleep(type(self).sleep_s)
         return _FakeOllamaResponse(type(self).next_content)
 
 
 @pytest.fixture(autouse=True)
 def _patch_llms(monkeypatch):
-    monkeypatch.setattr(vd, "ChatOllama", _FakeChatOllama)
     monkeypatch.setattr(agents_module, "_build_llm", lambda model_name, temperature: _FakeLLMForAgents())
-    _FakeChatOllama._next_content = "resposta padrão de teste"
-    _FakeChatOllama._sleep_s = 0.0
     _FakeLLMForAgents.next_content = "texto simulado"
+    _FakeLLMForAgents.sleep_s = 0.0
     yield
 
 
@@ -343,7 +336,7 @@ def test_evaluate_image_sending_controls_requires_all_4_roles_to_pass():
 # de cada papel (decisão fechada #2).
 # ---------------------------------------------------------------------------
 def test_run_image_sending_control_call_vlm_direto_uses_chat_ollama_path():
-    _FakeChatOllama._next_content = "resposta de controle"
+    _FakeLLMForAgents.next_content = "resposta de controle"
     spec = vd.build_image_control_specs_for_role(vd.ROLE_VLM_DIRETO)[0]
     result = vd.run_image_sending_control_call(MODEL_TAG, vd.ROLE_VLM_DIRETO, "imagem", spec)
     assert result["call_record"].call_status == vd.STATUS_OK
@@ -369,12 +362,12 @@ def test_run_image_sending_control_call_no_image_kind_sends_no_image():
 
 
 # ---------------------------------------------------------------------------
-# run_vlm_direct_call (mock no limite do ChatOllama) -- inalterado
+# run_vlm_direct_call (mock no limite de _build_llm, via _FakeLLMForAgents)
 # ---------------------------------------------------------------------------
 def test_run_vlm_direct_call_success_classified_positivo():
     from PIL import Image
 
-    _FakeChatOllama._next_content = "Suspeita de Melanoma. Bordas irregulares observadas."
+    _FakeLLMForAgents.next_content = "Suspeita de Melanoma. Bordas irregulares observadas."
     image = Image.new("RGB", (10, 10))
     record = vd.run_vlm_direct_call(MODEL_TAG, image, "HAM_001", "ISIC_001")
     assert record.call_status == vd.STATUS_OK
@@ -386,7 +379,7 @@ def test_run_vlm_direct_call_success_classified_positivo():
 def test_run_vlm_direct_call_timeout_is_technical_failure_not_retried():
     from PIL import Image
 
-    _FakeChatOllama._sleep_s = 0.3
+    _FakeLLMForAgents.sleep_s = 0.3
     image = Image.new("RGB", (10, 10))
     record = vd.run_vlm_direct_call(MODEL_TAG, image, "HAM_002", "ISIC_002", timeout_s=0.05)
     assert record.call_status == vd.STATUS_TECHNICAL_FAILURE
@@ -397,7 +390,7 @@ def test_run_vlm_direct_call_timeout_is_technical_failure_not_retried():
 def test_run_vlm_direct_call_exception_is_technical_failure():
     from PIL import Image
 
-    _FakeChatOllama._next_content = RuntimeError("conexão recusada")
+    _FakeLLMForAgents.next_content = RuntimeError("conexão recusada")
     image = Image.new("RGB", (10, 10))
     record = vd.run_vlm_direct_call(MODEL_TAG, image, "HAM_003", "ISIC_003")
     assert record.call_status == vd.STATUS_TECHNICAL_FAILURE
