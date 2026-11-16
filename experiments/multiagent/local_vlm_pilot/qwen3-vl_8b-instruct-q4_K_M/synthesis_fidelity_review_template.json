@@ -63,8 +63,8 @@
         "not_evaluated_vs_evaluated_absent_check": null,
         "absence_vs_lesion_lacks_feature_check": null
       },
-      "fidelity_verdict": null,
-      "reviewer_notes": "",
+      "fidelity_verdict": "fidelidade_reprovada",
+      "reviewer_notes": "REPROVA por dois motivos concretos, nao apenas a mencao a 'vasos atipicos'. (1) Na secao Menzies, a justificativa atribui a cada criterio positivo um motivo clinico detalhado ('Veu azul-branco: presente (indica desorganizacao do melanocito)', 'Pseudopodes: bordas projetadas - tipico de melanoma', etc.) que NAO existe no parecer de entrada: o Menzies fixo so tem os valores '1'/'0' por criterio mais uma frase generica de explicacao, sem nenhum motivo textual por item. Isso atribui a Menzies um raciocinio clinico que o parecer nunca produziu. (2) Na secao SPCL, a justificativa lista 'Regressao nao presente' entre os '7 criterios atipicos atingidos', mas o parecer SPCL fixo da 'regressao: Nao.' (criterio avaliado e AUSENTE, nao atingido) - a sintese inverteu um criterio negativo em um criterio positivo contado na pontuacao. A mencao a 'vasos atipicos' na discussao de cor do ABCD (parecer SPCL marca esse criterio como 'Nao considerado') e uma hipotese propria nao rotulada como tal, mas e um problema menor comparado aos dois acima.",
       "rule_version": "fidelidade_sintese_v1_2026_11_16"
     },
     {
@@ -115,8 +115,8 @@
         "not_evaluated_vs_evaluated_absent_check": null,
         "absence_vs_lesion_lacks_feature_check": null
       },
-      "fidelity_verdict": null,
-      "reviewer_notes": "",
+      "fidelity_verdict": "fidelidade_aprovada",
+      "reviewer_notes": "Todas as secoes (ABCD, Menzies, SPCL) representam fielmente os valores de entrada: Menzies positivas todas '0' e negativas simetria='1'/cor_unica='1' sao descritas corretamente como 'avaliadas como 0 (ausentes)' e 'indicadores de benignidade' respectivamente - nao ha confusao entre avaliado-e-ausente e nao avaliado, porque nada neste cenario foi de fato nao avaliado. SPCL 'todos os 7 itens avaliados como Nao' confere exatamente com o parecer fixo (todos os campos = 'Nao.'), incluindo vasos_atipicos (aqui avaliado e ausente, diferente do cenario unanime_positivo). Nao encontrei nenhum achado atribuido ao agente errado nem motivo clinico inventado alem do que o parecer ja sustenta.",
       "rule_version": "fidelidade_sintese_v1_2026_11_16"
     },
     {
@@ -175,8 +175,8 @@
         },
         "absence_vs_lesion_lacks_feature_check": null
       },
-      "fidelity_verdict": null,
-      "reviewer_notes": "",
+      "fidelity_verdict": "fidelidade_reprovada",
+      "reviewer_notes": "REPROVA, exatamente o padrao que o pesquisador pediu para checar. O parecer Menzies fixo deste cenario da negativas={'simetria': '0', 'cor_unica': '0'} - campos OBRIGATORIOS do schema (MenziesNegativeAnswer), ou seja, valores avaliados e FORNECIDOS (ausentes, nao 'nao avaliados'; nao existe no schema uma forma de 'simetria nao avaliada'). A justificativa escreve: 'Negativas: Simetria nao avaliada (nao esta no criterio de Menzies), cor unica nao descrita.' Isso faz duas coisas erradas: (a) converte um valor avaliado-e-ausente (simetria=0) em 'nao avaliada', e o mesmo para cor_unica ('nao descrita'); (b) afirma que simetria 'nao esta no criterio de Menzies', o que e factualmente falso - simetria e cor_unica SAO os dois criterios negativos do Metodo Menzies. O SPCL foi representado corretamente ('vasos atipicos (nao avaliado)' confere com o parecer fixo 'Nao avaliado: este criterio nao foi avaliado nesta analise.'), mas conforme a regra isso nao salva o cenario - a reprovacao do Menzies e suficiente por si so.",
       "rule_version": "fidelidade_sintese_v1_2026_11_16"
     },
     {
@@ -228,8 +228,8 @@
           "likely_misrepresented_absence_as_lesion_lacks_feature": true
         }
       },
-      "fidelity_verdict": null,
-      "reviewer_notes": "",
+      "fidelity_verdict": "fidelidade_aprovada",
+      "reviewer_notes": "APROVA. A checagem automatica marcou um falso positivo: a frase sinalizada ('a lesao nao possui caracteristicas associadas a malignidade') se refere a conclusao conjunta de ABCD+Menzies (os 2 pareceres REALMENTE disponiveis), nao ao SPCL ausente. A propria secao 'Observacoes Adicionais' da justificativa distingue corretamente: 'SPCL nao foi aplicado - por isso, nao ha avaliacao por esse metodo' - e a secao 3 do corpo principal diz literalmente 'Nao fornecido. Nao ha dados para avaliacao.' Em nenhum momento o texto afirma que a lesao carece de uma caracteristica POR CAUSA do parecer ausente - preserva corretamente 'parecer ausente' vs 'caracteristica ausente na lesao'. ABCD (0/1/1/1) e Menzies (positivas todas 0, negativas 1/1) sao representados sem alteracao. Unico ponto menor, nao desqualificante: a justificativa cita 'soma ponderada: 4,0' para o ABCD, um numero que nao aparece no parecer de entrada (so a conclusao 'abaixo de 4.75') - parece um calculo proprio nao rotulado como tal, mas nao inventa nem distorce nenhum achado do agente.",
       "rule_version": "fidelidade_sintese_v1_2026_11_16"
     }
   ]
