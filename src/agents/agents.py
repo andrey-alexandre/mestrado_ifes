@@ -2,6 +2,8 @@
 import json
 import logging
 import os
+import time
+from typing import Optional
 
 import torch
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -40,7 +42,7 @@ def _is_gemini(model_name: str) -> bool:
     return model_name.startswith("gemini")
 
 
-def _build_llm(model_name: str, temperature: float):
+def _build_llm(model_name: str, temperature: float, timeout_s: Optional[float] = None):
     """Instancia o LLM correto baseado no model_name.
 
     Seleção automática por prefixo/padrão:
@@ -51,12 +53,27 @@ def _build_llm(model_name: str, temperature: float):
     Args:
         model_name: Nome do modelo (e.g. "gpt-4o-mini", "gemini-1.5-pro", "llava:13b").
         temperature: Temperatura de geração.
+        timeout_s: SÓ afeta o ramo Ollama -- passado como
+            ``client_kwargs={"timeout": timeout_s}`` ao `ChatOllama`
+            (chega ao `httpx.Client` subjacente via `ollama.Client`).
+            ``None`` (default) preserva o comportamento histórico EXATO
+            (``timeout=None`` no cliente ``ollama``, sem limite real --
+            nenhum chamador existente que não passe este argumento é
+            afetado). Esse timeout HTTP só pega travamentos reais (nenhum
+            byte recebido dentro da janela) -- para uma geração lenta mas
+            que streama ininterruptamente, use
+            `_invoke_ollama_stream_with_deadline` (abaixo), que aplica um
+            prazo de TOTAL decorrido, não só por leitura. Os dois juntos
+            cobrem os dois casos; nenhum dos dois sozinho é suficiente
+            (ver docs/reconstruction/30_real_lesion_evaluation_protocol.md
+            §9/§10).
 
     Returns:
         Instância de ChatGoogleGenerativeAI, ChatOllama ou ChatOpenAI.
     """
     if _is_ollama(model_name):
-        return ChatOllama(model=model_name)
+        client_kwargs = {"timeout": timeout_s} if timeout_s is not None else {}
+        return ChatOllama(model=model_name, client_kwargs=client_kwargs)
     if _is_gemini(model_name):
         return ChatGoogleGenerativeAI(
             model=model_name,
@@ -70,7 +87,74 @@ def _build_llm(model_name: str, temperature: float):
     )
 
 
-def _invoke(llm, output_format, messages: list, model_name: str):
+class OllamaStreamDeadlineExceeded(Exception):
+    """Levantada por `_invoke_ollama_stream_with_deadline` quando o tempo
+    TOTAL decorrido excede o prazo -- classe PRÓPRIA, não ``TimeoutError``
+    builtin, deliberadamente: desde Python 3.11,
+    ``concurrent.futures.TimeoutError`` é um alias do ``TimeoutError``
+    builtin, então um `raise TimeoutError(...)` aqui seria capturado pelo
+    primeiro ``except concurrent.futures.TimeoutError:`` de
+    `src.multiagent.vlm_direct.call_with_timeout` -- perdendo a mensagem
+    e sendo indistinguível do timeout antigo (`timed_out=True,
+    exception=None`, causa genérica `timeout_excedido_Ns`). Com esta
+    classe própria, `call_with_timeout` cai no ``except Exception as
+    exc:`` genérico, preservando a mensagem real (inclusive quantos
+    chunks chegaram antes do corte) em ``failure_cause``."""
+
+
+def _invoke_ollama_stream_with_deadline(llm, messages: list, timeout_s: float) -> str:
+    """Consome ``llm.stream(messages)`` (NÃO ``.invoke()``) acumulando os
+    chunks recebidos, verificando o tempo TOTAL decorrido a cada chunk.
+
+    Por quê: ``langchain_ollama.ChatOllama._generate`` (usado por
+    ``.invoke()``) sempre passa por ``stream=True`` internamente
+    (``_chat_params``), agregando os chunks por conta própria -- não há
+    como impor um prazo de tempo TOTAL via ``.invoke()`` ou via o
+    parâmetro ``timeout`` do cliente ``ollama`` (que é um timeout POR
+    LEITURA/operação httpx, nunca reiniciado enquanto o modelo continuar
+    produzindo tokens, mesmo que lentamente -- uma geração que nunca para
+    de emitir tokens, só demora >120s no total, NUNCA dispararia esse
+    timeout). Consumindo o stream nós mesmos, podemos checar o relógio a
+    cada chunk e desistir de verdade.
+
+    Quando o total excede ``timeout_s``: fecha explicitamente o gerador
+    (``stream_iter.close()``) -- isso propaga um ``GeneratorExit`` para
+    dentro do gerador de ``langchain_ollama``/``ollama``, que sai do
+    bloco ``with self._client.stream(...) as r:`` (`ollama/_client.py`),
+    fechando de verdade a conexão HTTP/TCP, em vez de só desistir de
+    esperar (como ``concurrent.futures.Future.result(timeout=...)`` faz,
+    que NUNCA fecha a conexão -- ver
+    `src.multiagent.vlm_direct.call_with_timeout`). Levanta
+    `OllamaStreamDeadlineExceeded` nesse caso (não o `TimeoutError`
+    builtin -- ver docstring da classe) -- nunca retorna um texto
+    parcial como se fosse completo.
+
+    Limitação conhecida e documentada: se o modelo travar ANTES de emitir
+    o primeiro chunk (nenhum byte recebido), o relógio desta função nunca
+    chega a ser checado (bloqueado dentro do ``next()`` do gerador) --
+    esse caso específico depende do timeout HTTP por leitura configurado
+    em `_build_llm`'s ``client_kwargs`` (complementar, não substituível
+    por esta função)."""
+    t0 = time.monotonic()
+    stream_iter = iter(llm.stream(messages))
+    chunks: list[str] = []
+    try:
+        for chunk in stream_iter:
+            content = getattr(chunk, "content", None)
+            if content:
+                chunks.append(content if isinstance(content, str) else str(content))
+            if time.monotonic() - t0 > timeout_s:
+                raise OllamaStreamDeadlineExceeded(
+                    f"deadline_total_excedido_{timeout_s:.0f}s_apos_{len(chunks)}_chunks_recebidos"
+                )
+        return "".join(chunks)
+    finally:
+        close = getattr(stream_iter, "close", None)
+        if close is not None:
+            close()
+
+
+def _invoke(llm, output_format, messages: list, model_name: str, timeout_s: Optional[float] = None):
     """Invoca o LLM com saída estruturada (OpenAI/Gemini) ou texto livre (Ollama).
 
     OpenAI e Gemini suportam with_structured_output() via JSON schema nativo.
@@ -81,11 +165,18 @@ def _invoke(llm, output_format, messages: list, model_name: str):
         output_format: Classe Pydantic do schema esperado.
         messages: Lista de mensagens LangChain (HumanMessage, etc.).
         model_name: Nome do modelo (para distinguir Ollama dos demais).
+        timeout_s: SÓ afeta o ramo Ollama. ``None`` (default) preserva o
+            comportamento histórico EXATO (``llm.invoke(messages).content``,
+            sem prazo real) -- nenhum chamador existente que não passe
+            este argumento é afetado. Quando fornecido, usa
+            `_invoke_ollama_stream_with_deadline` em vez de ``.invoke()``.
 
     Returns:
         Objeto Pydantic (OpenAI/Gemini) ou string (Ollama).
     """
     if _is_ollama(model_name):
+        if timeout_s is not None:
+            return _invoke_ollama_stream_with_deadline(llm, messages, timeout_s)
         return llm.invoke(messages).content
     return llm.with_structured_output(output_format).invoke(messages)
 
@@ -203,16 +294,20 @@ class PrecomputedSegmentationAgent:
 class ABCDDiagnosticAgent:
     """Analisa a lesão pelo algoritmo ABCD de dermoscopia."""
 
-    def __init__(self, model_name: str, output_format, temperature: float = 0.7):
+    def __init__(self, model_name: str, output_format, temperature: float = 0.7, ollama_timeout_s: Optional[float] = None):
         """
         Args:
             model_name: Nome do LLM ("gpt-4o-mini" ou "llava:13b").
             output_format: Classe Pydantic para parse estruturado da saída.
             temperature: Temperatura de geração do LLM.
+            ollama_timeout_s: SÓ afeta modelos Ollama. ``None`` (default)
+                preserva o comportamento histórico (sem prazo real) --
+                nenhum chamador existente que não passe isto é afetado.
         """
         self.model_name = model_name
         self.output_format = output_format
-        self.llm = _build_llm(model_name, temperature)
+        self.ollama_timeout_s = ollama_timeout_s
+        self.llm = _build_llm(model_name, temperature, timeout_s=ollama_timeout_s)
 
     def analyze_lesion(self, state: GraphState) -> dict:
         """Executa a análise ABCD sobre a imagem segmentada.
@@ -265,7 +360,7 @@ class ABCDDiagnosticAgent:
         """
 
         messages = [_image_message(state.seg_image_data, text_prompt)]
-        output = _invoke(self.llm, self.output_format, messages, self.model_name)
+        output = _invoke(self.llm, self.output_format, messages, self.model_name, timeout_s=self.ollama_timeout_s)
         if output is None:
             return {
                 "diagnosis_abcd": output,
@@ -281,16 +376,20 @@ class ABCDDiagnosticAgent:
 class MenziesDiagnosticAgent:
     """Analisa a lesão pelo Método Menzies de dermoscopia."""
 
-    def __init__(self, model_name: str, output_format, temperature: float = 0.7):
+    def __init__(self, model_name: str, output_format, temperature: float = 0.7, ollama_timeout_s: Optional[float] = None):
         """
         Args:
             model_name: Nome do LLM ("gpt-4o-mini" ou "llava:13b").
             output_format: Classe Pydantic para parse estruturado da saída.
             temperature: Temperatura de geração do LLM.
+            ollama_timeout_s: SÓ afeta modelos Ollama. ``None`` (default)
+                preserva o comportamento histórico (sem prazo real) --
+                nenhum chamador existente que não passe isto é afetado.
         """
         self.model_name = model_name
         self.output_format = output_format
-        self.llm = _build_llm(model_name, temperature)
+        self.ollama_timeout_s = ollama_timeout_s
+        self.llm = _build_llm(model_name, temperature, timeout_s=ollama_timeout_s)
 
     def analyze_lesion(self, state: GraphState) -> dict:
         """Executa a análise pelo Método Menzies sobre a imagem segmentada.
@@ -340,7 +439,7 @@ class MenziesDiagnosticAgent:
       """
 
         messages = [_image_message(state.seg_image_data, text_prompt)]
-        output = _invoke(self.llm, self.output_format, messages, self.model_name)
+        output = _invoke(self.llm, self.output_format, messages, self.model_name, timeout_s=self.ollama_timeout_s)
         if output is None:
             return {
                 "diagnosis_menzies": output,
@@ -356,16 +455,20 @@ class MenziesDiagnosticAgent:
 class SPCLDiagnosticAgent:
     """Analisa a lesão pela Checklist de Sete Pontos (Seven-Point Checklist)."""
 
-    def __init__(self, model_name: str, output_format, temperature: float = 0.7):
+    def __init__(self, model_name: str, output_format, temperature: float = 0.7, ollama_timeout_s: Optional[float] = None):
         """
         Args:
             model_name: Nome do LLM ("gpt-4o-mini" ou "llava:13b").
             output_format: Classe Pydantic para parse estruturado da saída.
             temperature: Temperatura de geração do LLM.
+            ollama_timeout_s: SÓ afeta modelos Ollama. ``None`` (default)
+                preserva o comportamento histórico (sem prazo real) --
+                nenhum chamador existente que não passe isto é afetado.
         """
         self.model_name = model_name
         self.output_format = output_format
-        self.llm = _build_llm(model_name, temperature)
+        self.ollama_timeout_s = ollama_timeout_s
+        self.llm = _build_llm(model_name, temperature, timeout_s=ollama_timeout_s)
 
     def analyze_lesion(self, state: GraphState) -> dict:
         """Executa a análise SPCL sobre a imagem segmentada.
@@ -411,7 +514,7 @@ class SPCLDiagnosticAgent:
       """
 
         messages = [_image_message(state.seg_image_data, text_prompt)]
-        output = _invoke(self.llm, self.output_format, messages, self.model_name)
+        output = _invoke(self.llm, self.output_format, messages, self.model_name, timeout_s=self.ollama_timeout_s)
         if output is None:
             return {
                 "diagnosis_spcl": output,
@@ -427,16 +530,20 @@ class SPCLDiagnosticAgent:
 class SummaryAgent:
     """Integra os resultados dos três algoritmos (ABCD, Menzies, SPCL) em parecer final."""
 
-    def __init__(self, model_name: str, output_format, temperature: float = 0.7):
+    def __init__(self, model_name: str, output_format, temperature: float = 0.7, ollama_timeout_s: Optional[float] = None):
         """
         Args:
             model_name: Nome do LLM ("gpt-4o-mini" ou "llava:13b").
             output_format: Classe Pydantic para parse estruturado da saída.
             temperature: Temperatura de geração do LLM.
+            ollama_timeout_s: SÓ afeta modelos Ollama. ``None`` (default)
+                preserva o comportamento histórico (sem prazo real) --
+                nenhum chamador existente que não passe isto é afetado.
         """
         self.model_name = model_name
         self.output_format = output_format
-        self.llm = _build_llm(model_name, temperature)
+        self.ollama_timeout_s = ollama_timeout_s
+        self.llm = _build_llm(model_name, temperature, timeout_s=ollama_timeout_s)
 
     def summarize(self, state: GraphState) -> dict:
         """Consolida os três diagnósticos em um parecer clínico único.
@@ -480,7 +587,7 @@ class SummaryAgent:
       """
 
         messages = [_image_message(state.seg_image_data, text_prompt)]
-        output = _invoke(self.llm, self.output_format, messages, self.model_name)
+        output = _invoke(self.llm, self.output_format, messages, self.model_name, timeout_s=self.ollama_timeout_s)
         return {"validation": output}
 
 

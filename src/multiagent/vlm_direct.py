@@ -149,6 +149,13 @@ except ImportError:  # pragma: no cover
 
 TIMEOUT_S = 120.0
 
+# Identifica a configuração de cancelamento/timeout vigente -- gravado em
+# CADA CallRecord (seção 7) a partir desta entrega (2026-11-17). Bump
+# obrigatório sempre que o MECANISMO de chamada/cancelamento mudar de
+# novo (não a versão do modelo nem o valor de TIMEOUT_S em si) -- ver
+# docs/reconstruction/30_real_lesion_evaluation_protocol.md §9/§10.
+CALL_MECHANISM_VERSION = "ollama_stream_deadline_real_cancel_2026_11_17"
+
 ROLE_VLM_DIRETO = "vlm_direto"
 ROLE_ABCD = "diagnostic_abcd"
 ROLE_MENZIES = "diagnostic_menzies"
@@ -180,7 +187,7 @@ MODEL_QWEN2_5_VL_NOT_EVALUATED = "qwen2.5vl:7b-q4_K_M"
 MAIN_EVALUATION_MODELS = (MODEL_GEMINI, MODEL_GPT, MODEL_QWEN3_VL, MODEL_MEDGEMMA)
 
 
-def _build_direct_llm(model_name: str):
+def _build_direct_llm(model_name: str, ollama_timeout_s: Optional[float] = None):
     """Instancia o LLM para os papéis chamados diretamente por este módulo
     (``vlm_direto`` e o sumarizador via contrato de decisão oficial) --
     reusa `src.agents.agents._build_llm` (mesma função usada pelos agentes
@@ -189,8 +196,23 @@ def _build_direct_llm(model_name: str):
     Gemini/GPT, não só modelos Ollama locais. Para tags Ollama
     (``_is_ollama(model_name)``), o comportamento é byte-idêntico ao
     anterior (``ChatOllama(model=model_name)``, temperatura ignorada por
-    `_build_llm` nesse ramo)."""
-    return _agents_module._build_llm(model_name, temperature=0)
+    `_build_llm` nesse ramo) quando ``ollama_timeout_s`` é ``None``.
+    ``ollama_timeout_s`` só afeta modelos Ollama (ver
+    `_agents_module._build_llm`/seção 15)."""
+    return _agents_module._build_llm(model_name, temperature=0, timeout_s=ollama_timeout_s)
+
+
+def _invoke_direct_llm_text(llm, model_name: str, message: HumanMessage, timeout_s: float) -> str:
+    """Produz o texto bruto da resposta para ``vlm_direto``/sumarizador
+    oficial. Para modelos Ollama, usa
+    `_agents_module._invoke_ollama_stream_with_deadline` -- prazo TOTAL
+    real, que de fato encerra a conexão HTTP ao expirar (ver seção 15,
+    correção 2026-11-17). Para Gemini/GPT, `.invoke()` comum -- SDKs
+    próprios, fora do escopo desta correção (que é especificamente sobre
+    a fila do Ollama)."""
+    if _is_ollama(model_name):
+        return _agents_module._invoke_ollama_stream_with_deadline(llm, [message], timeout_s)
+    return llm.invoke([message]).content
 
 
 # ---------------------------------------------------------------------------
@@ -551,6 +573,20 @@ class CallRecord:
     # ser detectada por um registro antigo que por acaso já tenha
     # `decision_status`/`decisao_final` preenchidos.
     decision_contract_parser_version: Optional[str] = None
+    # NOVO (2026-11-17, ver doc 30 §9/§10): identifica QUAL mecanismo de
+    # chamada/cancelamento produziu esta tentativa -- não uma versão do
+    # contrato de decisão (não precisa disso para ser reaproveitável),
+    # mas a "configuração de execução" em si (um dos 5 eixos de
+    # equivalência originais). Sem isto, uma falha registrada ANTES da
+    # correção do timeout (geração abandonada, nunca cancelada de
+    # verdade -- ver `call_with_timeout`) ficaria indistinguível de uma
+    # falha DEPOIS da correção (cancelamento real via
+    # `_invoke_ollama_stream_with_deadline`) -- mesma `call_status`
+    # (`falha_tecnica`), mas evidência de natureza diferente. `None` para
+    # registros anteriores a esta entrega (nunca preenchido
+    # retroativamente) -- isso já basta para `is_call_record_reusable`
+    # tratá-los como pertencentes a uma configuração diferente da atual.
+    call_mechanism_version: Optional[str] = None
 
     def to_flat_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
@@ -569,6 +605,7 @@ class CallRecord:
             "decision_status": self.decision_status,
             "decisao_final": self.decisao_final,
             "decision_contract_parser_version": self.decision_contract_parser_version,
+            "call_mechanism_version": self.call_mechanism_version,
         }
         for prefix, snap in (("mem_before", self.mem_before), ("mem_after", self.mem_after)):
             if snap is None:
@@ -597,11 +634,11 @@ def run_vlm_direct_call(
     task_instruction: str = VLM_DIRECT_TASK_INSTRUCTION,
 ) -> CallRecord:
     message = build_vlm_direct_message(image, task_instruction)
-    llm = _build_direct_llm(model_name)
+    llm = _build_direct_llm(model_name, ollama_timeout_s=timeout_s if _is_ollama(model_name) else None)
 
     mem_before = capture_memory_snapshot() if psutil is not None else None
     attempt_ts = datetime.now(timezone.utc).isoformat()
-    outcome = call_with_timeout(lambda: llm.invoke([message]).content, timeout_s=timeout_s)
+    outcome = call_with_timeout(lambda: _invoke_direct_llm_text(llm, model_name, message, timeout_s), timeout_s=timeout_s)
     mem_after = capture_memory_snapshot() if psutil is not None else None
 
     status, cause, raw_text = classify_call_outcome(outcome)
@@ -633,6 +670,7 @@ def run_vlm_direct_call(
         decision_status=(decision_result.decision_status if decision_result else None),
         decisao_final=(decision_result.decisao_final if decision_result else None),
         decision_contract_parser_version=(DECISION_CONTRACT_PARSER_VERSION if decision_result else None),
+        call_mechanism_version=CALL_MECHANISM_VERSION,
     )
 
 
@@ -683,12 +721,16 @@ def run_multiagent_role_call(
     mem_before = capture_memory_snapshot() if psutil is not None else None
     attempt_ts = datetime.now(timezone.utc).isoformat()
 
+    # ollama_timeout_s propaga o prazo TOTAL real (ver seção 15) só para
+    # modelos Ollama -- para Gemini/GPT, `None` preserva o comportamento
+    # de sempre (SDKs próprios, fora do escopo desta correção).
+    _ollama_timeout = timeout_s if _is_ollama(model_name) else None
     if role == ROLE_SUMMARY:
-        agent = SummaryAgent(model_name, SummaryAnswer)
+        agent = SummaryAgent(model_name, SummaryAnswer, ollama_timeout_s=_ollama_timeout)
         outcome = call_with_timeout(lambda: agent.summarize(state), timeout_s=timeout_s)
     else:
         agent_cls, schema = _ROLE_TO_AGENT_CLASS_AND_SCHEMA[role]
-        agent = agent_cls(model_name, schema)
+        agent = agent_cls(model_name, schema, ollama_timeout_s=_ollama_timeout)
         outcome = call_with_timeout(lambda: agent.analyze_lesion(state), timeout_s=timeout_s)
 
     mem_after = capture_memory_snapshot() if psutil is not None else None
@@ -734,6 +776,7 @@ def run_multiagent_role_call(
         failure_cause=cause,
         classified_status=classified,
         classified_status_v2=classified_v2,
+        call_mechanism_version=CALL_MECHANISM_VERSION,
     )
     return record, state_update
 
@@ -788,11 +831,11 @@ def run_summary_role_call_official_decision_contract(
         diagnosis_spcl=state.diagnosis_spcl,
     )
     message = _image_message(state.seg_image_data, text_prompt)
-    llm = _build_direct_llm(model_name)
+    llm = _build_direct_llm(model_name, ollama_timeout_s=timeout_s if _is_ollama(model_name) else None)
 
     mem_before = capture_memory_snapshot() if psutil is not None else None
     attempt_ts = datetime.now(timezone.utc).isoformat()
-    outcome = call_with_timeout(lambda: llm.invoke([message]).content, timeout_s=timeout_s)
+    outcome = call_with_timeout(lambda: _invoke_direct_llm_text(llm, model_name, message, timeout_s), timeout_s=timeout_s)
     mem_after = capture_memory_snapshot() if psutil is not None else None
 
     status, cause, raw_text = classify_call_outcome(outcome)
@@ -818,6 +861,7 @@ def run_summary_role_call_official_decision_contract(
         decision_status=(decision_result.decision_status if decision_result else None),
         decisao_final=(decision_result.decisao_final if decision_result else None),
         decision_contract_parser_version=(DECISION_CONTRACT_PARSER_VERSION if decision_result else None),
+        call_mechanism_version=CALL_MECHANISM_VERSION,
     )
     # Mesma convenção de `run_multiagent_role_call`: `state_update` fica
     # vazio em falha de chamada (timeout/exceção) -- o chamador nunca
@@ -2094,10 +2138,27 @@ def is_call_record_reusable(record: dict[str, Any], model_name: str) -> bool:
          versão diferente do parser NUNCA é reaproveitado, mesmo que
          lesão/condição/modelo batam, porque o contrato de leitura do
          veredito mudou.
+      4. SÓ quando a chamada foi uma falha técnica
+         (``call_status == STATUS_TECHNICAL_FAILURE``):
+         ``record["call_mechanism_version"] == CALL_MECHANISM_VERSION``
+         atual -- uma falha não precisa de versão de CONTRATO DE DECISÃO
+         (ponto 3 só se aplica a sucesso), mas precisa manter a
+         identificação de qual CONFIGURAÇÃO DE EXECUÇÃO a produziu: uma
+         falha técnica registrada sob um mecanismo de
+         cancelamento/timeout diferente do atual (ex.: antes da correção
+         2026-11-17 que passou a cancelar de verdade a conexão HTTP, ver
+         `src.agents.agents._invoke_ollama_stream_with_deadline`) não é
+         evidência equivalente -- é reexecutada sob a configuração
+         atual, não descartada nem assumida como "já tentada para
+         sempre".
 
     Falhas reais (falha técnica, sem resposta, recusa) SÃO reaproveitáveis
     (ponto 2) -- repetir uma chamada que já falhou de verdade não é "rodar
-    o que falta", é um retry disfarçado, que este pipeline nunca faz.
+    o que falta", é um retry disfarçado, que este pipeline nunca faz. O
+    ponto 4 é a EXCEÇÃO deliberada: só reexecuta falha técnica quando a
+    CONFIGURAÇÃO muda (não é um retry da mesma tentativa -- é uma
+    tentativa NOVA, sob regras diferentes, de algo que nunca teve um
+    resultado real comparável).
 
     CORREÇÃO (2026-11-17, bug real encontrado após a primeira execução
     real do MedGemma na matriz de 3.000): a versão anterior aplicava a
@@ -2110,7 +2171,8 @@ def is_call_record_reusable(record: dict[str, Any], model_name: str) -> bool:
     REPETIDO chamadas que já tinham falhado de verdade (56 casos reais
     confirmados no log do MedGemma: 17 vlm_direto + 39 summary).
     Corrigido: o ponto 3 só se aplica quando `call_status == STATUS_OK`;
-    fora disso, falhas de qualquer papel seguem só a regra do ponto 2.
+    fora disso, falhas seguem o ponto 2 (reaproveitáveis) OU o novo ponto
+    4 (reaproveitáveis só se a configuração de execução bater).
     """
     if record.get("model_name") != model_name:
         return False
@@ -2118,6 +2180,20 @@ def is_call_record_reusable(record: dict[str, Any], model_name: str) -> bool:
         return False
     if record.get("call_status") == STATUS_OK and record.get("role") in _ROLES_WITH_DECISION_CONTRACT:
         if record.get("decision_contract_parser_version") != DECISION_CONTRACT_PARSER_VERSION:
+            return False
+    # PONTO 4 (2026-11-17, ver doc 30 §9/§10): uma FALHA TÉCNICA
+    # (`falha_tecnica`) só é reaproveitável se tiver sido produzida pela
+    # MESMA configuração de cancelamento/timeout vigente agora
+    # (`call_mechanism_version`) -- não precisa de versão de contrato de
+    # decisão (ponto 3 já é condicionado a STATUS_OK), mas precisa manter
+    # a identificação de QUAL mecanismo a gerou. Falhas de antes da
+    # correção do timeout (geração nunca cancelada de verdade) não têm
+    # esse campo (`None`) -- nunca tratadas como equivalentes a falhas
+    # sob o mecanismo atual, mesmo que lesão/condição/modelo batam.
+    # Sucesso/sem-resposta/recusa não exigem este campo -- só a falha
+    # técnica depende diretamente de COMO o cancelamento foi feito.
+    if record.get("call_status") == STATUS_TECHNICAL_FAILURE:
+        if record.get("call_mechanism_version") != CALL_MECHANISM_VERSION:
             return False
     return True
 

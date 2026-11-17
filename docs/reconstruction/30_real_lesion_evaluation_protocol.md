@@ -407,7 +407,112 @@ justifica desativar um papel pelo resto do lote. Mudança implementada:
 - Efeito sobre os 37.289 `nao_executado` já gravados pela execução
   anterior do MedGemma: continuam pendentes (`is_call_record_reusable`
   nunca os trata como reaproveitáveis) -- na próxima `--mode execute`,
-  cada um recebe uma tentativa real (não mais pulado por pausa). As
-  1.687 tentativas reais já registradas (inclusive as 143 falhas e as 4
-  recusas) permanecem preservadas e não são repetidas, graças à correção
-  do bug de `decision_contract_parser_version` registrada acima.
+  cada um recebe uma tentativa real (não mais pulado por pausa). Dos
+  1.687 registros reais já existentes: os 1.540 sucessos e as 4 recusas
+  permanecem preservados e NÃO são repetidos (correção do bug de
+  `decision_contract_parser_version`, acima). As 143 falhas técnicas,
+  porém, foram produzidas pelo mecanismo ANTIGO (geração nunca cancelada
+  de verdade) -- ver seção 10 abaixo: a partir da correção do
+  cancelamento real, essas 143 ESPECIFICAMENTE voltam a ser tentadas de
+  verdade (não são "repetição", são a primeira tentativa sob a
+  configuração corrigida -- ver ponto 4 de `is_call_record_reusable`).
+
+## 10. Cancelamento real do timeout (2026-11-17) -- causa raiz e correção
+
+Pesquisador apontou, antes de qualquer retomada do lote: a correção da
+seção 9 removeu a PAUSA, mas não resolveu a causa (o timeout ainda só
+abandona a espera, sem fechar a chamada) -- correto, confirmado no
+código, não só no log.
+
+**Mecanismo real do problema**: `langchain_ollama.ChatOllama._generate`
+(usado por `.invoke()`) sempre delega para `_chat_params` com
+`"stream": kwargs.pop("stream", True)` -- streaming interno MESMO numa
+chamada "não-streaming". Isso significa que um timeout HTTP por LEITURA
+(`client_kwargs={"timeout": N}` no `ollama.Client`/httpx) nunca dispara
+enquanto o modelo continuar emitindo QUALQUER token dentro da janela --
+útil para travamentos reais (nenhum byte chega), inútil para uma geração
+lenta mas contínua que passa de 120s no TOTAL (exatamente o padrão
+observado no MedGemma). Configurar só esse timeout, portanto, não prova
+nada sobre o caso que importa.
+
+**Correção implementada** (`src/agents/agents.py`):
+- `_build_llm(model_name, temperature, timeout_s=None)` -- novo
+  parâmetro opcional, só afeta o ramo Ollama
+  (`ChatOllama(model=model_name, client_kwargs={"timeout": timeout_s})`)
+  -- cobre o caso "travou antes do primeiro byte"; `None` (default)
+  preserva o comportamento histórico exato para qualquer chamador que
+  não passe isto.
+- `_invoke_ollama_stream_with_deadline(llm, messages, timeout_s)`
+  (nova): consome `llm.stream(messages)` (não `.invoke()`) ela mesma,
+  verificando o tempo TOTAL decorrido a cada chunk recebido -- cobre o
+  caso "geração lenta mas contínua, só o total excede". Ao exceder,
+  fecha explicitamente o gerador (`stream_iter.close()`), propagando um
+  `GeneratorExit` até o `with self._client.stream(...) as r:` da
+  biblioteca `ollama`, fechando de verdade a conexão HTTP/TCP -- e
+  levanta `OllamaStreamDeadlineExceeded` (classe própria, NÃO
+  `TimeoutError` builtin -- desde Python 3.11
+  `concurrent.futures.TimeoutError` é um alias do `TimeoutError`
+  builtin, então usar `TimeoutError` aqui seria capturado pelo primeiro
+  `except` de `call_with_timeout` e perderia a mensagem/distinção).
+- `_invoke(..., timeout_s=None)` e os 4 agentes
+  (`ABCDDiagnosticAgent`/`MenziesDiagnosticAgent`/
+  `SPCLDiagnosticAgent`/`SummaryAgent`) ganharam um parâmetro opcional
+  `ollama_timeout_s` (default `None`, mesma garantia de compatibilidade)
+  que propaga até `_invoke_ollama_stream_with_deadline` -- cobre os 5
+  papéis (antes só vlm_direto/summary tinham QUALQUER timeout
+  configurável neste nível; ABCD/Menzies/SPCL dependiam só do
+  `call_with_timeout` externo, que nunca cancela nada).
+- `src/multiagent/vlm_direct.py`: `run_vlm_direct_call`,
+  `run_summary_role_call_official_decision_contract` e
+  `run_multiagent_role_call` passam `ollama_timeout_s=timeout_s` (só
+  para modelos Ollama) na construção do LLM/agente -- os 5 papéis agora
+  usam o mesmo mecanismo de cancelamento real.
+- **Identificação da configuração preservada** (pedido do pesquisador):
+  novo campo `CallRecord.call_mechanism_version` (constante
+  `CALL_MECHANISM_VERSION`), gravado em TODO registro. Não é uma versão
+  de contrato de decisão -- é a identificação de qual mecanismo de
+  cancelamento produziu a tentativa. `is_call_record_reusable` ganhou um
+  4º ponto de equivalência: uma FALHA TÉCNICA só é reaproveitável se
+  `call_mechanism_version` bater com o atual -- os 143 registros de
+  falha do MedGemma (mecanismo antigo, sem este campo) deixam de contar
+  como "já tentados" e voltam a ser tentados de verdade sob o mecanismo
+  corrigido (não é repetição -- é a primeira tentativa comparável).
+  Sucesso/sem-resposta/recusa não exigem este campo.
+
+**Verificação empírica (não executada por este agente -- requer Ollama
+real)**: `scripts/verify_ollama_real_cancellation.py`. Mede, por
+latência (NUNCA por `ollama ps`/estado interno do servidor -- decisão
+explícita do pesquisador): (1) baseline de um prompt rápido sem prazo;
+(2) força o corte de um prompt deliberadamente longo com um prazo curto
+via `_invoke_ollama_stream_with_deadline`, confirmando que o corte
+dispara perto do prazo pedido (não que o prompt terminou por conta
+própria); (3) repete o prompt rápido imediatamente após o corte. Se a
+latência pós-corte for próxima do baseline, é evidência de cancelamento
+real; se for muito maior, é evidência de que o servidor ainda está
+ocupado pela geração abandonada. Resultado é evidência circunstancial,
+reportado como tal (`interpretation_caveat`), nunca um veredito
+definitivo automático.
+
+**Recomendação operacional antes de retomar o lote** (pedido do
+pesquisador, não implementado como gate automático): encerrar o
+processo do executor e reiniciar o Ollama para limpar qualquer geração
+abandonada acumulada ANTES de rodar `--mode execute` de novo. Depois
+disso, a retomada continua só os itens ainda não tentados (`missing`),
+sem repetir nenhuma tentativa já registrada -- exceto as 143 falhas
+técnicas do mecanismo antigo, que são tentadas de verdade pela primeira
+vez sob a configuração corrigida (ver acima).
+
+### Comandos
+
+```bash
+# Verificação empírica do cancelamento real (fazer ANTES de retomar o lote):
+python scripts/verify_ollama_real_cancellation.py --model-tag medgemma1.5:4b-it-q4_K_M
+
+# Reiniciar o Ollama manualmente (fora deste repositório) para limpar
+# qualquer geração abandonada acumulada da execução anterior.
+
+# Retomar -- só os itens ainda não tentados; as 143 falhas antigas do
+# mecanismo anterior são tentadas de verdade agora, nada mais é repetido:
+python scripts/run_full_scale_vlm_matrix.py --mode plan --model-tag medgemma1.5:4b-it-q4_K_M
+python scripts/run_full_scale_vlm_matrix.py --mode execute --model-tag medgemma1.5:4b-it-q4_K_M
+```
