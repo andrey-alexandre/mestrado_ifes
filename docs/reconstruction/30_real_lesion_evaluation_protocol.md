@@ -330,3 +330,84 @@ acumulada até aquele ponto).
 - O pareamento CNN S0 × manifesto S0/S1/S2 é conferido estruturalmente
   (mesmo conjunto de `lesion_id`/`image_id`) mas nunca foi executado de
   fato nesta entrega (nenhum `--mode execute`/`--mode plan` foi rodado).
+
+## 9. Primeira execução real (MedGemma, 2026-11-16/17) -- achados e correção
+
+Pesquisador rodou `--mode execute` para MedGemma na matriz completa
+(38.976 chamadas planejadas). Achados, a partir da leitura real de
+`experiments/multiagent/full_scale_matrix/medgemma1.5_4b-it-q4_K_M/
+call_log_main.jsonl` (confirmado por contagem/grep real, não estimado):
+
+- 1.687 tentativas reais (1.540 `ok`, 143 `falha_tecnica`, 4
+  `recusa_explicita`) em ~16h26min de parede; as outras 37.289 (95,7%)
+  são `nao_executado` -- todos os 5 papéis pausaram (3 falhas técnicas
+  consecutivas) dentro dessa janela.
+- 142/143 falhas técnicas são `timeout_excedido_120s` (não exceção/crash
+  -- 1 única exceção real, `token repeat limit reached`).
+- **Mecanismo confirmado no código (não só suspeita a partir do log)**:
+  `call_with_timeout` (`src/multiagent/vlm_direct.py`, seção 4) usa
+  `ThreadPoolExecutor.shutdown(wait=False)` -- o Future é abandonado, a
+  thread que chamou `llm.invoke(...)` continua rodando. O cliente
+  `ollama` (`.venv/Lib/site-packages/ollama/_client.py`, parâmetro
+  `timeout: Any = None` no `_create_streaming_client`/construtor do
+  `Client`) não aplica NENHUM timeout HTTP por padrão, e nada em
+  `langchain_ollama.chat_models.ChatOllama` (sem qualquer menção a
+  "timeout" no módulo) nem em `_build_llm`/`_build_direct_llm` passa um
+  timeout alternativo. Logo: aos 120s, só o NOSSO lado para de esperar --
+  a requisição HTTP para o Ollama continua aberta e a geração continua
+  rodando no servidor até terminar por conta própria, e nós nunca a
+  fechamos. No log de `diagnostic_menzies`, a chamada imediatamente
+  seguinte a cada timeout teve `elapsed_s` de 87,3s e 55,4s (baseline
+  ~25-30s) -- consistente com ela enfileirando atrás da geração
+  abandonada ainda ocupando o Ollama. A sequência de exatamente 3
+  `falha_tecnica` consecutivas que disparou a pausa do Menzies é
+  plausivelmente o mesmo efeito em cascata (cada timeout aumenta a
+  chance do próximo também estourar, até emendarem 3), não 3
+  indisponibilidades independentes do serviço.
+
+**Correção aplicada (bug real, não um critério de design -- corrigida
+sem precisar de decisão do pesquisador)**: `is_call_record_reusable`
+exigia equivalência de versão do contrato de decisão (ponto 3) mesmo
+para chamadas que FALHARAM (`vlm_direto`/`summary`), mas uma falha nunca
+tem `decision_contract_parser_version` preenchido (`None` por
+construção) -- `None != PARSER_VERSION` reprovava essas falhas como "não
+reaproveitáveis", o que faria uma retomada REPETIR 56 chamadas reais já
+falhadas (17 vlm_direto + 39 summary, confirmado no log). Corrigido: o
+ponto 3 só se aplica quando `call_status == STATUS_OK`.
+
+**Decisão tomada pelo pesquisador (2026-11-17)**: a pausa por 3 falhas
+técnicas consecutivas (`vd.AbstentionTracker`) deixou de ser usada por
+`scripts/run_full_scale_vlm_matrix.py` para excluir um papel do restante
+da matriz -- a causa raiz (fila do Ollama por timeout sem cancelamento
+real, não indisponibilidade real nem desempenho do modelo) não
+justifica desativar um papel pelo resto do lote. Mudança implementada:
+
+- O laço de execução do executor de escala real não consulta mais
+  `tracker.is_paused(role)` -- toda chamada planejada (`missing_calls`)
+  recebe uma tentativa real. Um timeout continua gravado como
+  `falha_tecnica` na tentativa individual (sem retry, como sempre).
+  `vd.AbstentionTracker`/`not_executed_record` não são mais usados por
+  este script (preservados intocados em `src/multiagent/vlm_direct.py`
+  e ainda usados por `scripts/run_local_vlm_pilot.py`, fora do escopo
+  desta decisão).
+- Nenhum timeout nem espera arbitrária foi adicionado -- não se mudou o
+  valor de `TIMEOUT_S` (120s) nem se inseriu um intervalo de
+  resfriamento; a causa (fila do Ollama) não foi corrigida no código, só
+  deixou de ser tratada como motivo de exclusão silenciosa de um papel.
+- Diagnóstico informativo adicionado (nunca gate): ao final de cada
+  `--mode execute`, o script recalcula a maior sequência de
+  `falha_tecnica` consecutivas por papel (cumulativo, lendo
+  `call_log_main.jsonl` inteiro) e grava em
+  `technical_failure_streaks.json`; se algum papel tiver 3+ na
+  sequência, imprime um aviso recomendando reiniciar o processo do
+  Ollama ANTES de retomar (`--mode execute` de novo) para esvaziar a
+  fila -- uma recuperação operacional manual do pesquisador, não uma
+  checagem automática via `ollama ps` (que não deve ser usada como
+  indicador de servidor ocioso).
+- Efeito sobre os 37.289 `nao_executado` já gravados pela execução
+  anterior do MedGemma: continuam pendentes (`is_call_record_reusable`
+  nunca os trata como reaproveitáveis) -- na próxima `--mode execute`,
+  cada um recebe uma tentativa real (não mais pulado por pausa). As
+  1.687 tentativas reais já registradas (inclusive as 143 falhas e as 4
+  recusas) permanecem preservadas e não são repetidas, graças à correção
+  do bug de `decision_contract_parser_version` registrada acima.

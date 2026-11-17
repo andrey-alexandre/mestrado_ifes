@@ -364,7 +364,6 @@ def _run_execute_mode(args: argparse.Namespace) -> None:
     existing_diagnoses_by_key = _index_existing_diagnoses(existing_records_for_seeding, model_name)
 
     log_path = output_dir / CALL_LOG_FILENAME
-    tracker = vd.AbstentionTracker()
     accumulated_state: dict[tuple[str, str], dict[str, Any]] = {}
     image_cache: dict[tuple[str, str, str], Image.Image] = {}
 
@@ -382,16 +381,26 @@ def _run_execute_mode(args: argparse.Namespace) -> None:
         base.update(existing_diagnoses_by_key.get((lesion_id, image_id, condition), {}))
         accumulated_state[state_key] = base
 
+    # DECISÃO (2026-11-17, ver doc 30 §9): a pausa por 3 falhas técnicas
+    # consecutivas (`vd.AbstentionTracker`) NÃO é usada por este executor
+    # para desativar um papel pelo restante da matriz. Causa raiz
+    # confirmada no código: `vd.call_with_timeout` usa
+    # `ThreadPoolExecutor.shutdown(wait=False)` e o cliente `ollama`
+    # (`.venv/Lib/site-packages/ollama/_client.py`) tem `timeout=None` por
+    # padrão (nenhum timeout HTTP real) -- quando o cliente desiste aos
+    # 120s, a geração continua rodando no Ollama e a conexão nunca é
+    # fechada por nós. Isso cria uma fila crescente de gerações
+    # abandonadas, plausivelmente responsável pelas 3 falhas consecutivas
+    # observadas na execução real do MedGemma (chamadas imediatamente
+    # após um timeout ficaram anormalmente lentas: 87,3s e 55,4s contra
+    # baseline de ~25-30s) -- um problema operacional de fila, não
+    # indisponibilidade real nem desempenho do modelo. Cada timeout
+    # continua gravado como `falha_tecnica` na tentativa (sem retry);
+    # nenhum papel é mais excluído do restante do lote por isso.
     n_done = 0
     with open(log_path, "a", encoding="utf-8") as log_file:
         for call in missing_calls:
             role, condition, lesion_id, image_id = call["role"], call["condition"], call["lesion_id"], call["image_id"]
-
-            if tracker.is_paused(role):
-                record = vd.not_executed_record(model_name, role, condition, lesion_id, image_id, tracker.by_role[role].pause_reason)
-                _append_record(log_file, record)
-                n_done += 1
-                continue
 
             if role == vd.ROLE_VLM_DIRETO:
                 image = _get_image(lesion_id, image_id, condition)
@@ -415,7 +424,6 @@ def _run_execute_mode(args: argparse.Namespace) -> None:
                 for k, v in state_update.items():
                     accumulated_state[state_key][k] = v
 
-            tracker.register(role, record.call_status)
             _append_record(log_file, record)
             n_done += 1
             if n_done % 50 == 0 or n_done == len(missing_calls):
@@ -423,6 +431,42 @@ def _run_execute_mode(args: argparse.Namespace) -> None:
 
     print(f"\nExecução concluída (ou interrompida) após {n_done}/{len(missing_calls)} chamadas desta invocação.")
     print(f"Log completo (acumulado de todas as invocações): {log_path}")
+
+    # Diagnóstico INFORMATIVO de falha técnica (nunca gate -- ver doc 30
+    # §9): maior sequência de falhas técnicas consecutivas por papel
+    # NESTA invocação, para o pesquisador avaliar se o padrão de fila do
+    # Ollama (timeout sem cancelamento real) está se repetindo, sem que
+    # isso interrompa nenhum papel.
+    technical_failure_streaks: dict[str, dict[str, int]] = {}
+    _current_streak: dict[str, int] = {}
+    all_records_for_streak = _load_existing_call_log(output_dir)
+    for rec in all_records_for_streak:
+        if rec.get("model_name") != model_name:
+            continue
+        role = rec.get("role")
+        d = technical_failure_streaks.setdefault(role, {"n_falha_tecnica": 0, "max_consecutive_falha_tecnica": 0})
+        if rec.get("call_status") == vd.STATUS_TECHNICAL_FAILURE:
+            d["n_falha_tecnica"] += 1
+            _current_streak[role] = _current_streak.get(role, 0) + 1
+            d["max_consecutive_falha_tecnica"] = max(d["max_consecutive_falha_tecnica"], _current_streak[role])
+        elif rec.get("call_status") in (vd.STATUS_OK, vd.STATUS_NO_RESPONSE, vd.STATUS_REFUSAL):
+            _current_streak[role] = 0
+    roles_with_3plus_streak = {r: d for r, d in technical_failure_streaks.items() if d["max_consecutive_falha_tecnica"] >= 3}
+    if roles_with_3plus_streak:
+        print(
+            f"\n*** AVISO (informativo, não bloqueia nada): papéis com 3+ falhas técnicas "
+            f"consecutivas já observadas (acumulado, todas as invocações): {roles_with_3plus_streak} ***"
+        )
+        print(
+            "Possível indício de fila do Ollama acumulando gerações abandonadas (ver doc 30 "
+            "§9) -- se persistir, considere reiniciar o processo do Ollama antes de retomar "
+            "(`--mode execute` de novo) para esvaziar a fila; nenhuma tentativa já registrada "
+            "é repetida."
+        )
+    technical_failure_report_path = output_dir / "technical_failure_streaks.json"
+    with open(technical_failure_report_path, "w", encoding="utf-8") as f:
+        json.dump(technical_failure_streaks, f, ensure_ascii=False, indent=2, default=str)
+    print(f"diagnóstico de falhas técnicas por papel (informativo) gravado em: {technical_failure_report_path}")
 
     # Reconstrói o plano lendo o log JÁ ATUALIZADO -- mostra quanto da
     # matriz de 3.000 lesões está coberto no total, não só nesta invocação.

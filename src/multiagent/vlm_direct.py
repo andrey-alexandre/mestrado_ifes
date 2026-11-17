@@ -2087,26 +2087,36 @@ def is_call_record_reusable(record: dict[str, Any], model_name: str) -> bool:
       2. ``record["call_status"] != "nao_executado"`` (uma chamada pausada
          por abstenção nunca conta como "já feita" -- precisa ser tentada
          de verdade, inclusive para registrar uma falha real);
-      3. para papéis com contrato de decisão (`vlm_direto`/`summary`):
+      3. SÓ quando a chamada teve sucesso (``call_status == STATUS_OK``) E
+         o papel tem contrato de decisão (`vlm_direto`/`summary`):
          ``record["decision_contract_parser_version"] ==
          DECISION_CONTRACT_PARSER_VERSION`` atual -- um registro de uma
          versão diferente do parser NUNCA é reaproveitado, mesmo que
          lesão/condição/modelo batam, porque o contrato de leitura do
-         veredito mudou. Isto vale mesmo quando a chamada teve falha
-         técnica/sem-resposta/recusa (nesse caso
-         `decision_contract_parser_version` é `None` por construção --
-         `None != DECISION_CONTRACT_PARSER_VERSION` já reprova
-         corretamente, sem precisar de um caso especial).
+         veredito mudou.
 
     Falhas reais (falha técnica, sem resposta, recusa) SÃO reaproveitáveis
     (ponto 2) -- repetir uma chamada que já falhou de verdade não é "rodar
     o que falta", é um retry disfarçado, que este pipeline nunca faz.
+
+    CORREÇÃO (2026-11-17, bug real encontrado após a primeira execução
+    real do MedGemma na matriz de 3.000): a versão anterior aplicava a
+    checagem de versão do ponto 3 a QUALQUER registro de
+    `vlm_direto`/`summary`, inclusive falhas -- mas uma chamada que
+    falhou nunca tem `decision_contract_parser_version` preenchido (fica
+    `None` por construção, já que nenhuma leitura de decisão chegou a
+    acontecer). `None != PARSER_VERSION` reprovava essas falhas
+    incorretamente como "não reaproveitáveis" -- uma retomada teria
+    REPETIDO chamadas que já tinham falhado de verdade (56 casos reais
+    confirmados no log do MedGemma: 17 vlm_direto + 39 summary).
+    Corrigido: o ponto 3 só se aplica quando `call_status == STATUS_OK`;
+    fora disso, falhas de qualquer papel seguem só a regra do ponto 2.
     """
     if record.get("model_name") != model_name:
         return False
     if record.get("call_status") == NOT_EXECUTED_STATUS_FOR_REUSE:
         return False
-    if record.get("role") in _ROLES_WITH_DECISION_CONTRACT:
+    if record.get("call_status") == STATUS_OK and record.get("role") in _ROLES_WITH_DECISION_CONTRACT:
         if record.get("decision_contract_parser_version") != DECISION_CONTRACT_PARSER_VERSION:
             return False
     return True
