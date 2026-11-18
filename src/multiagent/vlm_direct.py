@@ -149,11 +149,22 @@ except ImportError:  # pragma: no cover
 
 TIMEOUT_S = 120.0
 
-# Identifica a configuração de cancelamento/timeout vigente -- gravado em
-# CADA CallRecord (seção 7) a partir desta entrega (2026-11-17). Bump
-# obrigatório sempre que o MECANISMO de chamada/cancelamento mudar de
-# novo (não a versão do modelo nem o valor de TIMEOUT_S em si) -- ver
-# docs/reconstruction/30_real_lesion_evaluation_protocol.md §9/§10.
+# Identifica a configuração de cancelamento/timeout vigente -- CONCEITO
+# ESPECÍFICO DO OLLAMA (`_invoke_ollama_stream_with_deadline`). Gravado
+# SÓ em CallRecords de modelos Ollama a partir de 2026-11-18 (correção de
+# um bug real -- ver doc 30 §13): a versão anterior gravava este valor
+# incondicionalmente, inclusive para Gemini/GPT, para os quais o
+# mecanismo de cancelamento NUNCA mudou (API própria, fora do escopo da
+# correção de timeout do Ollama) -- registros históricos de Gemini/GPT
+# já salvos com este campo preenchido são imprecisos (rotulados como se
+# o mecanismo Ollama se aplicasse a eles), mas são preservados como
+# estão (nunca reescritos); o código atual nunca mais produz esse
+# rótulo incorreto, e `is_call_record_reusable` só aplica a checagem de
+# equivalência deste campo quando `_is_ollama(model_name)` é verdadeiro.
+# Bump obrigatório sempre que o MECANISMO de chamada/cancelamento do
+# OLLAMA mudar de novo (não a versão do modelo nem o valor de TIMEOUT_S
+# em si) -- ver docs/reconstruction/30_real_lesion_evaluation_protocol.md
+# §9/§10/§13.
 CALL_MECHANISM_VERSION = "ollama_stream_deadline_real_cancel_2026_11_17"
 
 ROLE_VLM_DIRETO = "vlm_direto"
@@ -578,19 +589,21 @@ class CallRecord:
     # ser detectada por um registro antigo que por acaso já tenha
     # `decision_status`/`decisao_final` preenchidos.
     decision_contract_parser_version: Optional[str] = None
-    # NOVO (2026-11-17, ver doc 30 §9/§10): identifica QUAL mecanismo de
-    # chamada/cancelamento produziu esta tentativa -- não uma versão do
-    # contrato de decisão (não precisa disso para ser reaproveitável),
-    # mas a "configuração de execução" em si (um dos 5 eixos de
-    # equivalência originais). Sem isto, uma falha registrada ANTES da
-    # correção do timeout (geração abandonada, nunca cancelada de
-    # verdade -- ver `call_with_timeout`) ficaria indistinguível de uma
-    # falha DEPOIS da correção (cancelamento real via
-    # `_invoke_ollama_stream_with_deadline`) -- mesma `call_status`
-    # (`falha_tecnica`), mas evidência de natureza diferente. `None` para
-    # registros anteriores a esta entrega (nunca preenchido
-    # retroativamente) -- isso já basta para `is_call_record_reusable`
-    # tratá-los como pertencentes a uma configuração diferente da atual.
+    # NOVO (2026-11-17, ver doc 30 §9/§10; CORRIGIDO 2026-11-18, doc 30
+    # §13): identifica QUAL mecanismo de cancelamento de CHAMADA OLLAMA
+    # produziu esta tentativa -- conceito ESPECÍFICO do Ollama (ver
+    # `_invoke_ollama_stream_with_deadline`), SEMPRE `None` para modelos
+    # via API (Gemini/GPT), cujo mecanismo de cancelamento nunca mudou
+    # nesta entrega (SDK próprio, fora do escopo da correção de timeout
+    # do Ollama). Para registros Ollama: `None` significa "antes da
+    # correção do timeout" (geração abandonada, nunca cancelada de
+    # verdade -- ver `call_with_timeout`), distinto de uma falha
+    # DEPOIS da correção (cancelamento real) -- mesma `call_status`
+    # (`falha_tecnica`), evidência de natureza diferente.
+    # `is_call_record_reusable` só aplica a checagem de equivalência
+    # deste campo quando o modelo é Ollama -- para API, uma falha
+    # técnica real (erro de rede) é sempre reaproveitável, independente
+    # do valor deste campo.
     call_mechanism_version: Optional[str] = None
 
     def to_flat_dict(self) -> dict[str, Any]:
@@ -675,7 +688,7 @@ def run_vlm_direct_call(
         decision_status=(decision_result.decision_status if decision_result else None),
         decisao_final=(decision_result.decisao_final if decision_result else None),
         decision_contract_parser_version=(DECISION_CONTRACT_PARSER_VERSION if decision_result else None),
-        call_mechanism_version=CALL_MECHANISM_VERSION,
+        call_mechanism_version=(CALL_MECHANISM_VERSION if _is_ollama(model_name) else None),
     )
 
 
@@ -781,7 +794,7 @@ def run_multiagent_role_call(
         failure_cause=cause,
         classified_status=classified,
         classified_status_v2=classified_v2,
-        call_mechanism_version=CALL_MECHANISM_VERSION,
+        call_mechanism_version=(CALL_MECHANISM_VERSION if _is_ollama(model_name) else None),
     )
     return record, state_update
 
@@ -866,7 +879,7 @@ def run_summary_role_call_official_decision_contract(
         decision_status=(decision_result.decision_status if decision_result else None),
         decisao_final=(decision_result.decisao_final if decision_result else None),
         decision_contract_parser_version=(DECISION_CONTRACT_PARSER_VERSION if decision_result else None),
-        call_mechanism_version=CALL_MECHANISM_VERSION,
+        call_mechanism_version=(CALL_MECHANISM_VERSION if _is_ollama(model_name) else None),
     )
     # Mesma convenção de `run_multiagent_role_call`: `state_update` fica
     # vazio em falha de chamada (timeout/exceção) -- o chamador nunca
@@ -2188,18 +2201,30 @@ def is_call_record_reusable(record: dict[str, Any], model_name: str) -> bool:
     if record.get("call_status") == STATUS_OK and record.get("role") in _ROLES_WITH_DECISION_CONTRACT:
         if record.get("decision_contract_parser_version") != DECISION_CONTRACT_PARSER_VERSION:
             return False
-    # PONTO 4 (2026-11-17, ver doc 30 §9/§10): uma FALHA TÉCNICA
-    # (`falha_tecnica`) só é reaproveitável se tiver sido produzida pela
-    # MESMA configuração de cancelamento/timeout vigente agora
-    # (`call_mechanism_version`) -- não precisa de versão de contrato de
-    # decisão (ponto 3 já é condicionado a STATUS_OK), mas precisa manter
-    # a identificação de QUAL mecanismo a gerou. Falhas de antes da
-    # correção do timeout (geração nunca cancelada de verdade) não têm
-    # esse campo (`None`) -- nunca tratadas como equivalentes a falhas
-    # sob o mecanismo atual, mesmo que lesão/condição/modelo batam.
-    # Sucesso/sem-resposta/recusa não exigem este campo -- só a falha
-    # técnica depende diretamente de COMO o cancelamento foi feito.
-    if record.get("call_status") == STATUS_TECHNICAL_FAILURE:
+    # PONTO 4 (2026-11-17, ver doc 30 §9/§10; CORRIGIDO 2026-11-18, ver
+    # doc 30 §13): uma FALHA TÉCNICA (`falha_tecnica`) só exige
+    # equivalência de `call_mechanism_version` quando o modelo é OLLAMA
+    # -- é só para Ollama que existe um mecanismo de cancelamento que já
+    # mudou de verdade (`_invoke_ollama_stream_with_deadline`, correção
+    # do timeout). Para Gemini/GPT (API), nada sobre cancelamento mudou
+    # nesta entrega -- `call_mechanism_version` é sempre `None` para eles
+    # por construção (ver `run_vlm_direct_call`/`run_summary_role_call_
+    # official_decision_contract`/`run_multiagent_role_call`), e uma
+    # falha técnica real de API (erro de rede, desconexão) é SEMPRE
+    # reaproveitável (nunca retentada -- política de não-retry do
+    # protocolo vale para qualquer provedor, não só Ollama).
+    #
+    # BUG CORRIGIDO (2026-11-18): a versão anterior exigia
+    # `call_mechanism_version == CALL_MECHANISM_VERSION` para QUALQUER
+    # `falha_tecnica`, inclusive Gemini/GPT -- mas esses nunca têm esse
+    # campo preenchido (é um conceito Ollama-específico), então toda
+    # falha de API ficaria PERMANENTEMENTE "não reaproveitável",
+    # forçando uma retentativa a cada nova invocação (violando a própria
+    # política de não-retry). As 8 falhas técnicas reais confirmadas no
+    # log do Gemini (erros de rede -- `RemoteProtocolError`/
+    # `ReadError`/timeout -- nada a ver com a cascata do Ollama) são
+    # reaproveitáveis corretamente a partir desta correção.
+    if record.get("call_status") == STATUS_TECHNICAL_FAILURE and _is_ollama(model_name):
         if record.get("call_mechanism_version") != CALL_MECHANISM_VERSION:
             return False
     return True

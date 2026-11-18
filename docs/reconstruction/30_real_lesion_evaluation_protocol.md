@@ -671,3 +671,202 @@ categorias distintas no relatório do reprocessamento:
       encaixe em (a) nem (b) (duas tentativas reais sob o MESMO
       mecanismo não-nulo) -- reportado para investigação manual, NUNCA
       descartado silenciosamente.
+
+Resultado real do reprocessamento do log do Gemini (confirmado, não
+estimado): 64 chaves com múltiplas tentativas reais -- **47**
+`exception_old_mechanism_retried` + **17** `historical_duplicate_bug_pattern`
++ **0** `unexplained_duplicate_same_mechanism`. Todas as 64 sequências
+são `[falha_tecnica, ok]` (nunca mais que 2 tentativas reais por chave).
+
+## 13. Fechamento da inferência do Gemini (2026-11-18) -- 8 falhas residuais, correção de `call_mechanism_version`
+
+### 13.1 Decisão do pesquisador
+
+As 11.992 decisões recuperadas pelo reprocessamento (seção 11) são a
+fonte oficial dos vereditos `decisao_final` do Gemini a partir desta
+entrega -- `experiments/multiagent/full_scale_matrix/gemini-3.1-flash-lite/
+reprocessing/call_log_main.decisao_final_reprocessed.jsonl`, NUNCA mais
+`call_log_main.jsonl` original (que mantém `decision_status:
+"field_absent"` para essas 11.992, preservado intocado para auditoria).
+
+A inferência do Gemini está FECHADA: resultado final por chave =
+38.968 `ok` + **8 `falha_tecnica`** = 38.976 (reconciliação exata, ver
+seção 12). As 8 falhas são erros de rede REAIS (não relacionados à
+cascata do Ollama -- Gemini nunca passa por
+`_invoke_ollama_stream_with_deadline`), confirmadas por leitura direta
+do log:
+
+| role | condition | lesion_id | image_id | causa |
+|---|---|---|---|---|
+| diagnostic_abcd | s2 | HAM_0006808 | ISIC_0027438 | `timeout_excedido_120s` |
+| diagnostic_abcd | s2 | HAM_0006944 | ISIC_0030762 | `RemoteProtocolError: Server disconnected without sending a response` |
+| diagnostic_abcd | s2 | HAM_0007325 | ISIC_0026267 | `RemoteProtocolError: Server disconnected without sending a response` |
+| diagnostic_menzies | s2 | HAM_0006939 | ISIC_0031675 | `ReadError: [Errno 32] Broken pipe` |
+| diagnostic_spcl | s1 | HAM_0006846 | ISIC_0027199 | `RemoteProtocolError: Server disconnected without sending a response` |
+| diagnostic_spcl | s1 | HAM_0006903 | ISIC_0031487 | `timeout_excedido_120s` |
+| summary | s1 | HAM_0006969 | ISIC_0028007 | `RemoteProtocolError: Server disconnected without sending a response` |
+| summary | s1 | HAM_0007325 | ISIC_0026267 | `RemoteProtocolError: Server disconnected without sending a response` |
+
+**Decisão explícita do pesquisador: NÃO forçar retentativa.** São falhas
+reais (desconexão/timeout da API), e a regra de não-retry do protocolo
+vale igualmente para qualquer provedor -- continuam registradas como
+`falha_tecnica`, definitivamente, sem nenhum novo veredito pendente.
+Isto deixa, do lado dos papéis diagnósticos (ABCD/Menzies/SPCL -- não
+têm `decisao_final` próprio): 4 lesões/condições com um dos 3 pareceres
+ausente (`HAM_0006808`-s2, `HAM_0006944`-s2, `HAM_0007325`-s2,
+`HAM_0006939`-s2, `HAM_0006846`-s1, `HAM_0006903`-s1 -- 6 ocorrências em
+4 lesões distintas, ver seção 14.2 sobre o efeito disso no sumarizador);
+e do lado do sumarizador, 2 lesões (`HAM_0006969`-s1, `HAM_0007325`-s1)
+sem NENHUM `decisao_final` multiagente para aquela condição -- essas 2
+são as únicas exclusões reais do denominador de S1 (seção 14.2).
+
+### 13.2 Correção de `call_mechanism_version` -- distinção por provedor
+
+**Bug real encontrado e corrigido**: `call_mechanism_version` era
+gravado incondicionalmente em TODO `CallRecord`, inclusive para
+Gemini/GPT -- mas o mecanismo que esse campo identifica
+(`_invoke_ollama_stream_with_deadline`, a correção do timeout com
+cancelamento real, seção 10) é ESPECÍFICO do Ollama; para modelos via
+API, nada sobre cancelamento mudou nesta entrega (SDK próprio). Isso
+tinha DUAS consequências:
+
+1. **Rótulo historicamente impreciso** (não um erro de dado, um erro de
+   rótulo): as 8 falhas do Gemini acima aparecem no log com
+   `call_mechanism_version: "ollama_stream_deadline_real_cancel_2026_11_17"`,
+   como se o mecanismo de cancelamento do Ollama se aplicasse a elas --
+   nunca se aplicou. **Preservado como está no arquivo histórico**
+   (`call_log_main.jsonl`, nunca reescrito) -- documentado aqui como
+   imprecisão conhecida, não corrigido retroativamente nos dados.
+2. **Bug funcional real em `is_call_record_reusable`** (ponto 4): a
+   checagem de equivalência deste campo era aplicada a QUALQUER
+   `falha_tecnica`, inclusive de API -- mas como Gemini/GPT nunca têm
+   esse campo com significado real, uma correção futura deste campo
+   faria com que falhas de API ficassem PERMANENTEMENTE "não
+   reaproveitáveis", forçando retentativa a cada nova invocação
+   (violando a própria política de não-retry).
+
+**Correção aplicada** (`src/multiagent/vlm_direct.py`): `CallRecord`
+agora só grava `call_mechanism_version` para modelos Ollama
+(`CALL_MECHANISM_VERSION if _is_ollama(model_name) else None`) nas 3
+funções que produzem `CallRecord` (`run_vlm_direct_call`,
+`run_summary_role_call_official_decision_contract`,
+`run_multiagent_role_call`). `is_call_record_reusable` (ponto 4) só
+aplica a checagem de equivalência quando `_is_ollama(model_name)` é
+verdadeiro -- para API, uma falha técnica real é SEMPRE reaproveitável
+(nunca retentada), independente do valor histórico deste campo.
+**Nenhum dado histórico foi reescrito** -- só o código prospectivo
+(registros futuros de Gemini/GPT nunca mais recebem este rótulo
+Ollama-específico).
+
+## 14. Correções ao relatório analítico (2026-11-18) -- cobertura x taxa de sucesso, denominadores de S1/S2
+
+### 14.1 99,98% é taxa de sucesso de CHAMADA, não cobertura diagnóstica binária
+
+Relatado anteriormente como "99,98% com decisão válida" -- impreciso.
+Correção: 99,98% (38.968/38.976) é a taxa de SUCESSO DE CHAMADA (a
+tentativa completou e produziu um `decisao_final` lido com sucesso,
+incluindo `indeterminado`). As **5 métricas binárias** planejadas
+(sensibilidade/especificidade/etc., melanoma vs não-melanoma) só se
+aplicam a decisões categóricas -- `melanoma`/`nao_melanoma` -- NUNCA a
+`indeterminado`, que fica estruturalmente FORA das 5 métricas binárias,
+não é um erro nem uma lacuna, é a terceira categoria do contrato por
+desenho (ver `explicit_decision_contract.py`).
+
+Das 38.968 chamadas bem-sucedidas, a divisão real é:
+
+| decisao_final | N | % das chamadas ok |
+|---|---|---|
+| nao_melanoma | 5.812 | 48,5% |
+| indeterminado | 4.114 | 34,3% |
+| melanoma | 2.066 | 17,2% |
+
+As **4.114 indeterminações ficam fora das 5 métricas binárias** -- são
+reportadas SEPARADAMENTE, por sistema (papel) e por condição, nunca
+diluídas no denominador binário nem tratadas como "negativo" por
+default:
+
+| role | condition | n_ok_total | melanoma | nao_melanoma | indeterminado | % indeterminado |
+|---|---|---|---|---|---|---|
+| vlm_direto | s0 | 3.000 | 1.201 | 676 | 1.123 | 37,4% |
+| summary | s0 | 3.000 | 340 | 1.694 | 966 | 32,2% |
+| summary | s1 | 2.998 | 270 | 1.721 | 1.007 | 33,6% |
+| summary | s2 | 2.994 | 255 | 1.721 | 1.018 | 34,0% |
+
+(Contado diretamente de `call_log_main.decisao_final_reprocessed.jsonl`
+-- cada linha soma exatamente ao `n_ok_total` da sua condição/papel,
+confirmado. O relatório consolidado automático --
+`decisao_final_reprocessing_report.json` -- ainda agrega
+`reprocessed_decisao_final_breakdown_among_status_ok` de forma GLOBAL,
+não por condição/papel; `build_report` em
+`scripts/reprocess_decisao_final.py` precisa dessa quebra adicional
+como próximo passo de código -- a tabela acima foi obtida por leitura
+direta do arquivo derivado já existente, sem nenhuma nova inferência.)
+
+**Observação preliminar, sem interpretação de significância**:
+VLM-direto tem uma taxa de `melanoma` bruta (40,0%) visivelmente maior
+que o sumarizador multiagente em qualquer condição (11,3% em S0 a 8,5%
+em S2) -- essa
+diferença é exatamente o tipo de achado que a comparação VLM-direto S0
+× multiagente S0 (seção 14.4) precisa quantificar, mas só depois que a
+regra pendente de subconjuntos binários diferentes for decidida -- não
+interpretado aqui como conclusão.
+
+### 14.2 Denominadores por condição -- S1 e S2 têm causas DIFERENTES, nunca confundidas
+
+| condição | planejado | resultado final `ok` | diferença | causa |
+|---|---|---|---|---|
+| S0 (vlm_direto) | 3.000 | 3.000 | 0 | -- |
+| S0 (summary) | 3.000 | 3.000 | 0 | -- |
+| S1 (summary) | 3.000 | **2.998** | **2** | 2 falhas técnicas REAIS do papel `summary` (seção 13.1: `HAM_0006969`, `HAM_0007325`) -- NUNCA um problema estrutural de máscara; confirmado no manifesto `s0_s1_s2_preparation_manifest.csv`: **zero** lesões têm `status_s1 == "indisponivel"` (as 6 ocorrências de `"indisponivel"` no arquivo são TODAS `status_s2`) -- S1 está estruturalmente disponível para as 3.000 lesões, sem exceção. |
+| S2 (summary) | 2.994 | 2.994 | 0 (do planejado) | 6 lesões estruturalmente indisponíveis (`mascara_predita_vazia`, já conhecidas desde a Etapa 4/stage 4 -- `HAM_0005998`, `HAM_0004545`, `HAM_0003874`, `HAM_0005250`, `HAM_0002639`, `HAM_0007614`) nunca chegam a ser PLANEJADAS para S2 -- confirmado: nenhuma das 2 falhas de S1 nem das 4 falhas restantes em S2 (diagnostic_abcd/menzies) coincide com essas 6 lesões (zero sobreposição verificada). |
+
+**Confirmação de independência das duas causas**: as 4 lesões com falha
+técnica real em condição S2 (`HAM_0006808`, `HAM_0006944`, `HAM_0007325`,
+`HAM_0006939` -- papéis ABCD/Menzies, não `summary`) são DIFERENTES das
+6 lesões com máscara vazia -- confirmado por comparação direta das
+`lesion_id`/`image_id` contra o manifesto S0/S1/S2. Essas 4 falhas NÃO
+reduzem o denominador de `summary`-S2 (2.994/2.994 -- o sumarizador
+rodou e teve sucesso para essas 4 lesões mesmo com um parecer
+diagnóstico ausente) -- são, em vez disso, casos de **consolidação
+parcial** (ver abaixo), não de decisão final ausente.
+
+**Denominadores corretos para as métricas binárias por condição**
+(excluindo `indeterminado`, que fica fora por desenho -- ver 14.1):
+  - S0: denominador de chamadas válidas = 3.000 (vlm_direto) / 3.000 (summary).
+  - S1: denominador de chamadas válidas = **2.998** (não 3.000) -- as 2
+    falhas técnicas reais NUNCA entram no denominador binário nem são
+    tratadas como qualquer categoria de decisão.
+  - S2: denominador de chamadas válidas = **2.994** (não 3.000) -- as 6
+    lesões estruturalmente indisponíveis nunca entram no denominador
+    (nunca foram chamadas).
+
+### 14.3 Nota sobre consolidação parcial (ABCD/Menzies/SPCL) -- não é o mesmo problema do sumarizador
+
+As 6 ocorrências de falha técnica real em papéis diagnósticos (ABCD×3,
+Menzies×1, SPCL×2, distribuídas em 4 lesões distintas -- ver tabela da
+seção 13.1) significam que, para essas 4 lesões/condições, o
+sumarizador recebeu 2 de 3 pareceres (não 3) -- mas o sumarizador EM SI
+teve sucesso e produziu um `decisao_final` válido (confirmado: nenhuma
+dessas 4 lesões está entre as 2 falhas de `summary`). Isto é
+"consolidação parcial" (mesmo conceito da primeira entrega da Etapa 5,
+ver [[project_multiagent_stage5]]) -- não reduz nenhum denominador
+binário, mas é uma nota de qualidade de dado relevante para quem for
+interpretar os vereditos multiagente dessas 4 lesões/condições
+especificamente.
+
+### 14.4 Próximo passo -- SEM nova inferência
+
+Com as contagens reconciliadas e as decisões recuperadas, o próximo
+passo são as métricas por condição (S0/S1/S2) usando os denominadores
+corretos acima -- nenhuma chamada nova a modelo necessária. As
+diferenças PAREADAS entre as 5 métricas (comparação VLM-direto S0 ×
+multiagente S0, CNN S0 × multiagente S2) continuam dependendo da regra
+ainda pendente (não resolvida por default de código, decisão do
+pesquisador) para os casos em que os sistemas comparados produzem
+decisões binárias sobre SUBCONJUNTOS DIFERENTES de lesões (ex.: uma
+lesão com `indeterminado` num sistema e `melanoma`/`nao_melanoma` no
+outro, ou uma falha técnica num sistema e sucesso no outro) -- essa
+regra era e continua pendente, não deve ser resolvida por um default de
+código (ver [[project_multiagent_stage5]], "comparação cross-system de
+5 métricas sob subconjuntos binários diferentes -- explicitamente
+deixado pendente pelo pesquisador").
