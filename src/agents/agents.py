@@ -42,6 +42,62 @@ def _is_gemini(model_name: str) -> bool:
     return model_name.startswith("gemini")
 
 
+CONTENT_NORMALIZATION_VERSION = "content_block_extraction_v1_2026_11_18"
+
+
+def extract_text_from_llm_content(content):
+    """Normaliza o valor devolvido por ``AIMessage.content`` de um LLM
+    LangChain. CORRIGE o bug real encontrado na execução do Gemini
+    (2026-11-18, ver docs/reconstruction/30_real_lesion_evaluation_protocol.md
+    §11): alguns provedores (confirmado: ``ChatGoogleGenerativeAI`` com
+    metadados de "thought signature") devolvem ``.content`` como uma
+    LISTA de blocos (``[{'type': 'text', 'text': '...', 'extras': {...}}]``),
+    não uma string simples -- código anterior assumia sempre string e
+    fazia ``str(lista)`` em algum ponto posterior, o que ESCAPA as
+    quebras de linha REAIS do texto original em `\\n` LITERAL (dois
+    caracteres), corrompendo qualquer extração baseada em regex
+    ancorado em início de linha (`^decisao_final:` com `re.MULTILINE`) --
+    causa raiz confirmada de 100% das falhas de extração de
+    `decisao_final` nas chamadas `vlm_direto`/`summary` do Gemini.
+
+    Aceita:
+      - ``None`` -- devolvido como está (chamador decide o que fazer).
+      - ``str`` -- devolvida IDÊNTICA, sem qualquer transformação (nunca
+        reescreve/normaliza `\\n`/espaços de uma string que já é texto
+        puro -- isso preservaria o comportamento histórico para Ollama,
+        que sempre devolveu string).
+      - ``list`` -- extrai o texto dos blocos do tipo ``"text"`` (dict
+        com ``block["type"] == "text"``) OU blocos que já são strings
+        puras, NA ORDEM ORIGINAL da lista, concatenados SEM separador
+        adicional (cada bloco mantém suas quebras de linha internas
+        intactas -- nunca `str(bloco)`). Blocos de outros tipos
+        (metadados, assinatura/"extras", "thinking", etc.) são
+        DELIBERADAMENTE ignorados -- nunca incluídos no texto, nunca
+        tratados como erro só por existirem.
+      - qualquer outro tipo -- levanta ``TypeError`` explícito. NUNCA
+        stringifica silenciosamente um tipo desconhecido (isso é
+        exatamente o bug que esta função substitui).
+    """
+    if content is None:
+        return None
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict):
+                if block.get("type") == "text" and isinstance(block.get("text"), str):
+                    parts.append(block["text"])
+                # outros tipos (thinking/metadata/extras/signature) --
+                # deliberadamente ignorados, nunca incluídos no texto.
+            else:
+                raise TypeError(f"bloco de conteúdo inesperado em .content: {type(block)!r}")
+        return "".join(parts)
+    raise TypeError(f"tipo inesperado devolvido por .content: {type(content)!r}")
+
+
 def _build_llm(model_name: str, temperature: float, timeout_s: Optional[float] = None):
     """Instancia o LLM correto baseado no model_name.
 
@@ -140,9 +196,9 @@ def _invoke_ollama_stream_with_deadline(llm, messages: list, timeout_s: float) -
     chunks: list[str] = []
     try:
         for chunk in stream_iter:
-            content = getattr(chunk, "content", None)
+            content = extract_text_from_llm_content(getattr(chunk, "content", None))
             if content:
-                chunks.append(content if isinstance(content, str) else str(content))
+                chunks.append(content)
             if time.monotonic() - t0 > timeout_s:
                 raise OllamaStreamDeadlineExceeded(
                     f"deadline_total_excedido_{timeout_s:.0f}s_apos_{len(chunks)}_chunks_recebidos"

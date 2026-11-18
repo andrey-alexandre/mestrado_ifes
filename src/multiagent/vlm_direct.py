@@ -208,11 +208,16 @@ def _invoke_direct_llm_text(llm, model_name: str, message: HumanMessage, timeout
     `_agents_module._invoke_ollama_stream_with_deadline` -- prazo TOTAL
     real, que de fato encerra a conexão HTTP ao expirar (ver seção 15,
     correção 2026-11-17). Para Gemini/GPT, `.invoke()` comum -- SDKs
-    próprios, fora do escopo desta correção (que é especificamente sobre
-    a fila do Ollama)."""
+    próprios, fora do escopo da correção de timeout -- mas o `.content`
+    devolvido passa por `_agents_module.extract_text_from_llm_content`
+    (correção 2026-11-18, ver doc 30 §11): alguns provedores (confirmado:
+    Gemini) devolvem `.content` como lista de blocos, não string -- sem
+    essa normalização, o texto real acaba corrompido mais adiante (ver
+    `classify_call_outcome`'s `str(raw_text)`), quebrando a extração de
+    `decisao_final`."""
     if _is_ollama(model_name):
         return _agents_module._invoke_ollama_stream_with_deadline(llm, [message], timeout_s)
-    return llm.invoke([message]).content
+    return _agents_module.extract_text_from_llm_content(llm.invoke([message]).content)
 
 
 # ---------------------------------------------------------------------------
@@ -1244,7 +1249,9 @@ def run_image_sending_control_call(
         name = f"controle_imagem_{role}_3_sem_imagem"
 
     attempt_ts = datetime.now(timezone.utc).isoformat()
-    outcome = call_with_timeout(lambda: llm.invoke([message]).content, timeout_s=timeout_s)
+    outcome = call_with_timeout(
+        lambda: _agents_module.extract_text_from_llm_content(llm.invoke([message]).content), timeout_s=timeout_s
+    )
     status, cause, raw_text = classify_call_outcome(outcome)
 
     record = CallRecord(

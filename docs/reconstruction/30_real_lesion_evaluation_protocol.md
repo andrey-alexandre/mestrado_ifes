@@ -516,3 +516,158 @@ python scripts/verify_ollama_real_cancellation.py --model-tag medgemma1.5:4b-it-
 python scripts/run_full_scale_vlm_matrix.py --mode plan --model-tag medgemma1.5:4b-it-q4_K_M
 python scripts/run_full_scale_vlm_matrix.py --mode execute --model-tag medgemma1.5:4b-it-q4_K_M
 ```
+
+## 11. Bug real de representação de conteúdo (Gemini, 2026-11-18) -- correção + reprocessamento sem nova chamada à API
+
+Execução completa do Gemini (38.976/38.976, ver §12 para a reconciliação
+de contagens) revelou: **100% das chamadas `vlm_direto`/`summary` com
+sucesso (11.992 no total) tinham `decision_status: "field_absent"`** --
+o contrato oficial `decisao_final` nunca foi lido com sucesso para este
+modelo, apesar do texto correto estar presente na resposta real.
+
+### 11.1 Causa raiz (confirmada no código, não só no log)
+
+`ChatGoogleGenerativeAI` (com metadados de "thought signature" anexados)
+devolve `.content` como uma LISTA de blocos --
+`[{'type': 'text', 'text': '...texto real...\n\ndecisao_final: indeterminado', 'extras': {'signature': '...'}}]`
+-- não uma string simples. O código anterior (`_invoke_direct_llm_text`
+em `src/multiagent/vlm_direct.py`, caminho não-Ollama) fazia
+`llm.invoke([message]).content` e tratava o resultado como se já fosse
+string. Esse valor (uma LISTA, não string) seguia até
+`classify_call_outcome` (`vlm_direct.py`), que fazia `text =
+str(raw_text)` -- `str()` de uma lista Python ESCAPA as quebras de linha
+reais da string interna em `\n` LITERAL (dois caracteres, não um
+newline de verdade). O regex de `extract_decisao_final`
+(`^decisao_final:` com `re.MULTILINE`) exige newline REAL antes da
+âncora `^` -- nunca bate contra `\n` literal. Resultado:
+`field_absent` sempre, mesmo quando o modelo escreveu a linha exatamente
+no formato certo.
+
+Confirmado que ABCD/Menzies/SPCL (26.976 chamadas `ok`, zero
+contaminação) NÃO são afetados -- esses papéis passam por
+`with_structured_output()` (`src.agents.agents._invoke`, ramo não-Ollama),
+que nunca toca `.content` bruto.
+
+### 11.2 Correção prospectiva (código, afeta só chamadas futuras)
+
+- `src/agents/agents.py`: nova `extract_text_from_llm_content(content)`
+  -- aceita `str` (devolvida idêntica, sem nenhuma transformação), `None`
+  (idem), ou `list` de blocos (extrai texto dos blocos `{"type": "text",
+  "text": ...}` OU strings puras, NA ORDEM ORIGINAL, concatenados sem
+  separador -- blocos de outros tipos, como metadados/"extras"/
+  assinatura/"thinking", são deliberadamente ignorados, nunca incluídos
+  no texto). Qualquer outro tipo levanta `TypeError` explícito -- nunca
+  mais um `str()` silencioso de algo desconhecido.
+- `src/multiagent/vlm_direct.py`: `_invoke_direct_llm_text` (papéis
+  `vlm_direto`/`summary`, ramo Gemini/GPT) e `run_image_sending_control_call`
+  (controles do piloto de 12) agora normalizam `.content` com essa
+  função antes de devolver o texto.
+- `_invoke_ollama_stream_with_deadline` (correção de timeout, seção 10)
+  também passou a usar a mesma normalização por chunk, defensivamente --
+  nunca observado contaminado no caminho Ollama real, mas sem custo
+  adicional de manter consistente.
+- Testes: `tests/agents/test_content_normalization.py` (string, lista de
+  blocos de texto, lista com metadados/"extras", múltiplos blocos,
+  bloco de tipo inesperado, tipo totalmente inesperado -- inclusive
+  reproduzindo byte-a-byte a amostra real do log do Gemini).
+
+### 11.3 Reprocessamento dos dados já coletados (NUNCA uma nova chamada à API)
+
+Esta é uma correção de REPRESENTAÇÃO do texto já salvo, não do contrato
+diagnóstico -- `extract_decisao_final` não foi alterado em nenhuma
+regra. `scripts/reprocess_decisao_final.py`:
+
+- Lê `call_log_main.jsonl` em modo SOMENTE LEITURA -- nunca modifica o
+  arquivo original.
+- Para cada registro `vlm_direto`/`summary` com `call_status == "ok"`:
+  tenta recuperar `raw_response_text` via
+  `src.evaluation.content_recovery.recover_raw_response_text`, que usa
+  `ast.literal_eval` -- NUNCA `eval()` -- para reconstruir a lista a
+  partir do texto já corrompido (`ast.literal_eval` só aceita literais
+  Python puros: strings/números/listas/dicts/tuplas/sets/
+  True/False/None; nunca executa chamadas de função ou código, mesmo
+  com entrada hostil/malformada -- testado explicitamente em
+  `tests/evaluation/test_content_recovery.py::
+  test_never_uses_eval_malicious_input_never_executes_code`). Se
+  `literal_eval` tiver sucesso e o resultado for uma lista, reusa a
+  MESMA `extract_text_from_llm_content` da correção prospectiva (nunca
+  uma segunda implementação). Casos sem sucesso: distinguidos entre
+  "nunca foi contaminado, é prosa normal" (`literal_eval` falha e o
+  texto não parece sintaxe de lista) e "estava contaminado mas ficou
+  irrecuperável" (`literal_eval` falha mas o texto começa com `[{`, OU
+  `literal_eval` recupera uma lista com estrutura de bloco inesperada)
+  -- sempre sinalizado explicitamente no campo `recovery_status`, nunca
+  omitido ou adivinhado.
+- Reaplica `extract_decisao_final` (inalterado) sobre o texto recuperado
+  (ou o texto original, se já estava limpo) -- fonte oficial do
+  veredito continua sendo exatamente a mesma função, sem fallback para
+  `classified_status`/`classified_status_v2` (v1/v2).
+- Grava um arquivo DERIVADO (`call_log_main.decisao_final_reprocessed.jsonl`,
+  nunca sobrescreve o original) com, por registro: identificação da
+  chamada (`model_name`/`role`/`condition`/`lesion_id`/`image_id`/
+  `attempt_timestamp_utc`), status/decisão ANTERIOR, `recovery_status`,
+  texto recuperado, e status/decisão REPROCESSADOS -- os dois lados
+  sempre visíveis, nunca um sobrescrevendo o outro.
+- Testes: `tests/evaluation/test_content_recovery.py` -- cobre
+  exatamente os 4 cenários pedidos (string já limpa, lista de blocos
+  contaminada real, lista com metadados/"extras", campo realmente
+  ausente mesmo após recuperação bem-sucedida), mais casos de
+  texto truncado/irrecuperável e confirmação de que `eval()` nunca é
+  usado.
+
+### 11.4 Comandos
+
+```bash
+# 1. Testes (confirmar a normalização e a recuperação antes de reprocessar o log real):
+python -m pytest tests/agents/test_content_normalization.py tests/evaluation/test_content_recovery.py -v
+
+# 2. Reprocessamento do log real do Gemini (NENHUMA chamada à API):
+python scripts/reprocess_decisao_final.py \
+    --call-log experiments/multiagent/full_scale_matrix/gemini-3.1-flash-lite/call_log_main.jsonl \
+    --output-dir experiments/multiagent/full_scale_matrix/gemini-3.1-flash-lite/reprocessing
+```
+
+## 12. Reconciliação de contagens: tentativas históricas x resultado final por chave
+
+Ao avaliar o Gemini, uma soma aparentemente inconsistente foi observada:
+38.968 `ok` + 72 `falha_tecnica` = 39.040, mais que as 38.976 chamadas
+planejadas. Isto NÃO é um erro de dado -- é a diferença entre duas
+contagens que não são a mesma coisa:
+
+- **Tentativas históricas**: toda linha de `call_log_main.jsonl`,
+  incluindo tentativas SUPERSEDIDAS por uma invocação posterior (ex.:
+  um `nao_executado` de quando a pausa existia, seguido por uma
+  tentativa real depois que a pausa foi removida). O log do Gemini tem
+  56.055 linhas no total -- mais que as 38.976 chamadas planejadas,
+  porque passou por múltiplas invocações antes e depois das correções
+  desta entrega.
+- **Resultado final por chave planejada**: um único veredito por
+  `(role, condition, lesion_id, image_id)` -- por construção, soma
+  exatamente a 38.976 (o número de chamadas planejadas), nunca mais,
+  nunca menos.
+
+`scripts/reprocess_decisao_final.py::reconcile_historical_vs_final`
+calcula as duas, nunca somando a primeira como se fosse a segunda.
+Verificado separadamente (contagem manual, antes do script existir):
+**zero chaves têm 2+ entradas `ok`** -- nenhuma chamada bem-sucedida foi
+repetida -- mas isso, por si só, não resolve a contagem de 39.040: a
+causa é a presença de linhas supersedidas (`nao_executado` seguido de
+tentativa real, ou falha do mecanismo antigo seguida de tentativa real
+sob o mecanismo corrigido), que inflam a contagem de linhas sem inflar
+o número de vereditos finais.
+
+**Registrado explicitamente, nunca escondido do histórico**: chaves com
+mais de uma tentativa REAL (não `nao_executado`) são reportadas em 3
+categorias distintas no relatório do reprocessamento:
+  (a) `exception_old_mechanism_retried` -- falha do mecanismo antigo de
+      cancelamento, seguida de uma tentativa real sob o mecanismo
+      corrigido (seção 10) -- **EXCEÇÃO OPERACIONAL DOCUMENTADA** à
+      regra de uma tentativa, por mudança de configuração, nunca um
+      retry disfarçado da mesma tentativa;
+  (b) `historical_duplicate_bug_pattern` -- as duas tentativas são do
+      mecanismo antigo (bug já corrigido do `decision_contract_parser_version`
+      exigido mesmo para falhas, seção 9);
+  (c) `unexplained_duplicate_same_mechanism` -- qualquer caso que não se
+      encaixe em (a) nem (b) (duas tentativas reais sob o MESMO
+      mecanismo não-nulo) -- reportado para investigação manual, NUNCA
+      descartado silenciosamente.
