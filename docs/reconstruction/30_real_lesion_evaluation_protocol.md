@@ -1079,3 +1079,48 @@ python scripts/run_full_scale_vlm_matrix.py --mode execute --scope local_s2_subs
 #    pode ser rodada em qualquer ponto, resultados ausentes ficam "pendente"):
 python scripts/export_local_300_subset_comparison.py
 ```
+
+## 16. Incidente operacional: chave de API do GPT expirada (2026-11-18)
+
+Primeira execução do GPT (`gpt-5.4-nano`, escopo `full`) produziu **339
+tentativas reais, 100% falha_tecnica, zero sucesso**, todas em ~70
+segundos -- causa confirmada:
+`excecao:OpenAIAuthenticationError: Error code: 401 - ... 'Your API key
+has expired' ... 'code': 'expired_secret_key'`. Problema puramente
+OPERACIONAL de credencial -- a API nunca foi alcançada de verdade,
+nenhum resultado sobre o modelo.
+
+**Gap real identificado em `get_model_info`** (`src/multiagent/
+vlm_direct.py`): a checagem operacional de credencial só confirma que a
+variável de ambiente (`OPENAI_API_KEY`/`GOOGLE_API_KEY`) está DEFINIDA,
+nunca que o valor é VÁLIDO -- uma chave expirada passa essa checagem sem
+problema e só falha na primeira chamada real. **Não corrigido nesta
+entrega** (opção considerada e não escolhida pelo pesquisador) --
+registrado como limitação conhecida, não resolvida.
+
+**Ação tomada**: `scripts/purge_call_log_failures.py` (novo) remove, de
+um `call_log_main.jsonl`, só as linhas cuja `failure_cause` contém uma
+substring exata dada -- grava backup do arquivo original ANTES de
+qualquer alteração (nunca sobrescrito), dry-run por padrão (exige
+`--confirm` explícito para aplicar). Motivo: sob a política de
+não-retry já em vigor, uma falha técnica de um modelo não-Ollama é
+sempre reaproveitável (não depende de `call_mechanism_version`, que só
+se aplica a Ollama) -- sem a remoção, essas 339 ficariam
+PERMANENTEMENTE marcadas como "já tentadas" mesmo depois da chave
+renovada, apesar de nunca terem sido uma tentativa real contra o
+modelo.
+
+```bash
+# Dry-run -- mostra o que seria removido, não altera nada:
+python scripts/purge_call_log_failures.py \
+    --call-log experiments/multiagent/full_scale_matrix/gpt-5.4-nano/call_log_main.jsonl \
+    --failure-cause-contains expired_secret_key
+
+# Confirmado -- grava backup, remove as 339 linhas:
+python scripts/purge_call_log_failures.py \
+    --call-log experiments/multiagent/full_scale_matrix/gpt-5.4-nano/call_log_main.jsonl \
+    --failure-cause-contains expired_secret_key --confirm
+
+# Depois de renovar OPENAI_API_KEY, retomar normalmente:
+python scripts/run_full_scale_vlm_matrix.py --mode execute --model-tag gpt-5.4-nano
+```
