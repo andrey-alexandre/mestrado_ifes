@@ -60,12 +60,25 @@ local com os modelos já baixados para Qwen3-VL/MedGemma, ou
 `OPENAI_API_KEY`/`GOOGLE_API_KEY` definidos para GPT/Gemini). Não
 executado pelo assistente que o escreveu (`feedback_no_autonomous_execution`).
 
+ESCOPO REDUZIDO (`--scope local_s2_subset`, 2026-11-18, ver doc 30 §15):
+Qwen3-VL e MedGemma 1.5 4B, por viabilidade computacional, passam a ser
+avaliados só em multiagente S2 (ABCD/Menzies/SPCL/sumarizador, sem
+VLM-direto, sem S0/S1) sobre as 300 lesões selecionadas por
+`scripts/select_local_300_lesion_s2_subset.py` -- decisão OPERACIONAL
+do pesquisador, aprovação do orientador AINDA PENDENTE. Gemini e GPT
+continuam na matriz completa (`--scope full`, default, comportamento
+INALTERADO). A CNN não é rechamada nem checada neste escopo (já
+avaliada; o pareamento para comparação acontece na exportação, não na
+execução). Resultados gravados em diretório PRÓPRIO
+(`experiments/multiagent/local_300_s2_subset_matrix/`), nunca no
+diretório da matriz de 3.000 -- uma checagem operacional impede
+`--output-dir` de apontar para lá neste escopo.
+
 Uso:
+    # --- Escopo completo (Gemini/GPT, 3.000 lesões) -- INALTERADO ---
     # 1. Planejamento -- nenhuma chamada a modelo, mostra reaproveitamento/faltantes:
     python scripts/run_full_scale_vlm_matrix.py --mode plan --model-tag gemini-3.1-flash-lite
     python scripts/run_full_scale_vlm_matrix.py --mode plan --model-tag gpt-5.4-nano
-    python scripts/run_full_scale_vlm_matrix.py --mode plan --model-tag qwen3-vl:8b-instruct-q4_K_M
-    python scripts/run_full_scale_vlm_matrix.py --mode plan --model-tag medgemma1.5:4b-it-q4_K_M
 
     # 2. Execução -- roda só o que falta; pode ser interrompida (Ctrl+C) e
     #    retomada reinvocando o MESMO comando (mesmo --output-dir):
@@ -75,6 +88,18 @@ Uso:
     #    script relê o call_log_main.jsonl já gravado e pula tudo que já
     #    foi tentado:
     python scripts/run_full_scale_vlm_matrix.py --mode execute --model-tag gemini-3.1-flash-lite
+
+    # --- Escopo reduzido (Qwen3-VL/MedGemma, 300 lesões, só S2) ---
+    # 1. Planejamento:
+    python scripts/run_full_scale_vlm_matrix.py --mode plan --scope local_s2_subset --model-tag qwen3-vl:8b-instruct-q4_K_M
+    python scripts/run_full_scale_vlm_matrix.py --mode plan --scope local_s2_subset --model-tag medgemma1.5:4b-it-q4_K_M
+
+    # 2. Execução (separada por modelo):
+    python scripts/run_full_scale_vlm_matrix.py --mode execute --scope local_s2_subset --model-tag qwen3-vl:8b-instruct-q4_K_M
+    python scripts/run_full_scale_vlm_matrix.py --mode execute --scope local_s2_subset --model-tag medgemma1.5:4b-it-q4_K_M
+
+    # 3. Retomada -- comando IDÊNTICO, só os itens pendentes:
+    python scripts/run_full_scale_vlm_matrix.py --mode execute --scope local_s2_subset --model-tag medgemma1.5:4b-it-q4_K_M
 """
 from __future__ import annotations
 
@@ -99,6 +124,20 @@ DEFAULT_S0_S1_S2_MANIFEST_PATH = str(REPO_ROOT / "experiments" / "multiagent" / 
 DEFAULT_CNN_S0_SCORES_CSV = str(REPO_ROOT / "experiments" / "cnn_baseline" / "s0_ham10000_eval" / "s0_cnn_scores.csv")
 DEFAULT_OUTPUT_DIR = str(REPO_ROOT / "experiments" / "multiagent" / "full_scale_matrix")
 
+# Escopo reduzido (2026-11-18, ver docs/reconstruction/
+# 30_real_lesion_evaluation_protocol.md §15) -- avaliação complementar
+# local (Qwen3-VL/MedGemma) sobre 300 lesões, só multiagente S2, por
+# viabilidade computacional. Decisão operacional do pesquisador;
+# aprovação do orientador AINDA PENDENTE. Diretório de saída
+# DELIBERADAMENTE distinto de `DEFAULT_OUTPUT_DIR` -- nunca o mesmo
+# caminho, para que uma invocação neste escopo nunca grave (nem retome
+# acidentalmente) a matriz local de 3.000.
+DEFAULT_LOCAL_300_SUBSET_MANIFEST_PATH = str(
+    REPO_ROOT / "experiments" / "multiagent" / "local_300_s2_subset" / "local_300_s2_subset_manifest.csv"
+)
+DEFAULT_LOCAL_300_OUTPUT_DIR = str(REPO_ROOT / "experiments" / "multiagent" / "local_300_s2_subset_matrix")
+LOCAL_300_SUBSET_N = 300
+
 CALL_LOG_FILENAME = "call_log_main.jsonl"
 
 
@@ -106,12 +145,53 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--mode", required=True, choices=("plan", "execute"))
     parser.add_argument("--model-tag", required=True, help="Ex.: gemini-3.1-flash-lite, gpt-5.4-nano, qwen3-vl:8b-instruct-q4_K_M, medgemma1.5:4b-it-q4_K_M")
+    parser.add_argument(
+        "--scope", choices=("full", "local_s2_subset"), default="full",
+        help=(
+            "'full' (default, comportamento histórico inalterado): matriz aprovada completa "
+            "(VLM-direto S0 + multiagente S0/S1/S2) sobre as 3.000 lesões congeladas. "
+            "'local_s2_subset': avaliação complementar reduzida (só multiagente S2, sem "
+            "VLM-direto, sem S0/S1) sobre as 300 lesões selecionadas em "
+            "scripts/select_local_300_lesion_s2_subset.py -- decisão operacional do pesquisador "
+            "por viabilidade computacional, ver doc 30 §15."
+        ),
+    )
     parser.add_argument("--sample-manifest", default=DEFAULT_SAMPLE_MANIFEST_PATH)
     parser.add_argument("--s0-s1-s2-manifest", default=DEFAULT_S0_S1_S2_MANIFEST_PATH)
     parser.add_argument("--cnn-s0-scores-csv", default=DEFAULT_CNN_S0_SCORES_CSV)
-    parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--subset-manifest", default=DEFAULT_LOCAL_300_SUBSET_MANIFEST_PATH,
+        help="Só usado com --scope local_s2_subset -- manifesto das 300 lesões (gerado por scripts/select_local_300_lesion_s2_subset.py).",
+    )
+    parser.add_argument("--output-dir", default=None, help="Default depende de --scope (full_scale_matrix ou local_300_s2_subset_matrix) -- nunca compartilhado entre os dois escopos.")
     parser.add_argument("--timeout-s", type=float, default=vd.TIMEOUT_S)
     return parser
+
+
+def _resolve_output_dir_root(args: argparse.Namespace) -> Path:
+    if args.output_dir is not None:
+        resolved = Path(args.output_dir)
+    elif args.scope == "local_s2_subset":
+        resolved = Path(DEFAULT_LOCAL_300_OUTPUT_DIR)
+    else:
+        resolved = Path(DEFAULT_OUTPUT_DIR)
+
+    # Checagem de segurança OPERACIONAL (nunca contornável por engano):
+    # --scope local_s2_subset nunca pode gravar/retomar dentro do
+    # diretório da matriz de 3.000 -- isso evitaria exatamente o risco
+    # que o pesquisador pediu para prevenir ("não retome acidentalmente
+    # a matriz local de 3.000").
+    full_scale_root = Path(DEFAULT_OUTPUT_DIR).resolve()
+    if args.scope == "local_s2_subset":
+        resolved_abs = resolved.resolve()
+        if resolved_abs == full_scale_root or full_scale_root in resolved_abs.parents or resolved_abs in full_scale_root.parents:
+            raise SystemExit(
+                f"ERRO OPERACIONAL: --output-dir ({resolved}) coincide ou se sobrepõe com o "
+                f"diretório da matriz completa de 3.000 ({DEFAULT_OUTPUT_DIR}) -- "
+                "--scope local_s2_subset NUNCA pode gravar ali, para nunca retomar "
+                "acidentalmente a matriz de 3.000. Use um --output-dir distinto."
+            )
+    return resolved
 
 
 # ---------------------------------------------------------------------------
@@ -149,6 +229,54 @@ def _load_s0_s1_s2_manifest(sample_manifest_path: Path, s0_s1_s2_manifest_path: 
             "congelado atual."
         )
     return rows
+
+
+def _load_local_300_subset_manifest(subset_manifest_path: Path, full_s0_s1_s2_rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Carrega o manifesto de 300 lesões (gerado por
+    `scripts/select_local_300_lesion_s2_subset.py`) e devolve as linhas
+    CORRESPONDENTES do manifesto S0/S1/S2 completo (já carregado e
+    verificado por `_load_s0_s1_s2_manifest`) -- restrição por
+    `lesion_id`/`image_id`, NUNCA uma nova seleção. Qualquer lesão do
+    subconjunto de 300 que não exista no manifesto S0/S1/S2 completo é
+    um problema OPERACIONAL real (os dois arquivos não correspondem à
+    mesma amostra/fonte) -- interrompe, nunca ignora a lesão
+    silenciosamente."""
+    if not subset_manifest_path.exists():
+        raise SystemExit(
+            f"ERRO OPERACIONAL: {subset_manifest_path} não encontrado -- rode "
+            "scripts/select_local_300_lesion_s2_subset.py primeiro."
+        )
+    with open(subset_manifest_path, encoding="utf-8") as f:
+        subset_rows = list(csv.DictReader(f))
+    if len(subset_rows) != LOCAL_300_SUBSET_N:
+        raise SystemExit(
+            f"ERRO OPERACIONAL: {subset_manifest_path} tem {len(subset_rows)} linhas, "
+            f"esperado exatamente {LOCAL_300_SUBSET_N}."
+        )
+
+    full_rows_by_key = {(r["lesion_id"], r["image_id"]): r for r in full_s0_s1_s2_rows}
+    restricted_rows: list[dict[str, str]] = []
+    missing_keys: list[tuple[str, str]] = []
+    for row in subset_rows:
+        key = (row["lesion_id"], row["image_id"])
+        full_row = full_rows_by_key.get(key)
+        if full_row is None:
+            missing_keys.append(key)
+            continue
+        restricted_rows.append(full_row)
+
+    if missing_keys:
+        raise SystemExit(
+            f"ERRO OPERACIONAL: {len(missing_keys)} lesão(ões) do subconjunto de 300 não "
+            f"encontrada(s) no manifesto S0/S1/S2 completo -- {missing_keys[:5]}... "
+            "o subconjunto precisa ser derivado exatamente do mesmo manifesto congelado."
+        )
+    if len(restricted_rows) != LOCAL_300_SUBSET_N:
+        raise SystemExit(
+            f"ERRO OPERACIONAL: {len(restricted_rows)} linhas restantes após restrição, "
+            f"esperado exatamente {LOCAL_300_SUBSET_N}."
+        )
+    return restricted_rows
 
 
 def _load_cnn_s0_scores(cnn_csv_path: Path) -> list[dict[str, str]]:
@@ -196,8 +324,7 @@ def _ensure_output_dir_writable(output_dir_root: Path, model_name: str) -> Path:
     return output_dir
 
 
-def _load_existing_call_log(output_dir: Path) -> list[dict[str, Any]]:
-    log_path = output_dir / CALL_LOG_FILENAME
+def _load_call_log_file(log_path: Path) -> list[dict[str, Any]]:
     if not log_path.exists():
         return []
     records = []
@@ -206,6 +333,22 @@ def _load_existing_call_log(output_dir: Path) -> list[dict[str, Any]]:
             line = line.strip()
             if line:
                 records.append(json.loads(line))
+    return records
+
+
+def _load_existing_call_log(output_dir: Path, extra_readonly_log_dirs: tuple[Path, ...] = ()) -> list[dict[str, Any]]:
+    """Lê `call_log_main.jsonl` de ``output_dir`` (o diretório desta
+    execução -- único lugar onde ESTA invocação grava) e, SE fornecido,
+    também de ``extra_readonly_log_dirs`` -- diretórios de execuções
+    ANTERIORES/distintas, lidos só para fins de reaproveitamento (nunca
+    escritos, nunca alterados). Usado pelo escopo `local_s2_subset` para
+    integrar automaticamente resultados já existentes da matriz completa
+    de 3.000 (quando uma lesão do subconjunto de 300 coincide com uma
+    lesão já processada naquela execução, em S2, pelo mesmo modelo) --
+    sem nunca tocar nos logs históricos (ver doc 30 §15)."""
+    records = _load_call_log_file(output_dir / CALL_LOG_FILENAME)
+    for extra_dir in extra_readonly_log_dirs:
+        records.extend(_load_call_log_file(extra_dir / CALL_LOG_FILENAME))
     return records
 
 
@@ -265,18 +408,38 @@ def _summarize_plan_by_role_condition(reuse_result: dict[str, Any]) -> dict[str,
 
 
 def _build_plan(args: argparse.Namespace, model_name: str) -> tuple[dict[str, Any], Path, list[dict[str, str]]]:
-    s0_s1_s2_rows = _load_s0_s1_s2_manifest(Path(args.sample_manifest), Path(args.s0_s1_s2_manifest))
-    cnn_rows = _load_cnn_s0_scores(Path(args.cnn_s0_scores_csv))
-    cnn_pairing = _check_cnn_s0_pairing(cnn_rows, s0_s1_s2_rows)
+    full_s0_s1_s2_rows = _load_s0_s1_s2_manifest(Path(args.sample_manifest), Path(args.s0_s1_s2_manifest))
 
-    output_dir = Path(args.output_dir) / model_name.replace(":", "_").replace("/", "_")
-    existing_records = _load_existing_call_log(output_dir)
+    output_dir_root = _resolve_output_dir_root(args)
+    output_dir = output_dir_root / model_name.replace(":", "_").replace("/", "_")
 
-    planned_calls = vd.build_full_scale_planned_calls(s0_s1_s2_rows)
+    if args.scope == "local_s2_subset":
+        # Escopo reduzido: só multiagente S2, sem VLM-direto, sem S0/S1,
+        # restrito ao subconjunto de 300 lesões. A CNN já foi avaliada
+        # (não é rechamada nem checada aqui -- o pareamento para a
+        # comparação acontece na exportação, não na execução). Ver doc
+        # 30 §15 -- decisão operacional do pesquisador, aprovação do
+        # orientador AINDA PENDENTE.
+        s0_s1_s2_rows = _load_local_300_subset_manifest(Path(args.subset_manifest), full_s0_s1_s2_rows)
+        cnn_pairing = {"note": "não aplicável neste escopo -- CNN já avaliada separadamente, não rechamada/checada aqui."}
+        planned_calls = vd.build_full_scale_planned_calls(s0_s1_s2_rows, conditions=("s2",), include_vlm_direto=False)
+        # Integra automaticamente resultados já existentes da matriz
+        # completa de 3.000 (lidos SÓ para reaproveitamento -- nunca
+        # escritos, nunca alterados) -- ver `_load_existing_call_log`.
+        full_scale_log_dir = Path(DEFAULT_OUTPUT_DIR) / model_name.replace(":", "_").replace("/", "_")
+        existing_records = _load_existing_call_log(output_dir, extra_readonly_log_dirs=(full_scale_log_dir,))
+    else:
+        s0_s1_s2_rows = full_s0_s1_s2_rows
+        cnn_rows = _load_cnn_s0_scores(Path(args.cnn_s0_scores_csv))
+        cnn_pairing = _check_cnn_s0_pairing(cnn_rows, s0_s1_s2_rows)
+        planned_calls = vd.build_full_scale_planned_calls(s0_s1_s2_rows)
+        existing_records = _load_existing_call_log(output_dir)
+
     reuse_result = vd.check_reuse(model_name, existing_records, planned_calls)
 
     plan = {
         "model_name": model_name,
+        "scope": args.scope,
         "n_lesions_in_manifest": len(s0_s1_s2_rows),
         "cnn_s0_pairing": cnn_pairing,
         "reuse": reuse_result,
@@ -287,7 +450,8 @@ def _build_plan(args: argparse.Namespace, model_name: str) -> tuple[dict[str, An
 
 def _run_plan_mode(args: argparse.Namespace) -> None:
     model_name = args.model_tag
-    print(f"=== Planejamento (sem chamadas a modelo) -- modelo: {model_name} ===")
+    scope_label = "avaliação complementar de 300 lesões (só multiagente S2)" if args.scope == "local_s2_subset" else "matriz de 3.000 lesões"
+    print(f"=== Planejamento (sem chamadas a modelo) -- {scope_label} -- modelo: {model_name} ===")
     plan, output_dir, _rows = _build_plan(args, model_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -295,7 +459,8 @@ def _run_plan_mode(args: argparse.Namespace) -> None:
     with open(plan_path, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2, default=str)
 
-    print(f"lesões no manifesto S0/S1/S2: {plan['n_lesions_in_manifest']}")
+    print(f"escopo: {plan['scope']}")
+    print(f"lesões no manifesto: {plan['n_lesions_in_manifest']}")
     print(f"pareamento CNN S0 x manifesto: {plan['cnn_s0_pairing']}")
     print(f"total planejado: {plan['reuse']['n_planned']}  já cobertas: {plan['reuse']['n_already_covered_by_existing_output']}  faltam: {plan['reuse']['n_missing_must_run']}")
     print("\npor papel/condição:")
@@ -336,11 +501,16 @@ def _load_condition_image(s0_s1_s2_rows_by_key: dict[tuple[str, str], dict[str, 
 
 def _run_execute_mode(args: argparse.Namespace) -> None:
     model_name = args.model_tag
-    print(f"=== Execução da matriz de 3.000 lesões -- modelo: {model_name} ===")
+    scope_label = "avaliação complementar de 300 lesões (só multiagente S2)" if args.scope == "local_s2_subset" else "matriz de 3.000 lesões"
+    print(f"=== Execução da {scope_label} -- modelo: {model_name} ===")
 
     plan, output_dir, s0_s1_s2_rows = _build_plan(args, model_name)
-    output_dir = _ensure_output_dir_writable(Path(args.output_dir), model_name)
+    output_dir = _ensure_output_dir_writable(_resolve_output_dir_root(args), model_name)
     s0_s1_s2_rows_by_key = {(r["lesion_id"], r["image_id"]): r for r in s0_s1_s2_rows}
+
+    extra_readonly_log_dirs: tuple[Path, ...] = ()
+    if args.scope == "local_s2_subset":
+        extra_readonly_log_dirs = (Path(DEFAULT_OUTPUT_DIR) / model_name.replace(":", "_").replace("/", "_"),)
 
     print("--- Checagem operacional de modelo/configuração ---")
     model_info = vd.get_model_info(model_name)  # levanta RuntimeError se incompatível
@@ -360,7 +530,7 @@ def _run_execute_mode(args: argparse.Namespace) -> None:
     # memória de um grupo cujo sumarizador (ou outro papel do mesmo
     # grupo) ainda falta rodar, SEM rechamar o que já tem resultado real
     # (ver `_index_existing_diagnoses`).
-    existing_records_for_seeding = _load_existing_call_log(output_dir)
+    existing_records_for_seeding = _load_existing_call_log(output_dir, extra_readonly_log_dirs=extra_readonly_log_dirs)
     existing_diagnoses_by_key = _index_existing_diagnoses(existing_records_for_seeding, model_name)
 
     log_path = output_dir / CALL_LOG_FILENAME
@@ -468,8 +638,10 @@ def _run_execute_mode(args: argparse.Namespace) -> None:
         json.dump(technical_failure_streaks, f, ensure_ascii=False, indent=2, default=str)
     print(f"diagnóstico de falhas técnicas por papel (informativo) gravado em: {technical_failure_report_path}")
 
-    # Reconstrói o plano lendo o log JÁ ATUALIZADO -- mostra quanto da
-    # matriz de 3.000 lesões está coberto no total, não só nesta invocação.
+    # Reconstrói o plano lendo o log JÁ ATUALIZADO -- mostra quanto do
+    # escopo planejado (3.000 lesões no escopo "full", ou 300 lesões em
+    # S2 no escopo "local_s2_subset") está coberto no total, não só
+    # nesta invocação.
     final_plan, _out, _rows = _build_plan(args, model_name)
     final_plan_path = output_dir / "plan_report_after_execution.json"
     with open(final_plan_path, "w", encoding="utf-8") as f:

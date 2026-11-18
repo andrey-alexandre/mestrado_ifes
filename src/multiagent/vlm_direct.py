@@ -2266,29 +2266,49 @@ def check_reuse(
     }
 
 
-def build_full_scale_planned_calls(s0_s1_s2_rows: list[dict[str, str]]) -> list[dict[str, str]]:
-    """Plano de chamadas da matriz APROVADA sobre as 3.000 lesões
-    congeladas (ver doc 15/30) -- generalização de `build_planned_calls`
-    (que cobre só as 12 lesões do piloto local) para a amostra completa.
+def build_full_scale_planned_calls(
+    s0_s1_s2_rows: list[dict[str, str]],
+    conditions: tuple[str, ...] = ("s0", "s1", "s2"),
+    include_vlm_direto: bool = True,
+) -> list[dict[str, str]]:
+    """Plano de chamadas da matriz sobre lesões congeladas (ver doc
+    15/30) -- generalização de `build_planned_calls` (que cobre só as 12
+    lesões do piloto local) para qualquer amostra/escopo.
 
     ``s0_s1_s2_rows``: as linhas de
     `experiments/multiagent/s0_s1_s2_preparation_manifest.csv` (saída já
     real de `scripts/run_s0_s1_s2_preparation.py` -- reusada, nunca
     regenerada por esta função), uma por lesão, com colunas
     ``status_s0``/``status_s1``/``status_s2`` (``"disponivel"`` ou
-    ``"indisponivel"``) e ``lesion_id``/``image_id``.
+    ``"indisponivel"``) e ``lesion_id``/``image_id``. Pode ser um
+    subconjunto já filtrado (ex.: as 300 lesões da avaliação
+    complementar local, ver
+    docs/reconstruction/30_real_lesion_evaluation_protocol.md §15) --
+    esta função não decide QUAIS lesões entram, só quais
+    condições/papéis por lesão, dado o conjunto de linhas recebido.
 
-    Para cada lesão:
-      - VLM-direto, condição S0 -- SE ``status_s0 == "disponivel"``
-        (comparação planejada: VLM-direto S0 × multiagente S0).
-      - Multiagente (ABCD/Menzies/SPCL/sumarizador), em CADA condição
-        S0/S1/S2 individualmente disponível -- SE
-        ``status_<condição> == "disponivel"``. Uma condição indisponível
-        (política já definida para máscara vazia de S2 -- ver
-        `src.multiagent.presentation` -- e qualquer outro motivo de
-        indisponibilidade estrutural de S0/S1/S2) é OMITIDA da condição
-        correspondente, NUNCA substituída por outra condição (sem
-        fallback S2->S0/S1).
+    ``conditions``: condições multiagente a incluir no plano -- default
+    `("s0","s1","s2")` (matriz aprovada completa, comportamento
+    HISTÓRICO INALTERADO para qualquer chamador existente que não passe
+    este argumento). Para a avaliação complementar local (Qwen3-VL/
+    MedGemma, só S2 por viabilidade computacional), passar
+    ``conditions=("s2",)`` -- nenhuma chamada S0/S1 multiagente é
+    incluída.
+
+    ``include_vlm_direto``: se `True` (default, comportamento histórico
+    inalterado), inclui VLM-direto em S0 quando ``status_s0 ==
+    "disponivel"`` (comparação planejada: VLM-direto S0 × multiagente
+    S0). Para a avaliação complementar local, passar `False` -- VLM
+    direto não faz parte do escopo reduzido.
+
+    Para cada lesão, dentro de ``conditions``: multiagente
+    (ABCD/Menzies/SPCL/sumarizador) SE ``status_<condição> ==
+    "disponivel"``. Uma condição indisponível (política já definida
+    para máscara vazia de S2 -- ver `src.multiagent.presentation` -- e
+    qualquer outro motivo de indisponibilidade estrutural de S0/S1/S2) é
+    OMITIDA da condição correspondente, NUNCA substituída por outra
+    condição (sem fallback S2->S0/S1) -- esta regra NUNCA muda,
+    independente do escopo.
 
     Não inclui CNN -- a comparação CNN S0 × multiagente S2 reusa
     `experiments/cnn_baseline/s0_ham10000_eval/s0_cnn_scores.csv`
@@ -2297,9 +2317,9 @@ def build_full_scale_planned_calls(s0_s1_s2_rows: list[dict[str, str]]) -> list[
     calls: list[dict[str, str]] = []
     for row in s0_s1_s2_rows:
         lesion_id, image_id = row["lesion_id"], row["image_id"]
-        if row.get("status_s0") == STATUS_AVAILABLE_IN_S0_S1_S2_MANIFEST:
+        if include_vlm_direto and row.get("status_s0") == STATUS_AVAILABLE_IN_S0_S1_S2_MANIFEST:
             calls.append({"role": ROLE_VLM_DIRETO, "condition": "s0", "lesion_id": lesion_id, "image_id": image_id})
-        for condition in ("s0", "s1", "s2"):
+        for condition in conditions:
             if row.get(f"status_{condition}") != STATUS_AVAILABLE_IN_S0_S1_S2_MANIFEST:
                 continue
             for role in MULTIAGENT_ROLES_IN_ORDER:

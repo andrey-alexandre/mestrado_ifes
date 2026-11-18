@@ -870,3 +870,212 @@ regra era e continua pendente, não deve ser resolvida por um default de
 código (ver [[project_multiagent_stage5]], "comparação cross-system de
 5 métricas sob subconjuntos binários diferentes -- explicitamente
 deixado pendente pelo pesquisador").
+
+## 15. Redução de escopo da avaliação local por viabilidade computacional (2026-11-18)
+
+### 15.1 A decisão
+
+**Decisão OPERACIONAL do pesquisador, enquanto aguarda retorno do
+orientador -- APROVAÇÃO DO ORIENTADOR AINDA PENDENTE, não resolvida por
+este registro.** Motivada por tempo de processamento real observado
+(MedGemma: ~16h26min de parede para 1.687 tentativas reais na primeira
+execução, projeção de dias para a matriz completa de 3.000 -- ver §9),
+NUNCA por seleção/exclusão baseada em desempenho dos modelos.
+
+Qwen3-VL e MedGemma 1.5 4B passam a ser avaliados em **duas camadas**:
+  - **Avaliação principal**: inalterada no desenho (matriz completa
+    aprovada, 3.000 lesões, VLM-direto S0 + multiagente S0/S1/S2) --
+    continua existindo como destino de longo prazo, não descontinuada,
+    só momentaneamente inviável em tempo.
+  - **Avaliação complementar**: NOVA, reduzida -- só multiagente em S2
+    (ABCD/Menzies/SPCL/sumarizador), sobre um subconjunto de **300**
+    lesões distintas das 3.000 congeladas. Sem VLM-direto, sem S0, sem
+    S1.
+
+Gemini e GPT permanecem na matriz principal de 3.000, sem alteração. A
+CNN já foi avaliada (docs 28/29) -- não é rechamada em nenhum ponto
+desta entrega.
+
+**Perdas explícitas decorrentes da redução** (registradas, não
+escondidas):
+  - Para Qwen3-VL/MedGemma, as comparações S0×S1×S2 (efeito da condição
+    de apresentação) e VLM-direto×multiagente (mesma lesão, dois modos)
+    NÃO são possíveis na avaliação complementar -- só existem, quando
+    existirem, na avaliação principal (ainda pendente de viabilidade).
+  - **Maior incerteza estatística esperada** na avaliação complementar
+    em relação à principal, por dois motivos combinados: (a) n=300 é
+    10x menor que n=3.000; (b) a cota de Hamilton para a categoria
+    `mel` (melanoma) sobre a composição real da amostra congelada
+    (247/3.000 lesões, 8,23%) projeta **25 lesões de melanoma em 300**
+    (8,33%) -- um número pequeno em termos absolutos, que amplia
+    especialmente o intervalo de confiança da **sensibilidade**
+    (depende só dos verdadeiros positivos entre essas ~25 lesões, não
+    das ~275 restantes). Isto é uma limitação estrutural do tamanho
+    reduzido, não um defeito da amostragem.
+  - Saídas locais já existentes da matriz principal (parciais, ver §9)
+    são PRESERVADAS sem alteração -- nunca movidas, apagadas ou
+    mescladas no novo recorte. O que estiver fora do novo recorte de
+    300 lesões continua no histórico como execução parcial adicional da
+    avaliação principal, disponível para quando ela for retomada.
+
+### 15.2 Seleção do subconjunto de 300 -- `scripts/select_local_300_lesion_s2_subset.py`
+
+Reusa `src.data_audit.sampling.compute_quotas_largest_remainder`
+(método de Hamilton/maiores restos, MESMA função já usada na amostra
+congelada de 3.000 -- nunca reimplementada) e
+`src.data_audit.sampling.ELIGIBLE_DX_CATEGORIES` (as 7 categorias
+diagnósticas do HAM10000). Cotas calculadas sobre a composição REAL da
+amostra de 3.000 (não da população HAM10000 completa, já que a seleção
+é um subconjunto DELA):
+
+| categoria (dx) | n elegível (de 3.000) | cota exata | cota final (Hamilton) |
+|---|---|---|---|
+| nv | 2.170 | 217,0 | 217 |
+| bkl | 292 | 29,2 | 29 |
+| mel | 247 | 24,7 | **25** |
+| bcc | 131 | 13,1 | 13 |
+| akiec | 92 | 9,2 | 9 |
+| vasc | 39 | 3,9 | 4 |
+| df | 29 | 2,9 | 3 |
+| **total** | **3.000** | | **300** |
+
+(Calculado manualmente para confirmação cruzada a partir da composição
+real de `experiments/sampling/sample_manifest.csv`, 2026-11-18 --
+`scripts/select_local_300_lesion_s2_subset.py` recalcula isso via
+código, nunca lê esta tabela.)
+
+Sorteio (semente `20261118`, nova e distinta de todas as já usadas no
+projeto): dentro de cada categoria, `random.Random(seed).sample()` sobre
+o conjunto ORDENADO de `lesion_id` elegíveis -- determinístico,
+reproduzível. **A imagem de cada lesão sorteada é EXATAMENTE a já
+existente no manifesto de 3.000** -- nunca um novo sorteio de imagem
+(diferente de `src.data_audit.sampling.sample_lesions`, que sorteia uma
+imagem por lesão a partir da população bruta -- função nova e
+necessária aqui, não uma duplicação indevida, porque o formato de
+entrada é diferente: lesões já emparelhadas 1:1 com imagem, não a
+população multi-imagem do HAM10000 bruto).
+
+**Nunca consulta predições, status de execução, latência ou qualidade
+de máscara** -- a seleção lê só `lesion_id`/`dx` do manifesto congelado.
+Lesões com máscara predita vazia (`status_s2 == "indisponivel"`, as 6
+já conhecidas desde a Etapa 4) podem ser sorteadas normalmente -- a
+política vigente se aplica no PLANO DE CHAMADAS do executor (nunca na
+seleção), preservando-as no denominador de 300 (não substituídas, não
+excluídas).
+
+Registro (`local_300_s2_subset_registry.json`): semente, tabela de
+cálculo de Hamilton completa, SHA-256 do manifesto de origem (conferido
+contra `src.multiagent.presentation.REGISTERED_MANIFEST_SHA256`, o
+mesmo identificador oficial do projeto), SHA-256 do subconjunto gerado,
+composição final por `dx`. Nunca sobrescreve silenciosamente um
+subconjunto já registrado -- compara hashes antes de gravar, exige
+`--force` explícito para substituir um conteúdo diferente.
+
+Verificação independente: `scripts/verify_local_300_s2_subset.py` --
+REGERA a seleção do zero (mesma semente) e compara byte a byte contra o
+arquivo em disco (reprodutibilidade real, não só contagens), confirma
+`image_id` idêntico ao manifesto de origem lesão a lesão, unicidade,
+SHA-256, e cotas de Hamilton recalculadas.
+
+### 15.3 Executor adaptado -- `scripts/run_full_scale_vlm_matrix.py --scope local_s2_subset`
+
+Generalização (não duplicação): `src.multiagent.vlm_direct.
+build_full_scale_planned_calls` ganhou dois parâmetros opcionais
+(`conditions`, `include_vlm_direto`), default = comportamento histórico
+exato (`("s0","s1","s2")`, `True`) -- nenhum chamador existente
+(Gemini/GPT) é afetado. O executor ganhou `--scope {full,
+local_s2_subset}` (default `full`, inalterado) -- `local_s2_subset`
+chama `build_full_scale_planned_calls(rows_300, conditions=("s2",),
+include_vlm_direto=False)`, pula a checagem/pareamento de CNN (não
+aplicável -- CNN já avaliada, nunca rechamada neste escopo), e grava em
+`experiments/multiagent/local_300_s2_subset_matrix/` -- diretório
+SEMPRE distinto do diretório da matriz de 3.000
+(`full_scale_matrix/`), com uma checagem operacional que IMPEDE
+`--output-dir` de apontar para lá neste escopo (nunca retoma
+acidentalmente a matriz de 3.000).
+
+Até **1.200 chamadas por modelo** (300 lesões × 4 papéis multiagente),
+descontadas as condições S2 estruturalmente indisponíveis já previstas
+pelo protocolo (máscara vazia). Preservados sem alteração: contrato
+`decisao_final`, parâmetros/prompts/timeout, extração de template do
+MedGemma, mecanismo de cancelamento real do timeout Ollama (seção 10).
+
+**Reaproveitamento automático de resultados anteriores**: o executor
+neste escopo lê, além do seu próprio log novo, o log JÁ EXISTENTE da
+matriz completa (`full_scale_matrix/<modelo>/call_log_main.jsonl`) --
+SÓ LEITURA, nunca escrito nem alterado -- para que qualquer lesão do
+subconjunto de 300 que já tenha um resultado real compatível (mesmo
+modelo, mesma lesão/imagem/condição S2, mesmo mecanismo de execução --
+`is_call_record_reusable`, seção 13, pontos 1-4, sem nenhuma regra
+nova) seja tratada como já coberta, sem reexecução. Placeholders
+`nao_executado` continuam pendentes (nunca reaproveitados). Falhas do
+mecanismo antigo seguem a MESMA exceção operacional já documentada
+(seção 10/13) -- nenhuma regra de retentativa nova foi criada.
+
+**Dependência da síntese preservada por construção** (nenhuma lógica
+nova necessária): a função de seeding `_index_existing_diagnoses` já
+indexa por `(lesion_id, image_id, condition)` exato e só a partir de
+registros `call_status == "ok"` reais -- um sumarizador retomado nunca
+recebe pareceres de uma lesão/condição/execução diferente, porque a
+chave de busca é sempre exatamente a mesma da chamada em questão. Uma
+vez que um sumarizador tenha `ok` registrado, ele NUNCA é re-rodado
+(mesmo que um ABCD/Menzies/SPCL da mesma lesão seja retentado depois com
+sucesso) -- o resultado já fechado nunca é silenciosamente "atualizado"
+com pareceres de uma tentativa posterior, prevenindo exatamente a
+mistura que o pesquisador pediu para evitar.
+
+**Checagens preservadas, nenhuma nova reintroduzida**: só problemas
+operacionais (manifesto, imagem, config/credencial, diretório gravável,
+e agora também a restrição de escopo/diretório) interrompem a execução
+-- revisão qualitativa, erros de controle visual, indeterminação e
+percentual de respostas válidas continuam sem ser gates, exatamente como
+decidido em 2026-11-16 (seção 1).
+
+### 15.4 Exportação pareada -- `scripts/export_local_300_subset_comparison.py`
+
+Produz uma linha por lesão (300 linhas) com o status de CADA sistema --
+CNN S0 (já avaliada, só filtrada ao subconjunto), Gemini multiagente S2
+(fonte OFICIAL: o arquivo REPROCESSADO de `decisao_final`, seção 11 --
+nunca o log original, que mantém `field_absent`; rastreabilidade ao log
+original preservada pelos mesmos campos de identificação), GPT
+multiagente S2 (lido do escopo `full` quando existir), Qwen3-VL e
+MedGemma multiagente S2 (união SOMENTE-LEITURA do escopo
+`local_s2_subset` com o escopo `full`). Nenhuma chamada nova a
+modelo/API. Resultado ainda não existente para algum sistema/lesão é
+marcado explicitamente `"pendente"` -- nunca omitido, nunca convertido
+em "falha" ou "negativo".
+
+**Restrição deliberada**: os 5 sistemas são TODOS filtrados ao MESMO
+subconjunto de 300 -- esta exportação nunca mistura métricas locais de
+300 com métricas de outros sistemas calculadas nas 3.000 (decisão
+explícita do pesquisador). Preserva a distinção entre resposta válida
+(`call_status`), decisão binária (`melanoma`/`nao_melanoma`),
+indeterminação (`indeterminado`, sempre distinto de negativo), falha, e
+ausência de execução (`pendente`). **A regra pendente para comparar as
+5 métricas binárias quando os sistemas produzem decisões sobre
+subconjuntos diferentes continua NÃO resolvida** -- nenhum default de
+código decide isso; o script só exporta os dados pareados com a
+classificação completa preservada.
+
+### 15.5 Comandos
+
+```bash
+# 1. Gerar e verificar o subconjunto de 300 lesões:
+python scripts/select_local_300_lesion_s2_subset.py
+python scripts/verify_local_300_s2_subset.py
+
+# 2. Planejamento (sem chamadas a modelo) -- mostra reaproveitamento/faltantes:
+python scripts/run_full_scale_vlm_matrix.py --mode plan --scope local_s2_subset --model-tag qwen3-vl:8b-instruct-q4_K_M
+python scripts/run_full_scale_vlm_matrix.py --mode plan --scope local_s2_subset --model-tag medgemma1.5:4b-it-q4_K_M
+
+# 3. Execução -- separada por modelo, pode ser interrompida (Ctrl+C):
+python scripts/run_full_scale_vlm_matrix.py --mode execute --scope local_s2_subset --model-tag qwen3-vl:8b-instruct-q4_K_M
+python scripts/run_full_scale_vlm_matrix.py --mode execute --scope local_s2_subset --model-tag medgemma1.5:4b-it-q4_K_M
+
+# 4. Retomada -- comando IDÊNTICO, só os itens ainda pendentes:
+python scripts/run_full_scale_vlm_matrix.py --mode execute --scope local_s2_subset --model-tag medgemma1.5:4b-it-q4_K_M
+
+# 5. Exportação pareada (depois que houver algum resultado real --
+#    pode ser rodada em qualquer ponto, resultados ausentes ficam "pendente"):
+python scripts/export_local_300_subset_comparison.py
+```
