@@ -1,0 +1,22 @@
+{
+  "vlm_direto": {
+    "n_falha_tecnica": 10,
+    "max_consecutive_falha_tecnica": 3
+  },
+  "diagnostic_abcd": {
+    "n_falha_tecnica": 13,
+    "max_consecutive_falha_tecnica": 3
+  },
+  "diagnostic_menzies": {
+    "n_falha_tecnica": 13,
+    "max_consecutive_falha_tecnica": 3
+  },
+  "diagnostic_spcl": {
+    "n_falha_tecnica": 19,
+    "max_consecutive_falha_tecnica": 3
+  },
+  "summary": {
+    "n_falha_tecnica": 17,
+    "max_consecutive_falha_tecnica": 3
+  }
+}
