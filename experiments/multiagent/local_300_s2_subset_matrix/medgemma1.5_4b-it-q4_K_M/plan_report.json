@@ -1,0 +1,7217 @@
+{
+  "model_name": "medgemma1.5:4b-it-q4_K_M",
+  "scope": "local_s2_subset",
+  "n_lesions_in_manifest": 300,
+  "cnn_s0_pairing": {
+    "note": "não aplicável neste escopo -- CNN já avaliada separadamente, não rechamada/checada aqui."
+  },
+  "reuse": {
+    "model_name": "medgemma1.5:4b-it-q4_K_M",
+    "decision_contract_parser_version_current": "explicit_decision_contract_v1_accented_nao_melanoma_variant_2026_11_14",
+    "n_planned": 1196,
+    "n_already_covered_by_existing_output": 88,
+    "n_missing_must_run": 1108,
+    "already_covered": [
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000189",
+        "image_id": "ISIC_0024504"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000189",
+        "image_id": "ISIC_0024504"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000189",
+        "image_id": "ISIC_0024504"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000189",
+        "image_id": "ISIC_0024504"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000193",
+        "image_id": "ISIC_0027950"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000193",
+        "image_id": "ISIC_0027950"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000193",
+        "image_id": "ISIC_0027950"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000193",
+        "image_id": "ISIC_0027950"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000263",
+        "image_id": "ISIC_0034058"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000263",
+        "image_id": "ISIC_0034058"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000263",
+        "image_id": "ISIC_0034058"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000263",
+        "image_id": "ISIC_0034058"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000456",
+        "image_id": "ISIC_0026466"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000456",
+        "image_id": "ISIC_0026466"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000456",
+        "image_id": "ISIC_0026466"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000456",
+        "image_id": "ISIC_0026466"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000673",
+        "image_id": "ISIC_0029659"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000673",
+        "image_id": "ISIC_0029659"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000673",
+        "image_id": "ISIC_0029659"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000673",
+        "image_id": "ISIC_0029659"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001129",
+        "image_id": "ISIC_0030352"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001129",
+        "image_id": "ISIC_0030352"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001129",
+        "image_id": "ISIC_0030352"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001129",
+        "image_id": "ISIC_0030352"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001621",
+        "image_id": "ISIC_0030297"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001621",
+        "image_id": "ISIC_0030297"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001621",
+        "image_id": "ISIC_0030297"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001621",
+        "image_id": "ISIC_0030297"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001707",
+        "image_id": "ISIC_0031925"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001707",
+        "image_id": "ISIC_0031925"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001707",
+        "image_id": "ISIC_0031925"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001707",
+        "image_id": "ISIC_0031925"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001786",
+        "image_id": "ISIC_0027047"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001786",
+        "image_id": "ISIC_0027047"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001786",
+        "image_id": "ISIC_0027047"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001786",
+        "image_id": "ISIC_0027047"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002791",
+        "image_id": "ISIC_0031749"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002791",
+        "image_id": "ISIC_0031749"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002791",
+        "image_id": "ISIC_0031749"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002791",
+        "image_id": "ISIC_0031749"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003086",
+        "image_id": "ISIC_0032349"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003086",
+        "image_id": "ISIC_0032349"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003086",
+        "image_id": "ISIC_0032349"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003086",
+        "image_id": "ISIC_0032349"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003157",
+        "image_id": "ISIC_0029811"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003157",
+        "image_id": "ISIC_0029811"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003157",
+        "image_id": "ISIC_0029811"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003157",
+        "image_id": "ISIC_0029811"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003191",
+        "image_id": "ISIC_0029524"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003191",
+        "image_id": "ISIC_0029524"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003191",
+        "image_id": "ISIC_0029524"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003191",
+        "image_id": "ISIC_0029524"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003389",
+        "image_id": "ISIC_0031122"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003389",
+        "image_id": "ISIC_0031122"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003389",
+        "image_id": "ISIC_0031122"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003389",
+        "image_id": "ISIC_0031122"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003633",
+        "image_id": "ISIC_0030280"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003633",
+        "image_id": "ISIC_0030280"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003633",
+        "image_id": "ISIC_0030280"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003633",
+        "image_id": "ISIC_0030280"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003690",
+        "image_id": "ISIC_0034155"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003690",
+        "image_id": "ISIC_0034155"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003690",
+        "image_id": "ISIC_0034155"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003690",
+        "image_id": "ISIC_0034155"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004435",
+        "image_id": "ISIC_0032146"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004435",
+        "image_id": "ISIC_0032146"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004435",
+        "image_id": "ISIC_0032146"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004435",
+        "image_id": "ISIC_0032146"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005392",
+        "image_id": "ISIC_0024436"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005392",
+        "image_id": "ISIC_0024436"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005392",
+        "image_id": "ISIC_0024436"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005392",
+        "image_id": "ISIC_0024436"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005501",
+        "image_id": "ISIC_0025711"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005501",
+        "image_id": "ISIC_0025711"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005501",
+        "image_id": "ISIC_0025711"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005501",
+        "image_id": "ISIC_0025711"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006387",
+        "image_id": "ISIC_0026831"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006387",
+        "image_id": "ISIC_0026831"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006387",
+        "image_id": "ISIC_0026831"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006387",
+        "image_id": "ISIC_0026831"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006893",
+        "image_id": "ISIC_0027084"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006893",
+        "image_id": "ISIC_0027084"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006893",
+        "image_id": "ISIC_0027084"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006893",
+        "image_id": "ISIC_0027084"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007507",
+        "image_id": "ISIC_0031056"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007507",
+        "image_id": "ISIC_0031056"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007507",
+        "image_id": "ISIC_0031056"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007507",
+        "image_id": "ISIC_0031056"
+      }
+    ],
+    "missing": [
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000019",
+        "image_id": "ISIC_0025396"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000019",
+        "image_id": "ISIC_0025396"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000019",
+        "image_id": "ISIC_0025396"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000019",
+        "image_id": "ISIC_0025396"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000028",
+        "image_id": "ISIC_0029752"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000028",
+        "image_id": "ISIC_0029752"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000028",
+        "image_id": "ISIC_0029752"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000028",
+        "image_id": "ISIC_0029752"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000056",
+        "image_id": "ISIC_0025725"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000056",
+        "image_id": "ISIC_0025725"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000056",
+        "image_id": "ISIC_0025725"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000056",
+        "image_id": "ISIC_0025725"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000104",
+        "image_id": "ISIC_0031913"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000104",
+        "image_id": "ISIC_0031913"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000104",
+        "image_id": "ISIC_0031913"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000104",
+        "image_id": "ISIC_0031913"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000107",
+        "image_id": "ISIC_0033299"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000107",
+        "image_id": "ISIC_0033299"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000107",
+        "image_id": "ISIC_0033299"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000107",
+        "image_id": "ISIC_0033299"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000109",
+        "image_id": "ISIC_0031065"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000109",
+        "image_id": "ISIC_0031065"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000109",
+        "image_id": "ISIC_0031065"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000109",
+        "image_id": "ISIC_0031065"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000111",
+        "image_id": "ISIC_0024742"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000111",
+        "image_id": "ISIC_0024742"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000111",
+        "image_id": "ISIC_0024742"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000111",
+        "image_id": "ISIC_0024742"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000132",
+        "image_id": "ISIC_0032453"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000132",
+        "image_id": "ISIC_0032453"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000132",
+        "image_id": "ISIC_0032453"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000132",
+        "image_id": "ISIC_0032453"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000165",
+        "image_id": "ISIC_0033833"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000165",
+        "image_id": "ISIC_0033833"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000165",
+        "image_id": "ISIC_0033833"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000165",
+        "image_id": "ISIC_0033833"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000178",
+        "image_id": "ISIC_0031397"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000178",
+        "image_id": "ISIC_0031397"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000178",
+        "image_id": "ISIC_0031397"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000178",
+        "image_id": "ISIC_0031397"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000240",
+        "image_id": "ISIC_0028552"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000240",
+        "image_id": "ISIC_0028552"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000240",
+        "image_id": "ISIC_0028552"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000240",
+        "image_id": "ISIC_0028552"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000249",
+        "image_id": "ISIC_0027847"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000249",
+        "image_id": "ISIC_0027847"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000249",
+        "image_id": "ISIC_0027847"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000249",
+        "image_id": "ISIC_0027847"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000277",
+        "image_id": "ISIC_0029182"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000277",
+        "image_id": "ISIC_0029182"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000277",
+        "image_id": "ISIC_0029182"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000277",
+        "image_id": "ISIC_0029182"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000290",
+        "image_id": "ISIC_0024526"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000290",
+        "image_id": "ISIC_0024526"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000290",
+        "image_id": "ISIC_0024526"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000290",
+        "image_id": "ISIC_0024526"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000305",
+        "image_id": "ISIC_0030815"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000305",
+        "image_id": "ISIC_0030815"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000305",
+        "image_id": "ISIC_0030815"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000305",
+        "image_id": "ISIC_0030815"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000330",
+        "image_id": "ISIC_0030824"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000330",
+        "image_id": "ISIC_0030824"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000330",
+        "image_id": "ISIC_0030824"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000330",
+        "image_id": "ISIC_0030824"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000340",
+        "image_id": "ISIC_0026397"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000340",
+        "image_id": "ISIC_0026397"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000340",
+        "image_id": "ISIC_0026397"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000340",
+        "image_id": "ISIC_0026397"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000362",
+        "image_id": "ISIC_0030180"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000362",
+        "image_id": "ISIC_0030180"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000362",
+        "image_id": "ISIC_0030180"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000362",
+        "image_id": "ISIC_0030180"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000470",
+        "image_id": "ISIC_0026965"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000470",
+        "image_id": "ISIC_0026965"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000470",
+        "image_id": "ISIC_0026965"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000470",
+        "image_id": "ISIC_0026965"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000553",
+        "image_id": "ISIC_0034159"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000553",
+        "image_id": "ISIC_0034159"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000553",
+        "image_id": "ISIC_0034159"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000553",
+        "image_id": "ISIC_0034159"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000572",
+        "image_id": "ISIC_0025224"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000572",
+        "image_id": "ISIC_0025224"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000572",
+        "image_id": "ISIC_0025224"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000572",
+        "image_id": "ISIC_0025224"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000580",
+        "image_id": "ISIC_0029293"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000580",
+        "image_id": "ISIC_0029293"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000580",
+        "image_id": "ISIC_0029293"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000580",
+        "image_id": "ISIC_0029293"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000595",
+        "image_id": "ISIC_0025991"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000595",
+        "image_id": "ISIC_0025991"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000595",
+        "image_id": "ISIC_0025991"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000595",
+        "image_id": "ISIC_0025991"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000702",
+        "image_id": "ISIC_0030804"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000702",
+        "image_id": "ISIC_0030804"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000702",
+        "image_id": "ISIC_0030804"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000702",
+        "image_id": "ISIC_0030804"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000748",
+        "image_id": "ISIC_0024598"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000748",
+        "image_id": "ISIC_0024598"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000748",
+        "image_id": "ISIC_0024598"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000748",
+        "image_id": "ISIC_0024598"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000755",
+        "image_id": "ISIC_0026180"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000755",
+        "image_id": "ISIC_0026180"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000755",
+        "image_id": "ISIC_0026180"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000755",
+        "image_id": "ISIC_0026180"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000802",
+        "image_id": "ISIC_0033437"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000802",
+        "image_id": "ISIC_0033437"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000802",
+        "image_id": "ISIC_0033437"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000802",
+        "image_id": "ISIC_0033437"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000839",
+        "image_id": "ISIC_0032049"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000839",
+        "image_id": "ISIC_0032049"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000839",
+        "image_id": "ISIC_0032049"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000839",
+        "image_id": "ISIC_0032049"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000846",
+        "image_id": "ISIC_0029115"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000846",
+        "image_id": "ISIC_0029115"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000846",
+        "image_id": "ISIC_0029115"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000846",
+        "image_id": "ISIC_0029115"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000858",
+        "image_id": "ISIC_0030944"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000858",
+        "image_id": "ISIC_0030944"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000858",
+        "image_id": "ISIC_0030944"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000858",
+        "image_id": "ISIC_0030944"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000880",
+        "image_id": "ISIC_0033089"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000880",
+        "image_id": "ISIC_0033089"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000880",
+        "image_id": "ISIC_0033089"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000880",
+        "image_id": "ISIC_0033089"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000887",
+        "image_id": "ISIC_0030501"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000887",
+        "image_id": "ISIC_0030501"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000887",
+        "image_id": "ISIC_0030501"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000887",
+        "image_id": "ISIC_0030501"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000948",
+        "image_id": "ISIC_0033631"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000948",
+        "image_id": "ISIC_0033631"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000948",
+        "image_id": "ISIC_0033631"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000948",
+        "image_id": "ISIC_0033631"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000951",
+        "image_id": "ISIC_0026003"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000951",
+        "image_id": "ISIC_0026003"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000951",
+        "image_id": "ISIC_0026003"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000951",
+        "image_id": "ISIC_0026003"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000962",
+        "image_id": "ISIC_0028674"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000962",
+        "image_id": "ISIC_0028674"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000962",
+        "image_id": "ISIC_0028674"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000962",
+        "image_id": "ISIC_0028674"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000965",
+        "image_id": "ISIC_0027855"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000965",
+        "image_id": "ISIC_0027855"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000965",
+        "image_id": "ISIC_0027855"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000965",
+        "image_id": "ISIC_0027855"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0000984",
+        "image_id": "ISIC_0024376"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0000984",
+        "image_id": "ISIC_0024376"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000984",
+        "image_id": "ISIC_0024376"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0000984",
+        "image_id": "ISIC_0024376"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001006",
+        "image_id": "ISIC_0027602"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001006",
+        "image_id": "ISIC_0027602"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001006",
+        "image_id": "ISIC_0027602"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001006",
+        "image_id": "ISIC_0027602"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001031",
+        "image_id": "ISIC_0031163"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001031",
+        "image_id": "ISIC_0031163"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001031",
+        "image_id": "ISIC_0031163"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001031",
+        "image_id": "ISIC_0031163"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001092",
+        "image_id": "ISIC_0031962"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001092",
+        "image_id": "ISIC_0031962"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001092",
+        "image_id": "ISIC_0031962"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001092",
+        "image_id": "ISIC_0031962"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001115",
+        "image_id": "ISIC_0024778"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001115",
+        "image_id": "ISIC_0024778"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001115",
+        "image_id": "ISIC_0024778"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001115",
+        "image_id": "ISIC_0024778"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001137",
+        "image_id": "ISIC_0029359"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001137",
+        "image_id": "ISIC_0029359"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001137",
+        "image_id": "ISIC_0029359"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001137",
+        "image_id": "ISIC_0029359"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001193",
+        "image_id": "ISIC_0029125"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001193",
+        "image_id": "ISIC_0029125"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001193",
+        "image_id": "ISIC_0029125"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001193",
+        "image_id": "ISIC_0029125"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001242",
+        "image_id": "ISIC_0025988"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001242",
+        "image_id": "ISIC_0025988"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001242",
+        "image_id": "ISIC_0025988"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001242",
+        "image_id": "ISIC_0025988"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001290",
+        "image_id": "ISIC_0032263"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001290",
+        "image_id": "ISIC_0032263"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001290",
+        "image_id": "ISIC_0032263"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001290",
+        "image_id": "ISIC_0032263"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001308",
+        "image_id": "ISIC_0025740"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001308",
+        "image_id": "ISIC_0025740"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001308",
+        "image_id": "ISIC_0025740"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001308",
+        "image_id": "ISIC_0025740"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001348",
+        "image_id": "ISIC_0028259"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001348",
+        "image_id": "ISIC_0028259"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001348",
+        "image_id": "ISIC_0028259"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001348",
+        "image_id": "ISIC_0028259"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001372",
+        "image_id": "ISIC_0031103"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001372",
+        "image_id": "ISIC_0031103"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001372",
+        "image_id": "ISIC_0031103"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001372",
+        "image_id": "ISIC_0031103"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001443",
+        "image_id": "ISIC_0025804"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001443",
+        "image_id": "ISIC_0025804"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001443",
+        "image_id": "ISIC_0025804"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001443",
+        "image_id": "ISIC_0025804"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001473",
+        "image_id": "ISIC_0029022"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001473",
+        "image_id": "ISIC_0029022"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001473",
+        "image_id": "ISIC_0029022"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001473",
+        "image_id": "ISIC_0029022"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001521",
+        "image_id": "ISIC_0031860"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001521",
+        "image_id": "ISIC_0031860"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001521",
+        "image_id": "ISIC_0031860"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001521",
+        "image_id": "ISIC_0031860"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001523",
+        "image_id": "ISIC_0028523"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001523",
+        "image_id": "ISIC_0028523"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001523",
+        "image_id": "ISIC_0028523"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001523",
+        "image_id": "ISIC_0028523"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001525",
+        "image_id": "ISIC_0027510"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001525",
+        "image_id": "ISIC_0027510"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001525",
+        "image_id": "ISIC_0027510"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001525",
+        "image_id": "ISIC_0027510"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001619",
+        "image_id": "ISIC_0033065"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001619",
+        "image_id": "ISIC_0033065"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001619",
+        "image_id": "ISIC_0033065"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001619",
+        "image_id": "ISIC_0033065"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001636",
+        "image_id": "ISIC_0030866"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001636",
+        "image_id": "ISIC_0030866"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001636",
+        "image_id": "ISIC_0030866"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001636",
+        "image_id": "ISIC_0030866"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001684",
+        "image_id": "ISIC_0029790"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001684",
+        "image_id": "ISIC_0029790"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001684",
+        "image_id": "ISIC_0029790"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001684",
+        "image_id": "ISIC_0029790"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001724",
+        "image_id": "ISIC_0027386"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001724",
+        "image_id": "ISIC_0027386"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001724",
+        "image_id": "ISIC_0027386"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001724",
+        "image_id": "ISIC_0027386"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001747",
+        "image_id": "ISIC_0029575"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001747",
+        "image_id": "ISIC_0029575"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001747",
+        "image_id": "ISIC_0029575"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001747",
+        "image_id": "ISIC_0029575"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001766",
+        "image_id": "ISIC_0026591"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001766",
+        "image_id": "ISIC_0026591"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001766",
+        "image_id": "ISIC_0026591"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001766",
+        "image_id": "ISIC_0026591"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001779",
+        "image_id": "ISIC_0031439"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001779",
+        "image_id": "ISIC_0031439"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001779",
+        "image_id": "ISIC_0031439"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001779",
+        "image_id": "ISIC_0031439"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001801",
+        "image_id": "ISIC_0033293"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001801",
+        "image_id": "ISIC_0033293"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001801",
+        "image_id": "ISIC_0033293"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001801",
+        "image_id": "ISIC_0033293"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001809",
+        "image_id": "ISIC_0029897"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001809",
+        "image_id": "ISIC_0029897"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001809",
+        "image_id": "ISIC_0029897"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001809",
+        "image_id": "ISIC_0029897"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001825",
+        "image_id": "ISIC_0029673"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001825",
+        "image_id": "ISIC_0029673"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001825",
+        "image_id": "ISIC_0029673"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001825",
+        "image_id": "ISIC_0029673"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001849",
+        "image_id": "ISIC_0028966"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001849",
+        "image_id": "ISIC_0028966"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001849",
+        "image_id": "ISIC_0028966"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001849",
+        "image_id": "ISIC_0028966"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001870",
+        "image_id": "ISIC_0033090"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001870",
+        "image_id": "ISIC_0033090"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001870",
+        "image_id": "ISIC_0033090"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001870",
+        "image_id": "ISIC_0033090"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001895",
+        "image_id": "ISIC_0029938"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001895",
+        "image_id": "ISIC_0029938"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001895",
+        "image_id": "ISIC_0029938"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001895",
+        "image_id": "ISIC_0029938"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001897",
+        "image_id": "ISIC_0026185"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001897",
+        "image_id": "ISIC_0026185"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001897",
+        "image_id": "ISIC_0026185"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001897",
+        "image_id": "ISIC_0026185"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001938",
+        "image_id": "ISIC_0026245"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001938",
+        "image_id": "ISIC_0026245"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001938",
+        "image_id": "ISIC_0026245"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001938",
+        "image_id": "ISIC_0026245"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001943",
+        "image_id": "ISIC_0032909"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001943",
+        "image_id": "ISIC_0032909"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001943",
+        "image_id": "ISIC_0032909"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001943",
+        "image_id": "ISIC_0032909"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001982",
+        "image_id": "ISIC_0030173"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001982",
+        "image_id": "ISIC_0030173"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001982",
+        "image_id": "ISIC_0030173"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001982",
+        "image_id": "ISIC_0030173"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0001988",
+        "image_id": "ISIC_0029948"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0001988",
+        "image_id": "ISIC_0029948"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0001988",
+        "image_id": "ISIC_0029948"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0001988",
+        "image_id": "ISIC_0029948"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002051",
+        "image_id": "ISIC_0031784"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002051",
+        "image_id": "ISIC_0031784"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002051",
+        "image_id": "ISIC_0031784"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002051",
+        "image_id": "ISIC_0031784"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002065",
+        "image_id": "ISIC_0028776"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002065",
+        "image_id": "ISIC_0028776"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002065",
+        "image_id": "ISIC_0028776"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002065",
+        "image_id": "ISIC_0028776"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002086",
+        "image_id": "ISIC_0033814"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002086",
+        "image_id": "ISIC_0033814"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002086",
+        "image_id": "ISIC_0033814"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002086",
+        "image_id": "ISIC_0033814"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002138",
+        "image_id": "ISIC_0027834"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002138",
+        "image_id": "ISIC_0027834"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002138",
+        "image_id": "ISIC_0027834"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002138",
+        "image_id": "ISIC_0027834"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002139",
+        "image_id": "ISIC_0032786"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002139",
+        "image_id": "ISIC_0032786"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002139",
+        "image_id": "ISIC_0032786"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002139",
+        "image_id": "ISIC_0032786"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002142",
+        "image_id": "ISIC_0025960"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002142",
+        "image_id": "ISIC_0025960"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002142",
+        "image_id": "ISIC_0025960"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002142",
+        "image_id": "ISIC_0025960"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002146",
+        "image_id": "ISIC_0025686"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002146",
+        "image_id": "ISIC_0025686"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002146",
+        "image_id": "ISIC_0025686"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002146",
+        "image_id": "ISIC_0025686"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002160",
+        "image_id": "ISIC_0028712"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002160",
+        "image_id": "ISIC_0028712"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002160",
+        "image_id": "ISIC_0028712"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002160",
+        "image_id": "ISIC_0028712"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002165",
+        "image_id": "ISIC_0031172"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002165",
+        "image_id": "ISIC_0031172"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002165",
+        "image_id": "ISIC_0031172"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002165",
+        "image_id": "ISIC_0031172"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002201",
+        "image_id": "ISIC_0024514"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002201",
+        "image_id": "ISIC_0024514"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002201",
+        "image_id": "ISIC_0024514"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002201",
+        "image_id": "ISIC_0024514"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002215",
+        "image_id": "ISIC_0028539"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002215",
+        "image_id": "ISIC_0028539"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002215",
+        "image_id": "ISIC_0028539"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002215",
+        "image_id": "ISIC_0028539"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002226",
+        "image_id": "ISIC_0025407"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002226",
+        "image_id": "ISIC_0025407"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002226",
+        "image_id": "ISIC_0025407"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002226",
+        "image_id": "ISIC_0025407"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002292",
+        "image_id": "ISIC_0031183"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002292",
+        "image_id": "ISIC_0031183"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002292",
+        "image_id": "ISIC_0031183"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002292",
+        "image_id": "ISIC_0031183"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002298",
+        "image_id": "ISIC_0031483"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002298",
+        "image_id": "ISIC_0031483"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002298",
+        "image_id": "ISIC_0031483"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002298",
+        "image_id": "ISIC_0031483"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002341",
+        "image_id": "ISIC_0029117"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002341",
+        "image_id": "ISIC_0029117"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002341",
+        "image_id": "ISIC_0029117"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002341",
+        "image_id": "ISIC_0029117"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002347",
+        "image_id": "ISIC_0030022"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002347",
+        "image_id": "ISIC_0030022"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002347",
+        "image_id": "ISIC_0030022"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002347",
+        "image_id": "ISIC_0030022"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002355",
+        "image_id": "ISIC_0029202"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002355",
+        "image_id": "ISIC_0029202"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002355",
+        "image_id": "ISIC_0029202"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002355",
+        "image_id": "ISIC_0029202"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002381",
+        "image_id": "ISIC_0030680"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002381",
+        "image_id": "ISIC_0030680"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002381",
+        "image_id": "ISIC_0030680"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002381",
+        "image_id": "ISIC_0030680"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002393",
+        "image_id": "ISIC_0026879"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002393",
+        "image_id": "ISIC_0026879"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002393",
+        "image_id": "ISIC_0026879"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002393",
+        "image_id": "ISIC_0026879"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002429",
+        "image_id": "ISIC_0028139"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002429",
+        "image_id": "ISIC_0028139"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002429",
+        "image_id": "ISIC_0028139"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002429",
+        "image_id": "ISIC_0028139"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002434",
+        "image_id": "ISIC_0033941"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002434",
+        "image_id": "ISIC_0033941"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002434",
+        "image_id": "ISIC_0033941"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002434",
+        "image_id": "ISIC_0033941"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002439",
+        "image_id": "ISIC_0031083"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002439",
+        "image_id": "ISIC_0031083"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002439",
+        "image_id": "ISIC_0031083"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002439",
+        "image_id": "ISIC_0031083"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002442",
+        "image_id": "ISIC_0026325"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002442",
+        "image_id": "ISIC_0026325"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002442",
+        "image_id": "ISIC_0026325"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002442",
+        "image_id": "ISIC_0026325"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002446",
+        "image_id": "ISIC_0028521"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002446",
+        "image_id": "ISIC_0028521"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002446",
+        "image_id": "ISIC_0028521"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002446",
+        "image_id": "ISIC_0028521"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002481",
+        "image_id": "ISIC_0024684"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002481",
+        "image_id": "ISIC_0024684"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002481",
+        "image_id": "ISIC_0024684"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002481",
+        "image_id": "ISIC_0024684"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002499",
+        "image_id": "ISIC_0024600"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002499",
+        "image_id": "ISIC_0024600"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002499",
+        "image_id": "ISIC_0024600"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002499",
+        "image_id": "ISIC_0024600"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002517",
+        "image_id": "ISIC_0031838"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002517",
+        "image_id": "ISIC_0031838"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002517",
+        "image_id": "ISIC_0031838"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002517",
+        "image_id": "ISIC_0031838"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002543",
+        "image_id": "ISIC_0025645"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002543",
+        "image_id": "ISIC_0025645"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002543",
+        "image_id": "ISIC_0025645"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002543",
+        "image_id": "ISIC_0025645"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002549",
+        "image_id": "ISIC_0030043"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002549",
+        "image_id": "ISIC_0030043"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002549",
+        "image_id": "ISIC_0030043"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002549",
+        "image_id": "ISIC_0030043"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002579",
+        "image_id": "ISIC_0031683"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002579",
+        "image_id": "ISIC_0031683"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002579",
+        "image_id": "ISIC_0031683"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002579",
+        "image_id": "ISIC_0031683"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002596",
+        "image_id": "ISIC_0034063"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002596",
+        "image_id": "ISIC_0034063"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002596",
+        "image_id": "ISIC_0034063"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002596",
+        "image_id": "ISIC_0034063"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002654",
+        "image_id": "ISIC_0025698"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002654",
+        "image_id": "ISIC_0025698"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002654",
+        "image_id": "ISIC_0025698"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002654",
+        "image_id": "ISIC_0025698"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002661",
+        "image_id": "ISIC_0026692"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002661",
+        "image_id": "ISIC_0026692"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002661",
+        "image_id": "ISIC_0026692"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002661",
+        "image_id": "ISIC_0026692"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002682",
+        "image_id": "ISIC_0024478"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002682",
+        "image_id": "ISIC_0024478"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002682",
+        "image_id": "ISIC_0024478"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002682",
+        "image_id": "ISIC_0024478"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002713",
+        "image_id": "ISIC_0026695"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002713",
+        "image_id": "ISIC_0026695"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002713",
+        "image_id": "ISIC_0026695"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002713",
+        "image_id": "ISIC_0026695"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002758",
+        "image_id": "ISIC_0027575"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002758",
+        "image_id": "ISIC_0027575"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002758",
+        "image_id": "ISIC_0027575"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002758",
+        "image_id": "ISIC_0027575"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002808",
+        "image_id": "ISIC_0031503"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002808",
+        "image_id": "ISIC_0031503"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002808",
+        "image_id": "ISIC_0031503"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002808",
+        "image_id": "ISIC_0031503"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002809",
+        "image_id": "ISIC_0024338"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002809",
+        "image_id": "ISIC_0024338"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002809",
+        "image_id": "ISIC_0024338"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002809",
+        "image_id": "ISIC_0024338"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002832",
+        "image_id": "ISIC_0032026"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002832",
+        "image_id": "ISIC_0032026"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002832",
+        "image_id": "ISIC_0032026"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002832",
+        "image_id": "ISIC_0032026"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002866",
+        "image_id": "ISIC_0029411"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002866",
+        "image_id": "ISIC_0029411"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002866",
+        "image_id": "ISIC_0029411"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002866",
+        "image_id": "ISIC_0029411"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002889",
+        "image_id": "ISIC_0030774"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002889",
+        "image_id": "ISIC_0030774"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002889",
+        "image_id": "ISIC_0030774"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002889",
+        "image_id": "ISIC_0030774"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002895",
+        "image_id": "ISIC_0029578"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002895",
+        "image_id": "ISIC_0029578"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002895",
+        "image_id": "ISIC_0029578"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002895",
+        "image_id": "ISIC_0029578"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002928",
+        "image_id": "ISIC_0033130"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002928",
+        "image_id": "ISIC_0033130"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002928",
+        "image_id": "ISIC_0033130"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002928",
+        "image_id": "ISIC_0033130"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0002933",
+        "image_id": "ISIC_0024494"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0002933",
+        "image_id": "ISIC_0024494"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002933",
+        "image_id": "ISIC_0024494"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002933",
+        "image_id": "ISIC_0024494"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003015",
+        "image_id": "ISIC_0025083"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003015",
+        "image_id": "ISIC_0025083"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003015",
+        "image_id": "ISIC_0025083"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003015",
+        "image_id": "ISIC_0025083"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003028",
+        "image_id": "ISIC_0031870"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003028",
+        "image_id": "ISIC_0031870"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003028",
+        "image_id": "ISIC_0031870"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003028",
+        "image_id": "ISIC_0031870"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003130",
+        "image_id": "ISIC_0033574"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003130",
+        "image_id": "ISIC_0033574"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003130",
+        "image_id": "ISIC_0033574"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003130",
+        "image_id": "ISIC_0033574"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003132",
+        "image_id": "ISIC_0029259"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003132",
+        "image_id": "ISIC_0029259"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003132",
+        "image_id": "ISIC_0029259"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003132",
+        "image_id": "ISIC_0029259"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003147",
+        "image_id": "ISIC_0029168"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003147",
+        "image_id": "ISIC_0029168"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003147",
+        "image_id": "ISIC_0029168"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003147",
+        "image_id": "ISIC_0029168"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003215",
+        "image_id": "ISIC_0027643"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003215",
+        "image_id": "ISIC_0027643"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003215",
+        "image_id": "ISIC_0027643"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003215",
+        "image_id": "ISIC_0027643"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003289",
+        "image_id": "ISIC_0031357"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003289",
+        "image_id": "ISIC_0031357"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003289",
+        "image_id": "ISIC_0031357"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003289",
+        "image_id": "ISIC_0031357"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003292",
+        "image_id": "ISIC_0029173"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003292",
+        "image_id": "ISIC_0029173"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003292",
+        "image_id": "ISIC_0029173"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003292",
+        "image_id": "ISIC_0029173"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003315",
+        "image_id": "ISIC_0030281"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003315",
+        "image_id": "ISIC_0030281"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003315",
+        "image_id": "ISIC_0030281"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003315",
+        "image_id": "ISIC_0030281"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003347",
+        "image_id": "ISIC_0032416"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003347",
+        "image_id": "ISIC_0032416"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003347",
+        "image_id": "ISIC_0032416"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003347",
+        "image_id": "ISIC_0032416"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003369",
+        "image_id": "ISIC_0032181"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003369",
+        "image_id": "ISIC_0032181"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003369",
+        "image_id": "ISIC_0032181"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003369",
+        "image_id": "ISIC_0032181"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003376",
+        "image_id": "ISIC_0025394"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003376",
+        "image_id": "ISIC_0025394"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003376",
+        "image_id": "ISIC_0025394"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003376",
+        "image_id": "ISIC_0025394"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003379",
+        "image_id": "ISIC_0030619"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003379",
+        "image_id": "ISIC_0030619"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003379",
+        "image_id": "ISIC_0030619"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003379",
+        "image_id": "ISIC_0030619"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003392",
+        "image_id": "ISIC_0030240"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003392",
+        "image_id": "ISIC_0030240"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003392",
+        "image_id": "ISIC_0030240"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003392",
+        "image_id": "ISIC_0030240"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003425",
+        "image_id": "ISIC_0031434"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003425",
+        "image_id": "ISIC_0031434"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003425",
+        "image_id": "ISIC_0031434"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003425",
+        "image_id": "ISIC_0031434"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003431",
+        "image_id": "ISIC_0031847"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003431",
+        "image_id": "ISIC_0031847"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003431",
+        "image_id": "ISIC_0031847"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003431",
+        "image_id": "ISIC_0031847"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003438",
+        "image_id": "ISIC_0031151"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003438",
+        "image_id": "ISIC_0031151"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003438",
+        "image_id": "ISIC_0031151"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003438",
+        "image_id": "ISIC_0031151"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003484",
+        "image_id": "ISIC_0028003"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003484",
+        "image_id": "ISIC_0028003"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003484",
+        "image_id": "ISIC_0028003"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003484",
+        "image_id": "ISIC_0028003"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003525",
+        "image_id": "ISIC_0024653"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003525",
+        "image_id": "ISIC_0024653"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003525",
+        "image_id": "ISIC_0024653"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003525",
+        "image_id": "ISIC_0024653"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003529",
+        "image_id": "ISIC_0029871"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003529",
+        "image_id": "ISIC_0029871"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003529",
+        "image_id": "ISIC_0029871"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003529",
+        "image_id": "ISIC_0029871"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003534",
+        "image_id": "ISIC_0031746"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003534",
+        "image_id": "ISIC_0031746"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003534",
+        "image_id": "ISIC_0031746"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003534",
+        "image_id": "ISIC_0031746"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003552",
+        "image_id": "ISIC_0029084"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003552",
+        "image_id": "ISIC_0029084"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003552",
+        "image_id": "ISIC_0029084"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003552",
+        "image_id": "ISIC_0029084"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003614",
+        "image_id": "ISIC_0034001"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003614",
+        "image_id": "ISIC_0034001"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003614",
+        "image_id": "ISIC_0034001"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003614",
+        "image_id": "ISIC_0034001"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003651",
+        "image_id": "ISIC_0026252"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003651",
+        "image_id": "ISIC_0026252"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003651",
+        "image_id": "ISIC_0026252"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003651",
+        "image_id": "ISIC_0026252"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003668",
+        "image_id": "ISIC_0024383"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003668",
+        "image_id": "ISIC_0024383"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003668",
+        "image_id": "ISIC_0024383"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003668",
+        "image_id": "ISIC_0024383"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003735",
+        "image_id": "ISIC_0034149"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003735",
+        "image_id": "ISIC_0034149"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003735",
+        "image_id": "ISIC_0034149"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003735",
+        "image_id": "ISIC_0034149"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003769",
+        "image_id": "ISIC_0027692"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003769",
+        "image_id": "ISIC_0027692"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003769",
+        "image_id": "ISIC_0027692"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003769",
+        "image_id": "ISIC_0027692"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003824",
+        "image_id": "ISIC_0032971"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003824",
+        "image_id": "ISIC_0032971"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003824",
+        "image_id": "ISIC_0032971"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003824",
+        "image_id": "ISIC_0032971"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003830",
+        "image_id": "ISIC_0028496"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003830",
+        "image_id": "ISIC_0028496"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003830",
+        "image_id": "ISIC_0028496"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003830",
+        "image_id": "ISIC_0028496"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003861",
+        "image_id": "ISIC_0026951"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003861",
+        "image_id": "ISIC_0026951"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003861",
+        "image_id": "ISIC_0026951"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003861",
+        "image_id": "ISIC_0026951"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003885",
+        "image_id": "ISIC_0027560"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003885",
+        "image_id": "ISIC_0027560"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003885",
+        "image_id": "ISIC_0027560"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003885",
+        "image_id": "ISIC_0027560"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003905",
+        "image_id": "ISIC_0029275"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003905",
+        "image_id": "ISIC_0029275"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003905",
+        "image_id": "ISIC_0029275"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003905",
+        "image_id": "ISIC_0029275"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003919",
+        "image_id": "ISIC_0031011"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003919",
+        "image_id": "ISIC_0031011"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003919",
+        "image_id": "ISIC_0031011"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003919",
+        "image_id": "ISIC_0031011"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003957",
+        "image_id": "ISIC_0031821"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003957",
+        "image_id": "ISIC_0031821"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003957",
+        "image_id": "ISIC_0031821"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003957",
+        "image_id": "ISIC_0031821"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003966",
+        "image_id": "ISIC_0033731"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003966",
+        "image_id": "ISIC_0033731"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003966",
+        "image_id": "ISIC_0033731"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003966",
+        "image_id": "ISIC_0033731"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003984",
+        "image_id": "ISIC_0032228"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003984",
+        "image_id": "ISIC_0032228"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003984",
+        "image_id": "ISIC_0032228"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003984",
+        "image_id": "ISIC_0032228"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0003988",
+        "image_id": "ISIC_0024427"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0003988",
+        "image_id": "ISIC_0024427"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0003988",
+        "image_id": "ISIC_0024427"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0003988",
+        "image_id": "ISIC_0024427"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004026",
+        "image_id": "ISIC_0030357"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004026",
+        "image_id": "ISIC_0030357"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004026",
+        "image_id": "ISIC_0030357"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004026",
+        "image_id": "ISIC_0030357"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004068",
+        "image_id": "ISIC_0032492"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004068",
+        "image_id": "ISIC_0032492"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004068",
+        "image_id": "ISIC_0032492"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004068",
+        "image_id": "ISIC_0032492"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004124",
+        "image_id": "ISIC_0029153"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004124",
+        "image_id": "ISIC_0029153"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004124",
+        "image_id": "ISIC_0029153"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004124",
+        "image_id": "ISIC_0029153"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004152",
+        "image_id": "ISIC_0025137"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004152",
+        "image_id": "ISIC_0025137"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004152",
+        "image_id": "ISIC_0025137"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004152",
+        "image_id": "ISIC_0025137"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004162",
+        "image_id": "ISIC_0031944"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004162",
+        "image_id": "ISIC_0031944"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004162",
+        "image_id": "ISIC_0031944"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004162",
+        "image_id": "ISIC_0031944"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004183",
+        "image_id": "ISIC_0032606"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004183",
+        "image_id": "ISIC_0032606"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004183",
+        "image_id": "ISIC_0032606"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004183",
+        "image_id": "ISIC_0032606"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004247",
+        "image_id": "ISIC_0031532"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004247",
+        "image_id": "ISIC_0031532"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004247",
+        "image_id": "ISIC_0031532"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004247",
+        "image_id": "ISIC_0031532"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004266",
+        "image_id": "ISIC_0024483"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004266",
+        "image_id": "ISIC_0024483"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004266",
+        "image_id": "ISIC_0024483"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004266",
+        "image_id": "ISIC_0024483"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004320",
+        "image_id": "ISIC_0027901"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004320",
+        "image_id": "ISIC_0027901"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004320",
+        "image_id": "ISIC_0027901"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004320",
+        "image_id": "ISIC_0027901"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004334",
+        "image_id": "ISIC_0032077"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004334",
+        "image_id": "ISIC_0032077"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004334",
+        "image_id": "ISIC_0032077"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004334",
+        "image_id": "ISIC_0032077"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004343",
+        "image_id": "ISIC_0028343"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004343",
+        "image_id": "ISIC_0028343"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004343",
+        "image_id": "ISIC_0028343"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004343",
+        "image_id": "ISIC_0028343"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004380",
+        "image_id": "ISIC_0026251"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004380",
+        "image_id": "ISIC_0026251"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004380",
+        "image_id": "ISIC_0026251"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004380",
+        "image_id": "ISIC_0026251"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004401",
+        "image_id": "ISIC_0027817"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004401",
+        "image_id": "ISIC_0027817"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004401",
+        "image_id": "ISIC_0027817"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004401",
+        "image_id": "ISIC_0027817"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004408",
+        "image_id": "ISIC_0026824"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004408",
+        "image_id": "ISIC_0026824"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004408",
+        "image_id": "ISIC_0026824"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004408",
+        "image_id": "ISIC_0026824"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004413",
+        "image_id": "ISIC_0026068"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004413",
+        "image_id": "ISIC_0026068"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004413",
+        "image_id": "ISIC_0026068"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004413",
+        "image_id": "ISIC_0026068"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004426",
+        "image_id": "ISIC_0026378"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004426",
+        "image_id": "ISIC_0026378"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004426",
+        "image_id": "ISIC_0026378"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004426",
+        "image_id": "ISIC_0026378"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004438",
+        "image_id": "ISIC_0029712"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004438",
+        "image_id": "ISIC_0029712"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004438",
+        "image_id": "ISIC_0029712"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004438",
+        "image_id": "ISIC_0029712"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004524",
+        "image_id": "ISIC_0030273"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004524",
+        "image_id": "ISIC_0030273"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004524",
+        "image_id": "ISIC_0030273"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004524",
+        "image_id": "ISIC_0030273"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004529",
+        "image_id": "ISIC_0029245"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004529",
+        "image_id": "ISIC_0029245"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004529",
+        "image_id": "ISIC_0029245"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004529",
+        "image_id": "ISIC_0029245"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004572",
+        "image_id": "ISIC_0032868"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004572",
+        "image_id": "ISIC_0032868"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004572",
+        "image_id": "ISIC_0032868"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004572",
+        "image_id": "ISIC_0032868"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004613",
+        "image_id": "ISIC_0031938"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004613",
+        "image_id": "ISIC_0031938"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004613",
+        "image_id": "ISIC_0031938"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004613",
+        "image_id": "ISIC_0031938"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004619",
+        "image_id": "ISIC_0025664"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004619",
+        "image_id": "ISIC_0025664"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004619",
+        "image_id": "ISIC_0025664"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004619",
+        "image_id": "ISIC_0025664"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004642",
+        "image_id": "ISIC_0025524"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004642",
+        "image_id": "ISIC_0025524"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004642",
+        "image_id": "ISIC_0025524"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004642",
+        "image_id": "ISIC_0025524"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004650",
+        "image_id": "ISIC_0028149"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004650",
+        "image_id": "ISIC_0028149"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004650",
+        "image_id": "ISIC_0028149"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004650",
+        "image_id": "ISIC_0028149"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004686",
+        "image_id": "ISIC_0028574"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004686",
+        "image_id": "ISIC_0028574"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004686",
+        "image_id": "ISIC_0028574"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004686",
+        "image_id": "ISIC_0028574"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004691",
+        "image_id": "ISIC_0029166"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004691",
+        "image_id": "ISIC_0029166"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004691",
+        "image_id": "ISIC_0029166"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004691",
+        "image_id": "ISIC_0029166"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004728",
+        "image_id": "ISIC_0026779"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004728",
+        "image_id": "ISIC_0026779"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004728",
+        "image_id": "ISIC_0026779"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004728",
+        "image_id": "ISIC_0026779"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004747",
+        "image_id": "ISIC_0031435"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004747",
+        "image_id": "ISIC_0031435"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004747",
+        "image_id": "ISIC_0031435"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004747",
+        "image_id": "ISIC_0031435"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004767",
+        "image_id": "ISIC_0028285"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004767",
+        "image_id": "ISIC_0028285"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004767",
+        "image_id": "ISIC_0028285"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004767",
+        "image_id": "ISIC_0028285"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004778",
+        "image_id": "ISIC_0028432"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004778",
+        "image_id": "ISIC_0028432"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004778",
+        "image_id": "ISIC_0028432"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004778",
+        "image_id": "ISIC_0028432"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004779",
+        "image_id": "ISIC_0024962"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004779",
+        "image_id": "ISIC_0024962"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004779",
+        "image_id": "ISIC_0024962"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004779",
+        "image_id": "ISIC_0024962"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004793",
+        "image_id": "ISIC_0028102"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004793",
+        "image_id": "ISIC_0028102"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004793",
+        "image_id": "ISIC_0028102"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004793",
+        "image_id": "ISIC_0028102"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004894",
+        "image_id": "ISIC_0030643"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004894",
+        "image_id": "ISIC_0030643"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004894",
+        "image_id": "ISIC_0030643"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004894",
+        "image_id": "ISIC_0030643"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004901",
+        "image_id": "ISIC_0025361"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004901",
+        "image_id": "ISIC_0025361"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004901",
+        "image_id": "ISIC_0025361"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004901",
+        "image_id": "ISIC_0025361"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004917",
+        "image_id": "ISIC_0030227"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004917",
+        "image_id": "ISIC_0030227"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004917",
+        "image_id": "ISIC_0030227"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004917",
+        "image_id": "ISIC_0030227"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004972",
+        "image_id": "ISIC_0026997"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004972",
+        "image_id": "ISIC_0026997"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004972",
+        "image_id": "ISIC_0026997"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004972",
+        "image_id": "ISIC_0026997"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004995",
+        "image_id": "ISIC_0029869"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004995",
+        "image_id": "ISIC_0029869"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004995",
+        "image_id": "ISIC_0029869"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004995",
+        "image_id": "ISIC_0029869"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004998",
+        "image_id": "ISIC_0033304"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004998",
+        "image_id": "ISIC_0033304"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004998",
+        "image_id": "ISIC_0033304"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004998",
+        "image_id": "ISIC_0033304"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005017",
+        "image_id": "ISIC_0027461"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005017",
+        "image_id": "ISIC_0027461"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005017",
+        "image_id": "ISIC_0027461"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005017",
+        "image_id": "ISIC_0027461"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005022",
+        "image_id": "ISIC_0027367"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005022",
+        "image_id": "ISIC_0027367"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005022",
+        "image_id": "ISIC_0027367"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005022",
+        "image_id": "ISIC_0027367"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005061",
+        "image_id": "ISIC_0032466"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005061",
+        "image_id": "ISIC_0032466"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005061",
+        "image_id": "ISIC_0032466"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005061",
+        "image_id": "ISIC_0032466"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005085",
+        "image_id": "ISIC_0029257"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005085",
+        "image_id": "ISIC_0029257"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005085",
+        "image_id": "ISIC_0029257"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005085",
+        "image_id": "ISIC_0029257"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005096",
+        "image_id": "ISIC_0029741"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005096",
+        "image_id": "ISIC_0029741"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005096",
+        "image_id": "ISIC_0029741"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005096",
+        "image_id": "ISIC_0029741"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005098",
+        "image_id": "ISIC_0024728"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005098",
+        "image_id": "ISIC_0024728"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005098",
+        "image_id": "ISIC_0024728"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005098",
+        "image_id": "ISIC_0024728"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005140",
+        "image_id": "ISIC_0026662"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005140",
+        "image_id": "ISIC_0026662"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005140",
+        "image_id": "ISIC_0026662"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005140",
+        "image_id": "ISIC_0026662"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005168",
+        "image_id": "ISIC_0028277"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005168",
+        "image_id": "ISIC_0028277"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005168",
+        "image_id": "ISIC_0028277"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005168",
+        "image_id": "ISIC_0028277"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005369",
+        "image_id": "ISIC_0026799"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005369",
+        "image_id": "ISIC_0026799"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005369",
+        "image_id": "ISIC_0026799"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005369",
+        "image_id": "ISIC_0026799"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005380",
+        "image_id": "ISIC_0027464"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005380",
+        "image_id": "ISIC_0027464"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005380",
+        "image_id": "ISIC_0027464"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005380",
+        "image_id": "ISIC_0027464"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005387",
+        "image_id": "ISIC_0026488"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005387",
+        "image_id": "ISIC_0026488"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005387",
+        "image_id": "ISIC_0026488"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005387",
+        "image_id": "ISIC_0026488"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005414",
+        "image_id": "ISIC_0027054"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005414",
+        "image_id": "ISIC_0027054"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005414",
+        "image_id": "ISIC_0027054"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005414",
+        "image_id": "ISIC_0027054"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005429",
+        "image_id": "ISIC_0029452"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005429",
+        "image_id": "ISIC_0029452"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005429",
+        "image_id": "ISIC_0029452"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005429",
+        "image_id": "ISIC_0029452"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005464",
+        "image_id": "ISIC_0031477"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005464",
+        "image_id": "ISIC_0031477"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005464",
+        "image_id": "ISIC_0031477"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005464",
+        "image_id": "ISIC_0031477"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005479",
+        "image_id": "ISIC_0028009"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005479",
+        "image_id": "ISIC_0028009"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005479",
+        "image_id": "ISIC_0028009"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005479",
+        "image_id": "ISIC_0028009"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005528",
+        "image_id": "ISIC_0028391"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005528",
+        "image_id": "ISIC_0028391"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005528",
+        "image_id": "ISIC_0028391"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005528",
+        "image_id": "ISIC_0028391"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005580",
+        "image_id": "ISIC_0029235"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005580",
+        "image_id": "ISIC_0029235"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005580",
+        "image_id": "ISIC_0029235"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005580",
+        "image_id": "ISIC_0029235"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005644",
+        "image_id": "ISIC_0027899"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005644",
+        "image_id": "ISIC_0027899"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005644",
+        "image_id": "ISIC_0027899"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005644",
+        "image_id": "ISIC_0027899"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005680",
+        "image_id": "ISIC_0027177"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005680",
+        "image_id": "ISIC_0027177"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005680",
+        "image_id": "ISIC_0027177"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005680",
+        "image_id": "ISIC_0027177"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005720",
+        "image_id": "ISIC_0027714"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005720",
+        "image_id": "ISIC_0027714"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005720",
+        "image_id": "ISIC_0027714"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005720",
+        "image_id": "ISIC_0027714"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005773",
+        "image_id": "ISIC_0031096"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005773",
+        "image_id": "ISIC_0031096"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005773",
+        "image_id": "ISIC_0031096"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005773",
+        "image_id": "ISIC_0031096"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005826",
+        "image_id": "ISIC_0031077"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005826",
+        "image_id": "ISIC_0031077"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005826",
+        "image_id": "ISIC_0031077"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005826",
+        "image_id": "ISIC_0031077"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005840",
+        "image_id": "ISIC_0030773"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005840",
+        "image_id": "ISIC_0030773"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005840",
+        "image_id": "ISIC_0030773"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005840",
+        "image_id": "ISIC_0030773"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005849",
+        "image_id": "ISIC_0028647"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005849",
+        "image_id": "ISIC_0028647"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005849",
+        "image_id": "ISIC_0028647"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005849",
+        "image_id": "ISIC_0028647"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005878",
+        "image_id": "ISIC_0033450"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005878",
+        "image_id": "ISIC_0033450"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005878",
+        "image_id": "ISIC_0033450"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005878",
+        "image_id": "ISIC_0033450"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005881",
+        "image_id": "ISIC_0030967"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005881",
+        "image_id": "ISIC_0030967"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005881",
+        "image_id": "ISIC_0030967"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005881",
+        "image_id": "ISIC_0030967"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005943",
+        "image_id": "ISIC_0032033"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005943",
+        "image_id": "ISIC_0032033"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005943",
+        "image_id": "ISIC_0032033"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005943",
+        "image_id": "ISIC_0032033"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005960",
+        "image_id": "ISIC_0028632"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005960",
+        "image_id": "ISIC_0028632"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005960",
+        "image_id": "ISIC_0028632"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005960",
+        "image_id": "ISIC_0028632"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0005976",
+        "image_id": "ISIC_0030638"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0005976",
+        "image_id": "ISIC_0030638"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0005976",
+        "image_id": "ISIC_0030638"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0005976",
+        "image_id": "ISIC_0030638"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006068",
+        "image_id": "ISIC_0024591"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006068",
+        "image_id": "ISIC_0024591"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006068",
+        "image_id": "ISIC_0024591"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006068",
+        "image_id": "ISIC_0024591"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006071",
+        "image_id": "ISIC_0032343"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006071",
+        "image_id": "ISIC_0032343"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006071",
+        "image_id": "ISIC_0032343"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006071",
+        "image_id": "ISIC_0032343"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006082",
+        "image_id": "ISIC_0027500"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006082",
+        "image_id": "ISIC_0027500"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006082",
+        "image_id": "ISIC_0027500"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006082",
+        "image_id": "ISIC_0027500"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006091",
+        "image_id": "ISIC_0026507"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006091",
+        "image_id": "ISIC_0026507"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006091",
+        "image_id": "ISIC_0026507"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006091",
+        "image_id": "ISIC_0026507"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006096",
+        "image_id": "ISIC_0025190"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006096",
+        "image_id": "ISIC_0025190"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006096",
+        "image_id": "ISIC_0025190"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006096",
+        "image_id": "ISIC_0025190"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006166",
+        "image_id": "ISIC_0028805"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006166",
+        "image_id": "ISIC_0028805"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006166",
+        "image_id": "ISIC_0028805"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006166",
+        "image_id": "ISIC_0028805"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006246",
+        "image_id": "ISIC_0024523"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006246",
+        "image_id": "ISIC_0024523"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006246",
+        "image_id": "ISIC_0024523"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006246",
+        "image_id": "ISIC_0024523"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006322",
+        "image_id": "ISIC_0030309"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006322",
+        "image_id": "ISIC_0030309"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006322",
+        "image_id": "ISIC_0030309"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006322",
+        "image_id": "ISIC_0030309"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006323",
+        "image_id": "ISIC_0029465"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006323",
+        "image_id": "ISIC_0029465"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006323",
+        "image_id": "ISIC_0029465"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006323",
+        "image_id": "ISIC_0029465"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006370",
+        "image_id": "ISIC_0026032"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006370",
+        "image_id": "ISIC_0026032"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006370",
+        "image_id": "ISIC_0026032"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006370",
+        "image_id": "ISIC_0026032"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006382",
+        "image_id": "ISIC_0029883"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006382",
+        "image_id": "ISIC_0029883"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006382",
+        "image_id": "ISIC_0029883"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006382",
+        "image_id": "ISIC_0029883"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006416",
+        "image_id": "ISIC_0028137"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006416",
+        "image_id": "ISIC_0028137"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006416",
+        "image_id": "ISIC_0028137"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006416",
+        "image_id": "ISIC_0028137"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006468",
+        "image_id": "ISIC_0030162"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006468",
+        "image_id": "ISIC_0030162"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006468",
+        "image_id": "ISIC_0030162"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006468",
+        "image_id": "ISIC_0030162"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006488",
+        "image_id": "ISIC_0031066"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006488",
+        "image_id": "ISIC_0031066"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006488",
+        "image_id": "ISIC_0031066"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006488",
+        "image_id": "ISIC_0031066"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006522",
+        "image_id": "ISIC_0026369"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006522",
+        "image_id": "ISIC_0026369"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006522",
+        "image_id": "ISIC_0026369"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006522",
+        "image_id": "ISIC_0026369"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006531",
+        "image_id": "ISIC_0027681"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006531",
+        "image_id": "ISIC_0027681"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006531",
+        "image_id": "ISIC_0027681"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006531",
+        "image_id": "ISIC_0027681"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006542",
+        "image_id": "ISIC_0030015"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006542",
+        "image_id": "ISIC_0030015"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006542",
+        "image_id": "ISIC_0030015"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006542",
+        "image_id": "ISIC_0030015"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006590",
+        "image_id": "ISIC_0029694"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006590",
+        "image_id": "ISIC_0029694"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006590",
+        "image_id": "ISIC_0029694"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006590",
+        "image_id": "ISIC_0029694"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006619",
+        "image_id": "ISIC_0029983"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006619",
+        "image_id": "ISIC_0029983"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006619",
+        "image_id": "ISIC_0029983"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006619",
+        "image_id": "ISIC_0029983"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006675",
+        "image_id": "ISIC_0033672"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006675",
+        "image_id": "ISIC_0033672"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006675",
+        "image_id": "ISIC_0033672"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006675",
+        "image_id": "ISIC_0033672"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006678",
+        "image_id": "ISIC_0028727"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006678",
+        "image_id": "ISIC_0028727"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006678",
+        "image_id": "ISIC_0028727"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006678",
+        "image_id": "ISIC_0028727"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006684",
+        "image_id": "ISIC_0029614"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006684",
+        "image_id": "ISIC_0029614"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006684",
+        "image_id": "ISIC_0029614"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006684",
+        "image_id": "ISIC_0029614"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006701",
+        "image_id": "ISIC_0029310"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006701",
+        "image_id": "ISIC_0029310"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006701",
+        "image_id": "ISIC_0029310"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006701",
+        "image_id": "ISIC_0029310"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006722",
+        "image_id": "ISIC_0031499"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006722",
+        "image_id": "ISIC_0031499"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006722",
+        "image_id": "ISIC_0031499"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006722",
+        "image_id": "ISIC_0031499"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006738",
+        "image_id": "ISIC_0029653"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006738",
+        "image_id": "ISIC_0029653"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006738",
+        "image_id": "ISIC_0029653"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006738",
+        "image_id": "ISIC_0029653"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006776",
+        "image_id": "ISIC_0028661"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006776",
+        "image_id": "ISIC_0028661"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006776",
+        "image_id": "ISIC_0028661"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006776",
+        "image_id": "ISIC_0028661"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006782",
+        "image_id": "ISIC_0032581"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006782",
+        "image_id": "ISIC_0032581"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006782",
+        "image_id": "ISIC_0032581"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006782",
+        "image_id": "ISIC_0032581"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006810",
+        "image_id": "ISIC_0030546"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006810",
+        "image_id": "ISIC_0030546"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006810",
+        "image_id": "ISIC_0030546"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006810",
+        "image_id": "ISIC_0030546"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006817",
+        "image_id": "ISIC_0030269"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006817",
+        "image_id": "ISIC_0030269"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006817",
+        "image_id": "ISIC_0030269"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006817",
+        "image_id": "ISIC_0030269"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006849",
+        "image_id": "ISIC_0028189"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006849",
+        "image_id": "ISIC_0028189"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006849",
+        "image_id": "ISIC_0028189"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006849",
+        "image_id": "ISIC_0028189"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006855",
+        "image_id": "ISIC_0030842"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006855",
+        "image_id": "ISIC_0030842"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006855",
+        "image_id": "ISIC_0030842"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006855",
+        "image_id": "ISIC_0030842"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006876",
+        "image_id": "ISIC_0032460"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006876",
+        "image_id": "ISIC_0032460"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006876",
+        "image_id": "ISIC_0032460"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006876",
+        "image_id": "ISIC_0032460"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006903",
+        "image_id": "ISIC_0031487"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006903",
+        "image_id": "ISIC_0031487"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006903",
+        "image_id": "ISIC_0031487"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006903",
+        "image_id": "ISIC_0031487"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006949",
+        "image_id": "ISIC_0031886"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006949",
+        "image_id": "ISIC_0031886"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006949",
+        "image_id": "ISIC_0031886"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006949",
+        "image_id": "ISIC_0031886"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006964",
+        "image_id": "ISIC_0029642"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006964",
+        "image_id": "ISIC_0029642"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006964",
+        "image_id": "ISIC_0029642"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006964",
+        "image_id": "ISIC_0029642"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006967",
+        "image_id": "ISIC_0026295"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006967",
+        "image_id": "ISIC_0026295"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006967",
+        "image_id": "ISIC_0026295"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006967",
+        "image_id": "ISIC_0026295"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006999",
+        "image_id": "ISIC_0027459"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006999",
+        "image_id": "ISIC_0027459"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006999",
+        "image_id": "ISIC_0027459"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006999",
+        "image_id": "ISIC_0027459"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007013",
+        "image_id": "ISIC_0029544"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007013",
+        "image_id": "ISIC_0029544"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007013",
+        "image_id": "ISIC_0029544"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007013",
+        "image_id": "ISIC_0029544"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007051",
+        "image_id": "ISIC_0025668"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007051",
+        "image_id": "ISIC_0025668"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007051",
+        "image_id": "ISIC_0025668"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007051",
+        "image_id": "ISIC_0025668"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007082",
+        "image_id": "ISIC_0027971"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007082",
+        "image_id": "ISIC_0027971"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007082",
+        "image_id": "ISIC_0027971"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007082",
+        "image_id": "ISIC_0027971"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007146",
+        "image_id": "ISIC_0031493"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007146",
+        "image_id": "ISIC_0031493"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007146",
+        "image_id": "ISIC_0031493"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007146",
+        "image_id": "ISIC_0031493"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007243",
+        "image_id": "ISIC_0028029"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007243",
+        "image_id": "ISIC_0028029"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007243",
+        "image_id": "ISIC_0028029"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007243",
+        "image_id": "ISIC_0028029"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007264",
+        "image_id": "ISIC_0028476"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007264",
+        "image_id": "ISIC_0028476"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007264",
+        "image_id": "ISIC_0028476"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007264",
+        "image_id": "ISIC_0028476"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007266",
+        "image_id": "ISIC_0031909"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007266",
+        "image_id": "ISIC_0031909"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007266",
+        "image_id": "ISIC_0031909"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007266",
+        "image_id": "ISIC_0031909"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007326",
+        "image_id": "ISIC_0028783"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007326",
+        "image_id": "ISIC_0028783"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007326",
+        "image_id": "ISIC_0028783"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007326",
+        "image_id": "ISIC_0028783"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007342",
+        "image_id": "ISIC_0030625"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007342",
+        "image_id": "ISIC_0030625"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007342",
+        "image_id": "ISIC_0030625"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007342",
+        "image_id": "ISIC_0030625"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007345",
+        "image_id": "ISIC_0028703"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007345",
+        "image_id": "ISIC_0028703"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007345",
+        "image_id": "ISIC_0028703"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007345",
+        "image_id": "ISIC_0028703"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007387",
+        "image_id": "ISIC_0027119"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007387",
+        "image_id": "ISIC_0027119"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007387",
+        "image_id": "ISIC_0027119"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007387",
+        "image_id": "ISIC_0027119"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007399",
+        "image_id": "ISIC_0027445"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007399",
+        "image_id": "ISIC_0027445"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007399",
+        "image_id": "ISIC_0027445"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007399",
+        "image_id": "ISIC_0027445"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007400",
+        "image_id": "ISIC_0027329"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007400",
+        "image_id": "ISIC_0027329"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007400",
+        "image_id": "ISIC_0027329"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007400",
+        "image_id": "ISIC_0027329"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007459",
+        "image_id": "ISIC_0029886"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007459",
+        "image_id": "ISIC_0029886"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007459",
+        "image_id": "ISIC_0029886"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007459",
+        "image_id": "ISIC_0029886"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007500",
+        "image_id": "ISIC_0028180"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007500",
+        "image_id": "ISIC_0028180"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007500",
+        "image_id": "ISIC_0028180"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007500",
+        "image_id": "ISIC_0028180"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007536",
+        "image_id": "ISIC_0025445"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007536",
+        "image_id": "ISIC_0025445"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007536",
+        "image_id": "ISIC_0025445"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007536",
+        "image_id": "ISIC_0025445"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007574",
+        "image_id": "ISIC_0033624"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007574",
+        "image_id": "ISIC_0033624"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007574",
+        "image_id": "ISIC_0033624"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007574",
+        "image_id": "ISIC_0033624"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007597",
+        "image_id": "ISIC_0028274"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007597",
+        "image_id": "ISIC_0028274"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007597",
+        "image_id": "ISIC_0028274"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007597",
+        "image_id": "ISIC_0028274"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007619",
+        "image_id": "ISIC_0026948"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007619",
+        "image_id": "ISIC_0026948"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007619",
+        "image_id": "ISIC_0026948"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007619",
+        "image_id": "ISIC_0026948"
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0007621",
+        "image_id": "ISIC_0031321"
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0007621",
+        "image_id": "ISIC_0031321"
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0007621",
+        "image_id": "ISIC_0031321"
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0007621",
+        "image_id": "ISIC_0031321"
+      }
+    ]
+  },
+  "by_role_condition": {
+    "diagnostic_abcd__s2": {
+      "planejadas": 299,
+      "ja_cobertas": 22,
+      "faltam": 277
+    },
+    "diagnostic_menzies__s2": {
+      "planejadas": 299,
+      "ja_cobertas": 22,
+      "faltam": 277
+    },
+    "diagnostic_spcl__s2": {
+      "planejadas": 299,
+      "ja_cobertas": 22,
+      "faltam": 277
+    },
+    "summary__s2": {
+      "planejadas": 299,
+      "ja_cobertas": 22,
+      "faltam": 277
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "diagnostic_abcd": {
+    "n_falha_tecnica": 3,
+    "max_consecutive_falha_tecnica": 1
+  },
+  "diagnostic_menzies": {
+    "n_falha_tecnica": 3,
+    "max_consecutive_falha_tecnica": 1
+  },
+  "diagnostic_spcl": {
+    "n_falha_tecnica": 6,
+    "max_consecutive_falha_tecnica": 1
+  },
+  "summary": {
+    "n_falha_tecnica": 8,
+    "max_consecutive_falha_tecnica": 1
+  }
+}

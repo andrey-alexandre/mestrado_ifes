@@ -1,5 +1,6 @@
 {
   "model_name": "gpt-5.4-nano",
+  "scope": "full",
   "n_lesions_in_manifest": 3000,
   "cnn_s0_pairing": {
     "n_matched": 3000,

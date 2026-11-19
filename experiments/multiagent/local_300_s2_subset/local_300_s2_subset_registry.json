@@ -1,0 +1,98 @@
+{
+  "target_n": 300,
+  "seed": 20261118,
+  "source_manifest_path": "/Users/andrey.basilio/Projetos/master/mestrado_ifes/experiments/sampling/sample_manifest.csv",
+  "source_manifest_sha256": "32bbd1b318dccca048abeb25de64e6b1f2db6184d589286606a73271d6392799",
+  "source_manifest_sha256_registered": "32bbd1b318dccca048abeb25de64e6b1f2db6184d589286606a73271d6392799",
+  "subset_manifest_sha256": "b0378aabdfd9d433d7cd8d0e9b853406113e45f29ec89cffd334aa8cb2f94279",
+  "quotas": {
+    "target_n": 300,
+    "total_eligible": 3000,
+    "n_extra_units_distributed": 3,
+    "calculation_table": [
+      {
+        "category": "akiec",
+        "n_eligible": 92,
+        "exact_quota": 9.2,
+        "floor": 9,
+        "remainder": 0.1999999999999993,
+        "extra_unit": false,
+        "final_quota": 9
+      },
+      {
+        "category": "bcc",
+        "n_eligible": 131,
+        "exact_quota": 13.1,
+        "floor": 13,
+        "remainder": 0.09999999999999964,
+        "extra_unit": false,
+        "final_quota": 13
+      },
+      {
+        "category": "bkl",
+        "n_eligible": 292,
+        "exact_quota": 29.2,
+        "floor": 29,
+        "remainder": 0.1999999999999993,
+        "extra_unit": false,
+        "final_quota": 29
+      },
+      {
+        "category": "df",
+        "n_eligible": 29,
+        "exact_quota": 2.9000000000000004,
+        "floor": 2,
+        "remainder": 0.9000000000000004,
+        "extra_unit": true,
+        "final_quota": 3
+      },
+      {
+        "category": "mel",
+        "n_eligible": 247,
+        "exact_quota": 24.7,
+        "floor": 24,
+        "remainder": 0.6999999999999993,
+        "extra_unit": true,
+        "final_quota": 25
+      },
+      {
+        "category": "nv",
+        "n_eligible": 2170,
+        "exact_quota": 217.00000000000003,
+        "floor": 217,
+        "remainder": 2.842170943040401e-14,
+        "extra_unit": false,
+        "final_quota": 217
+      },
+      {
+        "category": "vasc",
+        "n_eligible": 39,
+        "exact_quota": 3.9,
+        "floor": 3,
+        "remainder": 0.8999999999999999,
+        "extra_unit": true,
+        "final_quota": 4
+      }
+    ],
+    "final_quotas": {
+      "akiec": 9,
+      "bcc": 13,
+      "bkl": 29,
+      "df": 3,
+      "mel": 25,
+      "nv": 217,
+      "vasc": 4
+    }
+  },
+  "n_selected_lesion_ids": 300,
+  "composition_by_dx": {
+    "akiec": 9,
+    "bcc": 13,
+    "bkl": 29,
+    "df": 3,
+    "mel": 25,
+    "nv": 217,
+    "vasc": 4
+  },
+  "note": "Seleção reduzida de escopo por viabilidade computacional -- decisão operacional do pesquisador, aprovação do orientador AINDA PENDENTE (ver doc 30 §15). Lesões com mascara predita vazia (status_s2 indisponivel) NAO sao excluidas nem substituidas -- a politica vigente (src.multiagent.presentation) se aplica no plano de chamadas do executor, nunca nesta selecao. Selecao feita SO a partir de lesion_id/dx do manifesto congelado -- nenhuma consulta a predicao/status/latencia/qualidade de mascara."
+}
