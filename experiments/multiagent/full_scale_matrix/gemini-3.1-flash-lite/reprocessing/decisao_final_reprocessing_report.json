@@ -1,0 +1,1017 @@
+{
+  "model_name": "gemini-3.1-flash-lite",
+  "reprocessing_version": "decisao_final_reprocess_v1_2026_11_18",
+  "content_recovery_version": "content_recovery_v1_2026_11_18",
+  "decision_contract_parser_version": "explicit_decision_contract_v1_accented_nao_melanoma_variant_2026_11_14",
+  "n_records_applicable_vlm_direto_or_summary_ok": 11992,
+  "recovery_status_breakdown": {
+    "recovered_from_list_repr": 11992
+  },
+  "reprocessed_decision_status_breakdown": {
+    "ok": 11992
+  },
+  "reprocessed_decisao_final_breakdown_among_status_ok": {
+    "indeterminado": 4114,
+    "nao_melanoma": 5812,
+    "melanoma": 2066
+  },
+  "n_records_decision_newly_recovered_from_absent_to_ok": 11992,
+  "breakdown_by_condition": {
+    "s0": {
+      "ok": 6000
+    },
+    "s1": {
+      "ok": 2998
+    },
+    "s2": {
+      "ok": 2994
+    }
+  },
+  "breakdown_by_role": {
+    "vlm_direto": {
+      "ok": 3000
+    },
+    "summary": {
+      "ok": 8992
+    }
+  },
+  "historical_vs_final_reconciliation": {
+    "n_historical_log_lines": 56055,
+    "n_unique_planned_keys": 38976,
+    "final_result_per_key_counts": {
+      "ok": 38968,
+      "falha_tecnica": 8
+    },
+    "final_result_counts_sum_check": 38976,
+    "n_keys_with_multiple_real_attempts": 64,
+    "note_on_multiple_attempts": "Chaves com mais de uma tentativa REAL (nao_executado nao conta) nao sao erro por padrao -- duas categorias distintas, NUNCA colapsadas: (a) exception_old_mechanism_retried: falha do mecanismo antigo de cancelamento (call_mechanism_version ausente) seguida de uma tentativa real sob o mecanismo corrigido -- EXCECAO OPERACIONAL DOCUMENTADA a regra de uma tentativa (ver doc 30 secao 10, ponto 4 de is_call_record_reusable), nunca um retry disfarcado da MESMA tentativa; (b) historical_duplicate_bug_pattern: as duas tentativas sao do mecanismo antigo (ambas sem call_mechanism_version) -- produzidas pelo bug, ja corrigido, de decision_contract_parser_version exigido mesmo para falhas (ver doc 30 secao 9); (c) unexplained_duplicate_same_mechanism: todas as tentativas reais sob o MESMO mecanismo (nao-nulo) -- NAO se encaixa em (a) nem (b), seria um retry genuino nao documentado; reportado para investigacao manual, nunca descartado silenciosamente.",
+    "exception_old_mechanism_retried": [
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s1",
+        "lesion_id": "HAM_0002648",
+        "image_id": "ISIC_0027650",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s0",
+        "lesion_id": "HAM_0002699",
+        "image_id": "ISIC_0029827",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s1",
+        "lesion_id": "HAM_0002699",
+        "image_id": "ISIC_0029827",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0002699",
+        "image_id": "ISIC_0029827",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s0",
+        "lesion_id": "HAM_0002745",
+        "image_id": "ISIC_0024562",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s1",
+        "lesion_id": "HAM_0002745",
+        "image_id": "ISIC_0024562",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s1",
+        "lesion_id": "HAM_0002745",
+        "image_id": "ISIC_0024562",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0000618",
+        "image_id": "ISIC_0025840",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s1",
+        "lesion_id": "HAM_0002608",
+        "image_id": "ISIC_0026484",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s1",
+        "lesion_id": "HAM_0002657",
+        "image_id": "ISIC_0031046",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s1",
+        "lesion_id": "HAM_0003709",
+        "image_id": "ISIC_0028483",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s1",
+        "lesion_id": "HAM_0003905",
+        "image_id": "ISIC_0029275",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0004059",
+        "image_id": "ISIC_0029399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004059",
+        "image_id": "ISIC_0029399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s0",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s0",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s0",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s1",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s1",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s1",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s0",
+        "lesion_id": "HAM_0004064",
+        "image_id": "ISIC_0024399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s1",
+        "lesion_id": "HAM_0004064",
+        "image_id": "ISIC_0024399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0004064",
+        "image_id": "ISIC_0024399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s0",
+        "lesion_id": "HAM_0004544",
+        "image_id": "ISIC_0031099",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0004575",
+        "image_id": "ISIC_0024789",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s0",
+        "lesion_id": "HAM_0004577",
+        "image_id": "ISIC_0027134",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s0",
+        "lesion_id": "HAM_0004580",
+        "image_id": "ISIC_0030872",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s1",
+        "lesion_id": "HAM_0006127",
+        "image_id": "ISIC_0032449",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s0",
+        "lesion_id": "HAM_0006147",
+        "image_id": "ISIC_0032641",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s0",
+        "lesion_id": "HAM_0006151",
+        "image_id": "ISIC_0032296",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s0",
+        "lesion_id": "HAM_0006785",
+        "image_id": "ISIC_0026169",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s1",
+        "lesion_id": "HAM_0006785",
+        "image_id": "ISIC_0026169",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s1",
+        "lesion_id": "HAM_0006785",
+        "image_id": "ISIC_0026169",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s1",
+        "lesion_id": "HAM_0006785",
+        "image_id": "ISIC_0026169",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s2",
+        "lesion_id": "HAM_0006785",
+        "image_id": "ISIC_0026169",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006785",
+        "image_id": "ISIC_0026169",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0006785",
+        "image_id": "ISIC_0026169",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0006789",
+        "image_id": "ISIC_0024976",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_abcd",
+        "condition": "s0",
+        "lesion_id": "HAM_0006789",
+        "image_id": "ISIC_0024976",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s0",
+        "lesion_id": "HAM_0006789",
+        "image_id": "ISIC_0024976",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s1",
+        "lesion_id": "HAM_0006789",
+        "image_id": "ISIC_0024976",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s1",
+        "lesion_id": "HAM_0006789",
+        "image_id": "ISIC_0024976",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_menzies",
+        "condition": "s2",
+        "lesion_id": "HAM_0006789",
+        "image_id": "ISIC_0024976",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s2",
+        "lesion_id": "HAM_0006789",
+        "image_id": "ISIC_0024976",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0006790",
+        "image_id": "ISIC_0028625",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "diagnostic_spcl",
+        "condition": "s0",
+        "lesion_id": "HAM_0006790",
+        "image_id": "ISIC_0028625",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0006792",
+        "image_id": "ISIC_0026460",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          "ollama_stream_deadline_real_cancel_2026_11_17"
+        ]
+      }
+    ],
+    "n_exception_old_mechanism_retried": 47,
+    "historical_duplicate_bug_pattern": [
+      {
+        "role": "summary",
+        "condition": "s1",
+        "lesion_id": "HAM_0002648",
+        "image_id": "ISIC_0027650",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0002699",
+        "image_id": "ISIC_0029827",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0002699",
+        "image_id": "ISIC_0029827",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0002745",
+        "image_id": "ISIC_0024562",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s0",
+        "lesion_id": "HAM_0002745",
+        "image_id": "ISIC_0024562",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s1",
+        "lesion_id": "HAM_0003086",
+        "image_id": "ISIC_0032349",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s0",
+        "lesion_id": "HAM_0002367",
+        "image_id": "ISIC_0034240",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004059",
+        "image_id": "ISIC_0029399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s1",
+        "lesion_id": "HAM_0004063",
+        "image_id": "ISIC_0032896",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0004064",
+        "image_id": "ISIC_0024399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s1",
+        "lesion_id": "HAM_0004064",
+        "image_id": "ISIC_0024399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s2",
+        "lesion_id": "HAM_0004064",
+        "image_id": "ISIC_0024399",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "summary",
+        "condition": "s0",
+        "lesion_id": "HAM_0004067",
+        "image_id": "ISIC_0029065",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0004068",
+        "image_id": "ISIC_0032492",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0004069",
+        "image_id": "ISIC_0029476",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      },
+      {
+        "role": "vlm_direto",
+        "condition": "s0",
+        "lesion_id": "HAM_0004070",
+        "image_id": "ISIC_0027657",
+        "n_real_attempts": 2,
+        "statuses_in_order": [
+          "falha_tecnica",
+          "ok"
+        ],
+        "mechanism_versions_in_order": [
+          null,
+          null
+        ]
+      }
+    ],
+    "n_historical_duplicate_bug_pattern": 17,
+    "unexplained_duplicate_same_mechanism": [],
+    "n_unexplained_duplicate_same_mechanism": 0
+  }
+}
