@@ -1,0 +1,255 @@
+<!doctype html><html lang='pt-br'><head><meta charset='utf-8'>
+<title>Galeria Grad-CAM -- CNN EfficientNetV2-S (classe-alvo: melanoma)</title>
+<style>body{font-family:sans-serif;margin:2em;}
+.card{display:inline-block;width:260px;vertical-align:top;margin:0.5em;border:1px solid #ccc;padding:0.5em;}
+.card img{width:100%;}
+.status-ok{color:#2a7;} .status-degenerate{color:#c80;} .status-falha{color:#c33;font-weight:bold;}
+</style></head><body>
+<h1>Galeria Grad-CAM qualitativa -- classe-alvo: melanoma (sempre)</h1>
+<p><strong>Aviso:</strong> análise qualitativa. Não comprova raciocínio clínico correto nem causalidade. Normalização min-max por imagem, independente entre imagens -- não compare magnitude absoluta entre mapas.</p>
+<p>Tempo total de geração: 5.4s para 40 imagens (0.13s/imagem em média). Lote inicial (até 40 imagens).</p>
+<h2>TP (10 casos)</h2>
+<div class='card'>
+<p><strong>HAM_0000107</strong> (ISIC_0033299)</p>
+<img src='images/TP_HAM_0000107_ISIC_0033299_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 1.0</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0000563</strong> (ISIC_0027900)</p>
+<img src='images/TP_HAM_0000563_ISIC_0027900_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.5157898664474487</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0000709</strong> (ISIC_0034006)</p>
+<img src='images/TP_HAM_0000709_ISIC_0034006_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.9879822134971619</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0000876</strong> (ISIC_0026531)</p>
+<img src='images/TP_HAM_0000876_ISIC_0026531_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.9592296481132507</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001607</strong> (ISIC_0028508)</p>
+<img src='images/TP_HAM_0001607_ISIC_0028508_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.9901054501533508</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001747</strong> (ISIC_0029575)</p>
+<img src='images/TP_HAM_0001747_ISIC_0029575_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.9999829530715942</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001986</strong> (ISIC_0025512)</p>
+<img src='images/TP_HAM_0001986_ISIC_0025512_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.9651808738708496</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0005084</strong> (ISIC_0028505)</p>
+<img src='images/TP_HAM_0005084_ISIC_0028505_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.9996240139007568</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0005400</strong> (ISIC_0029363)</p>
+<img src='images/TP_HAM_0005400_ISIC_0029363_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.10758568346500397</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0005724</strong> (ISIC_0030032)</p>
+<img src='images/TP_HAM_0005724_ISIC_0030032_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.7587421536445618</p>
+</div>
+<h2>TN (10 casos)</h2>
+<div class='card'>
+<p><strong>HAM_0000291</strong> (ISIC_0028263)</p>
+<img src='images/TN_HAM_0000291_ISIC_0028263_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.002588831353932619</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001059</strong> (ISIC_0029282)</p>
+<img src='images/TN_HAM_0001059_ISIC_0029282_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 2.0795403088413877e-06</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001296</strong> (ISIC_0028316)</p>
+<img src='images/TN_HAM_0001296_ISIC_0028316_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.0003252624301239848</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001414</strong> (ISIC_0024473)</p>
+<img src='images/TN_HAM_0001414_ISIC_0024473_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 1.6820541759443586e-06</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001799</strong> (ISIC_0028675)</p>
+<img src='images/TN_HAM_0001799_ISIC_0028675_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 9.357281101074477e-07</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0002808</strong> (ISIC_0031503)</p>
+<img src='images/TN_HAM_0002808_ISIC_0031503_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.00045219165622256696</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0003086</strong> (ISIC_0032349)</p>
+<img src='images/TN_HAM_0003086_ISIC_0032349_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 3.360464916113415e-06</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0003458</strong> (ISIC_0029613)</p>
+<img src='images/TN_HAM_0003458_ISIC_0029613_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.00011091895430581644</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0006855</strong> (ISIC_0030842)</p>
+<img src='images/TN_HAM_0006855_ISIC_0030842_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 5.413992766989395e-06</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0007487</strong> (ISIC_0030097)</p>
+<img src='images/TN_HAM_0007487_ISIC_0030097_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 3.930467210011557e-05</p>
+</div>
+<h2>FP (10 casos)</h2>
+<div class='card'>
+<p><strong>HAM_0000562</strong> (ISIC_0026166)</p>
+<img src='images/FP_HAM_0000562_ISIC_0026166_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.45045629143714905</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0000632</strong> (ISIC_0031070)</p>
+<img src='images/FP_HAM_0000632_ISIC_0031070_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.18867671489715576</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001264</strong> (ISIC_0034230)</p>
+<img src='images/FP_HAM_0001264_ISIC_0034230_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.7706506848335266</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001520</strong> (ISIC_0027294)</p>
+<img src='images/FP_HAM_0001520_ISIC_0027294_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.999160647392273</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001614</strong> (ISIC_0027591)</p>
+<img src='images/FP_HAM_0001614_ISIC_0027591_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.47147873044013977</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001858</strong> (ISIC_0033235)</p>
+<img src='images/FP_HAM_0001858_ISIC_0033235_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.8938116431236267</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0003347</strong> (ISIC_0032416)</p>
+<img src='images/FP_HAM_0003347_ISIC_0032416_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.15148401260375977</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0003623</strong> (ISIC_0033512)</p>
+<img src='images/FP_HAM_0003623_ISIC_0033512_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.15630783140659332</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0004033</strong> (ISIC_0027452)</p>
+<img src='images/FP_HAM_0004033_ISIC_0027452_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.19796620309352875</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0006108</strong> (ISIC_0024697)</p>
+<img src='images/FP_HAM_0006108_ISIC_0024697_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.6316353678703308</p>
+</div>
+<h2>FN (10 casos)</h2>
+<div class='card'>
+<p><strong>HAM_0000079</strong> (ISIC_0033752)</p>
+<img src='images/FN_HAM_0000079_ISIC_0033752_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.00026049744337797165</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0000645</strong> (ISIC_0024853)</p>
+<img src='images/FN_HAM_0000645_ISIC_0024853_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.0012200935743749142</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0000706</strong> (ISIC_0032918)</p>
+<img src='images/FN_HAM_0000706_ISIC_0032918_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.04245202615857124</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0000814</strong> (ISIC_0028109)</p>
+<img src='images/FN_HAM_0000814_ISIC_0028109_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 4.9769628276408184e-06</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001734</strong> (ISIC_0033496)</p>
+<img src='images/FN_HAM_0001734_ISIC_0033496_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 2.224316995125264e-05</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0001811</strong> (ISIC_0028579)</p>
+<img src='images/FN_HAM_0001811_ISIC_0028579_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.0014497027732431889</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0002131</strong> (ISIC_0030995)</p>
+<img src='images/FN_HAM_0002131_ISIC_0030995_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.00023026597045827657</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0005124</strong> (ISIC_0030150)</p>
+<img src='images/FN_HAM_0005124_ISIC_0030150_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.000972237263340503</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0005581</strong> (ISIC_0033337)</p>
+<img src='images/FN_HAM_0005581_ISIC_0033337_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.0001428844261681661</p>
+</div>
+<div class='card'>
+<p><strong>HAM_0006004</strong> (ISIC_0027702)</p>
+<img src='images/FN_HAM_0006004_ISIC_0027702_overlay.png' alt='Grad-CAM'>
+<p class='status-ok'>status: ok</p>
+<p>score (sigmoide, melanoma): 0.005353372078388929</p>
+</div>
+</body></html>
